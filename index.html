@@ -1115,7 +1115,7 @@ const _deviceId = Math.random().toString(36).slice(2);
 function scheduleSyncToCloud() {
   if (!sbUser) return;
   clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(syncToCloud, 3000);
+  _syncTimer = setTimeout(syncToCloud, 1500);
 }
 
 async function syncToCloud() {
@@ -1129,6 +1129,31 @@ async function syncToCloud() {
   } catch(e) {
     _setSyncStatus('⚠ Falha na sincronização', 'warn');
   }
+}
+
+// Sync imediato usando fetch keepalive — funciona mesmo ao fechar a aba
+function syncToCloudBeacon() {
+  if (!sbUser) return;
+  try {
+    const session = sb.auth.getSession();
+    // Obtém o token do usuário diretamente do localStorage do Supabase
+    const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+    const authData = storageKey ? JSON.parse(localStorage.getItem(storageKey) || '{}') : {};
+    const token = authData?.access_token;
+    if (!token) return;
+    const payload = JSON.stringify([{ user_id: sbUser.id, data: { ...S, _deviceId } }]);
+    fetch(`${SB_URL}/rest/v1/user_data`, {
+      method: 'POST',
+      keepalive: true,
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: payload
+    }).catch(() => {});
+  } catch(e) {}
 }
 
 async function loadFromCloud() {
@@ -1243,6 +1268,7 @@ function obFinish(){
   S.profile.currentDoseMg = dose;
   S.profile.weekDay = day;
   save();
+  syncToCloud(); // sync imediato ao concluir cadastro inicial
   document.getElementById('ob').hidden = true;
   renderAll();
 }
@@ -2587,6 +2613,10 @@ function authSignOut(btn) {
 
 /* ===== INIT ===== */
 load();
+
+// Garante sync ao fechar/recarregar a página — salva mesmo que o timer de 1.5s não tenha disparado
+window.addEventListener('pagehide', () => { syncToCloudBeacon(); });
+window.addEventListener('beforeunload', () => { syncToCloudBeacon(); });
 
 // Show auth gate for new users (not onboarded, no skip flag, no existing session)
 // Existing users with local data go straight to the app
