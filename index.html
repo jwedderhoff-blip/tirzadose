@@ -2519,10 +2519,16 @@ async function authSignUp() {
 
 async function authSignOut(btn) {
   if (btn) { btn.textContent = 'Saindo…'; btn.disabled = true; }
+  // Set a 5s timeout — if Supabase hangs, force logout anyway
+  const forceOut = setTimeout(() => {
+    try { localStorage.removeItem('tirza_skip_auth'); } catch{}
+    location.reload();
+  }, 5000);
   try {
-    if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
-    await sb.auth.signOut();
+    if (_realtimeChannel) { try { sb.removeChannel(_realtimeChannel); } catch{} _realtimeChannel = null; }
+    await sb.auth.signOut({ scope: 'local' });
   } catch(e) {}
+  clearTimeout(forceOut);
   sbUser = null;
   try { localStorage.removeItem('tirza_skip_auth'); } catch{}
   _renderAuthCard();
