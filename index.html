@@ -629,172 +629,38 @@ input, select, textarea { font-family: var(--f); }
       </div>
     </div>
 
-    <!-- TAB: INFO -->
+    <!-- TAB: PERFIL -->
     <div class="panel" id="p-info">
-      <div style="position:relative;overflow:hidden;min-height:130px;">
-        <img src="img-exercicio.png" alt="Caminhada e exercícios" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;">
-        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.72),rgba(61,110,74,.45))"></div>
-        <div style="position:relative;padding:20px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));">
-          <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Informações &amp; Guia</div>
-          <div style="color:#fff;font-family:var(--fd);font-size:24px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Sobre o<br><em>Tratamento</em></div>
+      <!-- Profile Hero — rendered dynamically -->
+      <div id="perfil-hero" style="background:linear-gradient(135deg,#2D5A3D,#4A7C59);padding:28px max(16px,env(safe-area-inset-left,0px)) 24px;padding-right:max(16px,env(safe-area-inset-right,0px))">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div id="perfil-avatar" style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.18);border:2.5px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--fd)">?</div>
+          <div>
+            <div id="perfil-name" style="color:#fff;font-family:var(--fd);font-size:22px;font-weight:400;line-height:1.2">Meu Perfil</div>
+            <div id="perfil-sub" style="color:rgba(255,255,255,.7);font-size:12px;margin-top:3px">Configure seu tratamento</div>
+          </div>
+          <button onclick="openProfileModal()" style="margin-left:auto;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">✏️ Editar</button>
         </div>
+        <div id="perfil-stats-hero" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:20px"></div>
       </div>
       <div class="inner">
-        <div class="card">
-          <div class="card-title">Protocolo de Doses</div>
-          <div class="tw"><table class="rt">
-            <thead><tr><th>Semanas</th><th>Dose</th><th>Objetivo</th></tr></thead>
-            <tbody>
-              <tr><td>1–4</td><td><span class="tag">2,5 mg</span></td><td>Adaptação — sem objetivo glicêmico</td></tr>
-              <tr><td>5–8</td><td><span class="tag">5 mg</span></td><td>1ª dose terapêutica efetiva</td></tr>
-              <tr><td>9–12</td><td><span class="tag">7,5 mg</span></td><td>Aumento opcional</td></tr>
-              <tr><td>13–16</td><td><span class="tag">10 mg</span></td><td>Titulação</td></tr>
-              <tr><td>17–20</td><td><span class="tag">12,5 mg</span></td><td>Titulação</td></tr>
-              <tr><td>21+</td><td><span class="tag max">15 mg</span></td><td>Dose máxima (adultos)</td></tr>
-            </tbody>
-          </table></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Contraindicações Absolutas</div>
-          <div class="callout danger" style="margin-bottom:8px"><span class="ci">✕</span><span><strong>Carcinoma medular de tireoide (CMT)</strong> — histórico pessoal ou familiar</span></div>
-          <div class="callout danger" style="margin-bottom:8px"><span class="ci">✕</span><span><strong>Neoplasia Endócrina Múltipla tipo 2 (NEM 2)</strong></span></div>
-          <div class="callout danger"><span class="ci">✕</span><span><strong>Hipersensibilidade</strong> à tirzepatida ou excipientes</span></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Alertas Importantes</div>
-          <div class="callout warn" style="margin-bottom:8px"><span class="ci">⚠</span><span><strong>Pancreatite:</strong> suspeita → suspender imediatamente. Confirmada → não reiniciar.</span></div>
-          <div class="callout warn" style="margin-bottom:8px"><span class="ci">⚠</span><span><strong>Hipoglicemia:</strong> risco aumentado ao combinar com insulina ou sulfonilureias.</span></div>
-          <div class="callout warn" style="margin-bottom:8px"><span class="ci">⚠</span><span><strong>Gravidez:</strong> não recomendado. Suspender ao menos 1 mês antes de engravidar.</span></div>
-          <div class="callout warn"><span class="ci">⚠</span><span><strong>Nódulo / massa cervical:</strong> relatar ao médico — monitorar células C da tireoide.</span></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Efeitos Adversos Comuns</div>
-          <div class="tw"><table class="rt">
-            <thead><tr><th>Efeito</th><th>Frequência</th><th>Observação</th></tr></thead>
-            <tbody>
-              <tr><td>Náusea</td><td>Muito comum (&gt;10%)</td><td>Transitória; piora com aumentos de dose</td></tr>
-              <tr><td>Diarreia</td><td>Muito comum</td><td>Hidratação adequada</td></tr>
-              <tr><td>Vômitos</td><td>Comum</td><td>Refeições menores ajudam</td></tr>
-              <tr><td>Constipação</td><td>Comum</td><td>Fibras + hidratação</td></tr>
-              <tr><td>Dor abdominal</td><td>Comum</td><td>Reportar se intensa ou persistente</td></tr>
-            </tbody>
-          </table></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Locais e Técnica de Aplicação</div>
-          <div class="callout info"><span class="ci">ℹ</span><span>Rodizio entre 6 locais a cada aplicação. Evitar no mesmo local por 2 semanas.</span></div>
-          <div class="tw"><table class="rt">
-            <thead><tr><th>Local</th><th>Instrução</th></tr></thead>
-            <tbody>
-              <tr><td>Abdome (esq/dir)</td><td>Evitar 5 cm ao redor do umbigo</td></tr>
-              <tr><td>Coxa (esq/dir)</td><td>Parte anterior/lateral superior</td></tr>
-              <tr><td>Braço (esq/dir)</td><td>Parte posterior, somente com auxílio</td></tr>
-            </tbody>
-          </table></div>
-          <p class="t-m" style="margin-top:8px">Ângulo 90°. Manter por 5 segundos após injetar. Temperatura ambiente (30 min fora da geladeira).</p>
-        </div>
-        <!-- ATIVIDADE FÍSICA -->
-        <div style="background:linear-gradient(135deg,#C96A2B,#E08C48 60%,#EAA050);padding:18px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));margin-bottom:14px;">
-          <div style="max-width:640px;margin:0 auto;">
-            <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Movimento & Saúde</div>
-            <div style="color:#fff;font-family:var(--fd);font-size:24px;line-height:1.2;margin-bottom:4px;">Atividade Física<br><em style="opacity:.85">com Tirzepatida</em></div>
-            <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:6px;">Sempre com acompanhamento de profissional de saúde</div>
-            <div style="display:flex;gap:10px;margin-top:10px;font-size:20px;">🚶 🏋️ 🧘 🚴 💪</div>
-          </div>
-        </div>
-        <div class="callout warn"><span class="ci">⚠</span><span>As orientações abaixo são <strong>educativas e de caráter geral</strong>. Consulte seu médico e/ou educador físico antes de iniciar ou modificar qualquer atividade física.</span></div>
 
+        <!-- COMPARTILHAR EVOLUÇÃO -->
         <div class="card">
-          <div class="card-title">🚶 Caminhada — o ponto de partida</div>
-          <p style="font-size:14px;line-height:1.7;margin-bottom:10px;">A <strong>caminhada leve</strong> é a atividade mais acessível e indicada para quem está iniciando ou retomando a prática de exercícios durante o tratamento com tirzepatida.</p>
-          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
-            <div class="h-dot ok"></div>
-            <div class="h-main"><div class="h-title" style="font-size:13px">Iniciantes</div><div class="h-meta">10–15 min/dia, ritmo confortável, aumentar gradualmente</div></div>
+          <div class="card-title">📤 Compartilhar minha evolução</div>
+          <p class="t-m" style="margin-bottom:12px">Gere um card personalizado com sua evolução para compartilhar no WhatsApp, Instagram ou onde quiser.</p>
+          <canvas id="share-canvas" style="width:100%;border-radius:10px;display:block;margin-bottom:12px;border:1px solid var(--border)"></canvas>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-p" style="flex:1" onclick="generateShareCard()">🔄 Gerar card</button>
+            <button class="btn btn-o" style="flex:1" id="share-btn" onclick="shareCard()" disabled>↗ Compartilhar</button>
           </div>
-          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
-            <div class="h-dot ok"></div>
-            <div class="h-main"><div class="h-title" style="font-size:13px">Meta progressiva</div><div class="h-meta">Evoluir para 30 min/dia, 5x por semana (conforme tolerância)</div></div>
-          </div>
-          <div class="h-item" style="padding:8px 0;border-bottom:none">
-            <div class="h-dot ok"></div>
-            <div class="h-main"><div class="h-title" style="font-size:13px">Pode ser dividida</div><div class="h-meta">3× de 10 min é equivalente a 30 min contínuos para saúde cardiovascular</div></div>
-          </div>
-          <div class="callout info" style="margin-top:10px;margin-bottom:0"><span class="ci">💡</span><span>Caminhe em superfície plana e segura, use tênis adequado e hidrate-se antes, durante e após.</span></div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">🏋️ Exercícios de força — preservação muscular</div>
-          <p style="font-size:14px;line-height:1.7;margin-bottom:10px;">A tirzepatida reduz gordura infiltrada no músculo (<em>muscle fat infiltration</em>), mas parte da perda de peso pode envolver massa magra. Exercícios de resistência são a principal estratégia para preservar músculo durante o tratamento — em conjunto com proteína adequada.*</p>
-          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
-            <div class="h-dot" style="background:var(--ac-2)"></div>
-            <div class="h-main"><div class="h-title" style="font-size:13px">Frequência sugerida</div><div class="h-meta">2–3 sessões por semana (orientação geral; confira com seu profissional)</div></div>
-          </div>
-          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
-            <div class="h-dot" style="background:var(--ac-2)"></div>
-            <div class="h-main"><div class="h-title" style="font-size:13px">Exercícios compostos</div><div class="h-meta">Agachamento, leg press, supino, remada — recrutam grandes grupos musculares</div></div>
-          </div>
-          <div class="h-item" style="padding:8px 0;border-bottom:none">
-            <div class="h-dot" style="background:var(--ac-2)"></div>
-            <div class="h-main"><div class="h-title" style="font-size:13px">Alternativas sem academia</div><div class="h-meta">Elásticos, peso corporal (flexão, agachamento), caminhada em inclinação</div></div>
-          </div>
-          <p style="font-size:11px;color:var(--fg-m);margin-top:10px;line-height:1.5">* Evidência de revisão acadêmica (Univ. Florença, 2024): tirzepatida melhora composição muscular ao reduzir infiltração de gordura; exercício resistido + proteína adequada são os determinantes-chave de preservação de massa magra.</p>
-        </div>
-
-        <div class="card">
-          <div class="card-title">💉 Dia da aplicação e dia seguinte</div>
-          <div class="callout warn" style="margin-bottom:10px"><span class="ci">⚠</span><span>Náuseas são mais comuns nos dias após a aplicação, especialmente durante ajustes de dose. Ajuste o exercício conforme o seu bem-estar.</span></div>
-          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
-            <div class="h-dot warn"></div>
-            <div class="h-main"><div class="h-title" style="font-size:13px">Dia da aplicação</div><div class="h-meta">Prefira atividades leves — caminhada curta ou alongamento</div></div>
-          </div>
-          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
-            <div class="h-dot warn"></div>
-            <div class="h-main"><div class="h-title" style="font-size:13px">Dia seguinte (enjoo)</div><div class="h-meta">Hidratação, repouso; exercícios intensos podem agravar náusea</div></div>
-          </div>
-          <div class="h-item" style="padding:8px 0;border-bottom:none">
-            <div class="h-dot ok"></div>
-            <div class="h-main"><div class="h-title" style="font-size:13px">Dias 3–7 pós-aplicação</div><div class="h-meta">Janela ideal para treinos mais intensos — efeitos colaterais costumam diminuir</div></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">🧘 Outras atividades recomendadas</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div style="background:var(--bg-warm);border-radius:var(--r);padding:12px;border:1px solid var(--border);text-align:center">
-              <div style="font-size:24px;margin-bottom:4px">🚴</div>
-              <div style="font-size:13px;font-weight:600">Bike / Ergométrica</div>
-              <div style="font-size:11px;color:var(--fg-m);margin-top:2px">Baixo impacto nas articulações</div>
-            </div>
-            <div style="background:var(--bg-warm);border-radius:var(--r);padding:12px;border:1px solid var(--border);text-align:center">
-              <div style="font-size:24px;margin-bottom:4px">🏊</div>
-              <div style="font-size:13px;font-weight:600">Natação / Hidroginástica</div>
-              <div style="font-size:11px;color:var(--fg-m);margin-top:2px">Excelente para mobilidade</div>
-            </div>
-            <div style="background:var(--bg-warm);border-radius:var(--r);padding:12px;border:1px solid var(--border);text-align:center">
-              <div style="font-size:24px;margin-bottom:4px">🧘</div>
-              <div style="font-size:13px;font-weight:600">Yoga / Pilates</div>
-              <div style="font-size:11px;color:var(--fg-m);margin-top:2px">Equilíbrio e flexibilidade</div>
-            </div>
-            <div style="background:var(--bg-warm);border-radius:var(--r);padding:12px;border:1px solid var(--border);text-align:center">
-              <div style="font-size:24px;margin-bottom:4px">🤸</div>
-              <div style="font-size:13px;font-weight:600">Alongamento diário</div>
-              <div style="font-size:11px;color:var(--fg-m);margin-top:2px">5–10 min ao acordar</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card" style="border-color:var(--ac);background:var(--ac-lt)">
-          <div class="card-title" style="color:var(--ac)">✅ O que priorizar no tratamento</div>
-          <div class="h-item" style="padding:6px 0;border-bottom:1px solid var(--border)"><div class="h-dot ok"></div><div class="h-main"><div style="font-size:13px;font-weight:600">Consistência acima de intensidade</div><div class="h-meta">Pouco todo dia supera muito eventualmente</div></div></div>
-          <div class="h-item" style="padding:6px 0;border-bottom:1px solid var(--border)"><div class="h-dot ok"></div><div class="h-main"><div style="font-size:13px;font-weight:600">Hidratação constante</div><div class="h-meta">Tirzepatida aumenta risco de desidratação (náusea/vômito)</div></div></div>
-          <div class="h-item" style="padding:6px 0;border-bottom:1px solid var(--border)"><div class="h-dot ok"></div><div class="h-main"><div style="font-size:13px;font-weight:600">Proteína + exercício de força</div><div class="h-meta">Combinação mais eficaz para preservar músculo (evidência acadêmica)</div></div></div>
-          <div class="h-item" style="padding:6px 0;border-bottom:none"><div class="h-dot ok"></div><div class="h-main"><div style="font-size:13px;font-weight:600">Acompanhamento profissional</div><div class="h-meta">Médico + nutricionista + educador físico — trio ideal</div></div></div>
+          <div id="share-status" style="margin-top:8px"></div>
         </div>
 
         <!-- NOTIFICAÇÕES -->
         <div class="card" style="margin-top:4px">
           <div class="card-title">🔔 Lembretes &amp; Avisos</div>
-          <p class="t-m" style="margin-bottom:12px">Ative para receber lembretes de hidratação e aviso no dia da aplicação. O celular precisa estar desbloqueado para receber as notificações.</p>
+          <p class="t-m" style="margin-bottom:12px">Ative para receber lembretes de hidratação e aviso no dia da aplicação.</p>
           <div id="notif-status" style="margin-bottom:10px"></div>
           <div style="display:flex;flex-direction:column;gap:8px">
             <button class="btn btn-p btn-w" id="btn-notif-enable" onclick="enableNotifications()">Ativar notificações</button>
@@ -829,14 +695,75 @@ input, select, textarea { font-family: var(--f); }
           </form>
         </div>
 
+        <!-- INFORMAÇÕES MÉDICAS (colapsável) -->
+        <div class="card" style="margin-top:4px">
+          <button onclick="toggleMedInfo()" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:14px;font-weight:600;font-family:var(--f)">
+            <span>ℹ Informações médicas do tratamento</span>
+            <span id="med-info-arrow" style="color:var(--ac);font-size:18px;transition:transform .2s">▸</span>
+          </button>
+          <div id="med-info-content" hidden style="margin-top:14px">
+            <div style="margin-bottom:12px">
+              <div class="card-title">Protocolo de Doses</div>
+              <div class="tw"><table class="rt">
+                <thead><tr><th>Semanas</th><th>Dose</th><th>Objetivo</th></tr></thead>
+                <tbody>
+                  <tr><td>1–4</td><td><span class="tag">2,5 mg</span></td><td>Adaptação — sem objetivo glicêmico</td></tr>
+                  <tr><td>5–8</td><td><span class="tag">5 mg</span></td><td>1ª dose terapêutica efetiva</td></tr>
+                  <tr><td>9–12</td><td><span class="tag">7,5 mg</span></td><td>Aumento opcional</td></tr>
+                  <tr><td>13–16</td><td><span class="tag">10 mg</span></td><td>Titulação</td></tr>
+                  <tr><td>17–20</td><td><span class="tag">12,5 mg</span></td><td>Titulação</td></tr>
+                  <tr><td>21+</td><td><span class="tag max">15 mg</span></td><td>Dose máxima (adultos)</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div style="margin-bottom:10px">
+              <div class="card-title">Contraindicações Absolutas</div>
+              <div class="callout danger" style="margin-bottom:8px"><span class="ci">✕</span><span><strong>Carcinoma medular de tireoide (CMT)</strong> — histórico pessoal ou familiar</span></div>
+              <div class="callout danger" style="margin-bottom:8px"><span class="ci">✕</span><span><strong>Neoplasia Endócrina Múltipla tipo 2 (NEM 2)</strong></span></div>
+              <div class="callout danger"><span class="ci">✕</span><span><strong>Hipersensibilidade</strong> à tirzepatida ou excipientes</span></div>
+            </div>
+            <div style="margin-bottom:10px">
+              <div class="card-title">Alertas Importantes</div>
+              <div class="callout warn" style="margin-bottom:8px"><span class="ci">⚠</span><span><strong>Pancreatite:</strong> suspeita → suspender imediatamente.</span></div>
+              <div class="callout warn" style="margin-bottom:8px"><span class="ci">⚠</span><span><strong>Hipoglicemia:</strong> risco aumentado com insulina ou sulfonilureias.</span></div>
+              <div class="callout warn" style="margin-bottom:8px"><span class="ci">⚠</span><span><strong>Gravidez:</strong> não recomendado. Suspender 1 mês antes.</span></div>
+              <div class="callout warn"><span class="ci">⚠</span><span><strong>Nódulo cervical:</strong> relatar ao médico.</span></div>
+            </div>
+            <div style="margin-bottom:10px">
+              <div class="card-title">Efeitos Adversos Comuns</div>
+              <div class="tw"><table class="rt">
+                <thead><tr><th>Efeito</th><th>Frequência</th><th>Observação</th></tr></thead>
+                <tbody>
+                  <tr><td>Náusea</td><td>Muito comum</td><td>Transitória; piora com aumentos de dose</td></tr>
+                  <tr><td>Diarreia</td><td>Muito comum</td><td>Hidratação adequada</td></tr>
+                  <tr><td>Vômitos</td><td>Comum</td><td>Refeições menores ajudam</td></tr>
+                  <tr><td>Constipação</td><td>Comum</td><td>Fibras + hidratação</td></tr>
+                  <tr><td>Dor abdominal</td><td>Comum</td><td>Reportar se intensa ou persistente</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div>
+              <div class="card-title">Locais de Aplicação</div>
+              <div class="callout info"><span class="ci">ℹ</span><span>Rodizio entre 6 locais. Evitar o mesmo local por 2 semanas.</span></div>
+              <div class="tw"><table class="rt" style="margin-top:8px">
+                <thead><tr><th>Local</th><th>Instrução</th></tr></thead>
+                <tbody>
+                  <tr><td>Abdome (esq/dir)</td><td>Evitar 5 cm ao redor do umbigo</td></tr>
+                  <tr><td>Coxa (esq/dir)</td><td>Parte anterior/lateral superior</td></tr>
+                  <tr><td>Braço (esq/dir)</td><td>Parte posterior, com auxílio</td></tr>
+                </tbody>
+              </table></div>
+              <p class="t-m" style="margin-top:8px">Ângulo 90°. Manter por 5 seg após injetar. 30 min fora da geladeira antes.</p>
+            </div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-title">Avisos legais</div>
-          <p class="t-m">Este aplicativo é uma ferramenta auxiliar de acompanhamento pessoal e NÃO substitui o acompanhamento médico. Todas as decisões clínicas devem ser tomadas em conjunto com o seu médico e/ou farmacêutico. Informações baseadas na bula Mounjaro (Eli Lilly, 2025), bula EMA e revisão acadêmica Univ. Florença (2024).</p>
+          <p class="t-m">Este aplicativo é uma ferramenta auxiliar de acompanhamento pessoal e NÃO substitui o acompanhamento médico. Informações baseadas na bula Mounjaro (Eli Lilly, 2025), bula EMA e revisão acadêmica Univ. Florença (2024).</p>
         </div>
-        <div class="card" style="margin-top:12px">
-          <div class="card-title">Meu Perfil</div>
-          <div id="profile-summary" style="margin-bottom:12px"></div>
-          <button class="btn btn-o btn-w" onclick="openProfileModal()">✏️ Editar meus dados</button>
+        <div class="card" style="margin-top:4px" hidden>
+          <div id="profile-summary"></div>
         </div>
         <div class="card" style="margin-top:4px">
           <div class="card-title">Dados de Demonstração</div>
@@ -857,6 +784,7 @@ input, select, textarea { font-family: var(--f); }
             <div class="row"><button class="btn btn-g btn-sm" onclick="document.getElementById('resetConfirm').hidden=true">Cancelar</button><button class="btn btn-d btn-sm" onclick="doReset()">Confirmar apagar tudo</button></div>
           </div>
         </div>
+
       </div>
     </div>
     </div>
@@ -883,8 +811,8 @@ input, select, textarea { font-family: var(--f); }
       Dieta
     </button>
     <button class="nb" onclick="goTab('info',this)" id="nb-info">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-      Info
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Perfil
     </button>
   </nav>
 </div>
@@ -1231,6 +1159,7 @@ function goTab(name, btn){
   if(name==='inicio') renderInicio();
   if(name==='app') renderApp();
   if(name==='diet') renderDiet();
+  if(name==='info') renderPerfilTab();
 }
 
 /* ===== MODALS ===== */
@@ -2369,6 +2298,226 @@ async function submitFeedback(e) {
   }
   btn.disabled = false;
   btn.textContent = 'Enviar feedback';
+}
+
+/* ===== PERFIL TAB ===== */
+function renderPerfilTab() {
+  const p = S.profile;
+
+  // Avatar initials
+  const av = document.getElementById('perfil-avatar');
+  if (av) {
+    if (p.name) {
+      const initials = p.name.trim().split(/\s+/).map(w => w[0].toUpperCase()).slice(0,2).join('');
+      av.textContent = initials;
+      av.style.fontSize = '22px';
+    } else {
+      av.textContent = '?';
+    }
+  }
+
+  // Name & subtitle
+  const nm = document.getElementById('perfil-name');
+  if (nm) nm.textContent = p.name || 'Meu Perfil';
+
+  const sub = document.getElementById('perfil-sub');
+  if (sub) {
+    if (p.startDate && p.weekDay) {
+      const weeks = Math.floor((new Date() - new Date(p.startDate)) / (7 * 86400000));
+      sub.textContent = `${weeks} semana${weeks !== 1 ? 's' : ''} de tratamento · ${p.currentDoseMg || '?'} mg`;
+    } else {
+      sub.textContent = 'Configure seu tratamento';
+    }
+  }
+
+  // Stats hero grid
+  const sh = document.getElementById('perfil-stats-hero');
+  if (!sh) return;
+
+  const startW = p.weightKg || null;
+  const weights = (S.weights || []).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const curW = weights.length ? weights[weights.length-1].kg : startW;
+  const lost = (startW && curW) ? (startW - curW).toFixed(1) : null;
+  const apps = S.applications || [];
+  const weeks = p.startDate ? Math.floor((new Date() - new Date(p.startDate)) / (7 * 86400000)) : 0;
+
+  function statBox(val, label, color) {
+    return `<div style="background:rgba(255,255,255,.15);border-radius:10px;padding:10px 6px;text-align:center">
+      <div style="color:#fff;font-size:18px;font-weight:700;font-family:var(--fd)">${val}</div>
+      <div style="color:rgba(255,255,255,.75);font-size:10px;margin-top:2px;text-transform:uppercase;letter-spacing:.06em">${label}</div>
+    </div>`;
+  }
+
+  sh.innerHTML =
+    statBox(weeks, 'Semanas') +
+    statBox(apps.length, 'Aplicações') +
+    statBox(curW ? curW + ' kg' : '—', 'Peso atual') +
+    statBox(lost !== null ? (lost >= 0 ? '-' : '+') + Math.abs(lost) + ' kg' : '—', 'Evolução');
+
+  // Update profile-summary (old hidden card)
+  const ps = document.getElementById('profile-summary');
+  if (ps && p.name) {
+    ps.innerHTML = `<div style="font-size:14px"><strong>${p.name}</strong><br>
+      <span class="t-m">${p.weightKg ? p.weightKg + ' kg' : ''} ${p.heightCm ? '· ' + p.heightCm + ' cm' : ''} ${p.currentDoseMg ? '· ' + p.currentDoseMg + ' mg' : ''}</span></div>`;
+  }
+}
+
+/* ===== COLLAPSIBLE MEDICAL INFO ===== */
+function toggleMedInfo() {
+  const content = document.getElementById('med-info-content');
+  const arrow = document.getElementById('med-info-arrow');
+  if (!content) return;
+  content.hidden = !content.hidden;
+  if (arrow) arrow.style.transform = content.hidden ? '' : 'rotate(90deg)';
+}
+
+/* ===== SHARE CARD (Canvas) ===== */
+let shareCardBlob = null;
+
+function generateShareCard() {
+  const canvas = document.getElementById('share-canvas');
+  const status = document.getElementById('share-status');
+  const shareBtn = document.getElementById('share-btn');
+  if (!canvas) return;
+
+  const W = 1080, H = 1080;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, '#2D5A3D');
+  grad.addColorStop(0.6, '#4A7C59');
+  grad.addColorStop(1, '#3D6B4A');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Decorative circles
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.beginPath(); ctx.arc(W * 0.85, H * 0.15, 220, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(W * 0.1, H * 0.85, 160, 0, Math.PI * 2); ctx.fill();
+
+  // App name
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = '500 40px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('TirzaDose', W/2, 90);
+
+  // Separator line
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W*0.3, 110); ctx.lineTo(W*0.7, 110); ctx.stroke();
+
+  const p = S.profile;
+  const weights = (S.weights || []).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const startW = p.weightKg || null;
+  const curW = weights.length ? weights[weights.length-1].kg : startW;
+  const lost = (startW && curW) ? (startW - curW) : null;
+  const apps = S.applications || [];
+  const weeks = p.startDate ? Math.floor((new Date() - new Date(p.startDate)) / (7 * 86400000)) : 0;
+
+  // User name
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 72px Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(p.name || 'Minha Jornada', W/2, 210);
+
+  // Subtitle
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = '400 38px system-ui, sans-serif';
+  ctx.fillText('Minha evolução com tirzepatida', W/2, 270);
+
+  // Stats boxes
+  const stats = [
+    { val: weeks + '', label: 'semanas' },
+    { val: apps.length + '', label: 'aplicações' },
+    { val: curW ? curW + ' kg' : '—', label: 'peso atual' },
+    { val: lost !== null ? (lost >= 0 ? '-' : '+') + Math.abs(lost).toFixed(1) + ' kg' : '—', label: 'evolução' }
+  ];
+
+  const boxW = 220, boxH = 200, gap = 30;
+  const totalW = stats.length * boxW + (stats.length - 1) * gap;
+  const startX = (W - totalW) / 2;
+  const boxY = 340;
+
+  stats.forEach((s, i) => {
+    const x = startX + i * (boxW + gap);
+    // Box background
+    ctx.fillStyle = 'rgba(255,255,255,0.14)';
+    ctx.beginPath();
+    ctx.roundRect(x, boxY, boxW, boxH, 20);
+    ctx.fill();
+    // Value
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 56px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(s.val, x + boxW/2, boxY + 100);
+    // Label
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.font = '400 28px system-ui, sans-serif';
+    ctx.fillText(s.label, x + boxW/2, boxY + 148);
+  });
+
+  // Dose badge
+  if (p.currentDoseMg) {
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.beginPath(); ctx.roundRect(W/2 - 160, 590, 320, 80, 40); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 36px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Dose atual: ' + p.currentDoseMg + ' mg', W/2, 640);
+  }
+
+  // Date
+  const dateStr = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '400 30px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(dateStr, W/2, H - 60);
+
+  // Watermark
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '400 24px system-ui, sans-serif';
+  ctx.fillText('tirzadose.app', W/2, H - 25);
+
+  // Convert to blob for sharing
+  canvas.toBlob(blob => {
+    shareCardBlob = blob;
+    if (shareBtn) shareBtn.disabled = false;
+    if (status) status.innerHTML = '<div class="callout" style="background:rgba(74,124,89,.15);border-color:#4A7C59"><span class="ci" style="color:#4A7C59">✓</span><span style="color:#4A7C59">Card gerado! Clique em Compartilhar.</span></div>';
+  }, 'image/png');
+}
+
+async function shareCard() {
+  if (!shareCardBlob) return;
+  const p = S.profile;
+  const file = new File([shareCardBlob], 'tirzadose-evolucao.png', { type: 'image/png' });
+  const status = document.getElementById('share-status');
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: 'Minha evolução — TirzaDose',
+        text: `${p.name ? p.name + ' — ' : ''}Acompanhando meu tratamento com tirzepatida pelo TirzaDose 💉`
+      });
+    } catch(e) {
+      if (e.name !== 'AbortError') fallbackDownload();
+    }
+  } else {
+    fallbackDownload();
+  }
+}
+
+function fallbackDownload() {
+  if (!shareCardBlob) return;
+  const url = URL.createObjectURL(shareCardBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tirzadose-evolucao.png';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
