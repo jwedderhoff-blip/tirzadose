@@ -682,9 +682,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         <div class="callout info" style="margin-bottom:10px"><span class="ci">ℹ</span><span>Sugestões baseadas em ingredientes acessíveis no Brasil. Personalize em <strong>⚙ Preferências</strong>. Confirme sempre com seu nutricionista. <span style="color:var(--warn)">⚠ Dias com enjoo marcados automaticamente pelo dia de aplicação.</span></span></div>
         <div id="meal-plan-container"></div>
         <div class="divider"></div>
-        <div class="sec-title">Nutrição registrada — Histórico</div>
-        <div class="card" id="diet-history"></div>
-        <div class="sec-title" style="margin-top:16px">Dicas do Tratamento</div>
+        <div class="sec-title" style="margin-top:16px">Dicas do Acompanhamento</div>
         <div id="diet-tips"></div>
       </div>
     </div>
@@ -1962,21 +1960,6 @@ function renderDiet(){
     ${pct >= 100 ? '<div class="callout ok" style="margin-top:10px"><span class="ci">✓</span><span>Meta de proteína atingida hoje!</span></div>' : ''}
     <button class="btn btn-o btn-sm btn-w" style="margin-top:12px" onclick="openDietModal()">+ Registrar refeição</button>
   `;
-
-  const hist = document.getElementById('diet-history');
-  const sorted = [...S.dietLogs].sort((a,b)=>a.date<b.date?1:-1).slice(0,10);
-  if(!sorted.length){
-    hist.innerHTML = '<div class="empty"><div class="empty-t">Sem registros</div><div class="empty-s">Comece registrando suas refeições.</div></div>';
-  } else {
-    hist.innerHTML = sorted.map(d=>`<div class="h-item">
-      <div class="h-dot ok"></div>
-      <div class="h-main">
-        <div class="h-title">${d.proteinG}g proteína${d.caloriesKcal?' · '+d.caloriesKcal+' kcal':''}</div>
-        <div class="h-meta">${fmtD(d.date)}${d.notes?' · '+d.notes:''}</div>
-      </div>
-      <div class="h-right"><button class="del-btn" onclick="deleteDiet('${d.id}')">excluir</button></div>
-    </div>`).join('');
-  }
 
   // Tips based on treatment week
   const weeksSince = prof.startDate ? Math.floor(diffDays(prof.startDate, today())/7) : 0;
