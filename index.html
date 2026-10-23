@@ -372,7 +372,7 @@ input, select, textarea { font-family: var(--f); }
 .meal-slot { padding: 11px 16px; border-bottom: 1px solid var(--border); }
 .meal-slot:last-child { border-bottom: none; }
 .meal-slot-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.meal-icon { font-size: 15px; line-height: 1; }
+.meal-icon { width: 28px; height: 28px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
 .meal-slot-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); }
 .meal-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; line-height: 1.4; color: var(--fg); }
 .meal-ingr { font-size: 12px; color: var(--fg-m); }
@@ -471,12 +471,12 @@ input, select, textarea { font-family: var(--f); }
 
     <!-- TAB: APLICAÇÕES -->
     <div class="panel" id="p-app">
-      <div style="position:relative;overflow:hidden;min-height:130px;">
-        <img src="img-aplicacoes.png" alt="Aplicação do tratamento" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;">
-        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.75),rgba(61,110,74,.5))"></div>
-        <div style="position:relative;padding:20px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));">
+      <div style="position:relative;overflow:hidden;">
+        <img src="img-aplicacoes.png" alt="" style="width:100%;height:160px;object-fit:cover;object-position:center 30%;display:block;">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.78),rgba(61,110,74,.52))"></div>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 max(16px,env(safe-area-inset-left,0px));">
           <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Controle Semanal</div>
-          <div style="color:#fff;font-family:var(--fd);font-size:24px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Suas<br><em>Aplicações</em></div>
+          <div style="color:#fff;font-family:var(--fd);font-size:26px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Suas<br><em>Aplicações</em></div>
         </div>
       </div>
       <div class="inner">
@@ -571,12 +571,12 @@ input, select, textarea { font-family: var(--f); }
 
     <!-- TAB: PROGRESSO -->
     <div class="panel" id="p-prog">
-      <div style="position:relative;overflow:hidden;min-height:130px;">
-        <img src="img-progresso.png" alt="Acompanhamento de progresso" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
-        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.75),rgba(61,110,74,.5))"></div>
-        <div style="position:relative;padding:20px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));">
+      <div style="position:relative;overflow:hidden;">
+        <img src="img-progresso.png" alt="" style="width:100%;height:160px;object-fit:cover;object-position:center;display:block;">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.78),rgba(61,110,74,.52))"></div>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 max(16px,env(safe-area-inset-left,0px));">
           <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Evolução do Tratamento</div>
-          <div style="color:#fff;font-family:var(--fd);font-size:24px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu<br><em>Progresso</em></div>
+          <div style="color:#fff;font-family:var(--fd);font-size:26px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu<br><em>Progresso</em></div>
         </div>
       </div>
       <div class="inner">
@@ -1906,10 +1906,10 @@ function renderMealPlan(){
   if(!el) return;
   el.innerHTML = _currentPlan.map(day=>{
     const slots = [
-      {icon:'☀️',label:'Café da manhã',meal:day.cafe},
-      {icon:'🥗',label:'Almoço',meal:day.almoco},
-      {icon:'🌙',label:'Jantar',meal:day.jantar},
-      {icon:'🍎',label:'Lanche',meal:day.lanche},
+      {icon:'icon-cafe.png',label:'Café da manhã',meal:day.cafe},
+      {icon:'icon-almoco.png',label:'Almoço',meal:day.almoco},
+      {icon:'icon-jantar.png',label:'Jantar',meal:day.jantar},
+      {icon:'icon-lanche.png',label:'Lanche',meal:day.lanche},
     ];
     const slotsHtml = slots.map(s=>{
       const ingrHtml = s.meal.ingr.map(i=>{
@@ -1917,7 +1917,7 @@ function renderMealPlan(){
         return avoided.includes(i) ? `<span style="color:var(--warn);text-decoration:line-through">${lbl}</span>` : `<span>${lbl}</span>`;
       }).join(' · ');
       return `<div class="meal-slot">
-        <div class="meal-slot-header"><span class="meal-icon">${s.icon}</span><span class="meal-slot-label">${s.label}</span></div>
+        <div class="meal-slot-header"><img class="meal-icon" src="${s.icon}" alt="${s.label}"><span class="meal-slot-label">${s.label}</span></div>
         <div class="meal-name">${s.meal.label}</div>
         <div class="meal-ingr">${ingrHtml}</div>
       </div>`;

@@ -1,5 +1,5 @@
 /* TirzaDose Service Worker — cache-first, offline-ready */
-const CACHE = 'tirzadose-v3';
+const CACHE = 'tirzadose-v4';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -10,6 +10,10 @@ const ASSETS = [
   './img-aplicacoes.png',
   './img-progresso.png',
   './img-exercicio.png',
+  './icon-cafe.png',
+  './icon-almoco.png',
+  './icon-jantar.png',
+  './icon-lanche.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'
 ];
@@ -18,8 +22,9 @@ self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => {
       return c.addAll(['./index.html','./manifest.json','./icon-192.png','./icon-512.png',
-        './img-dieta.png','./img-aplicacoes.png','./img-progresso.png','./img-exercicio.png'])
-        .then(() => Promise.allSettled(ASSETS.slice(9).map(url => c.add(url))));
+        './img-dieta.png','./img-aplicacoes.png','./img-progresso.png','./img-exercicio.png',
+        './icon-cafe.png','./icon-almoco.png','./icon-jantar.png','./icon-lanche.png'])
+        .then(() => Promise.allSettled(ASSETS.slice(13).map(url => c.add(url))));
     }).then(() => self.skipWaiting())
   );
 });
