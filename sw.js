@@ -1,11 +1,15 @@
 /* TirzaDose Service Worker — cache-first, offline-ready */
-const CACHE = 'tirzadose-v1';
+const CACHE = 'tirzadose-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png',
+  './img-dieta.png',
+  './img-aplicacoes.png',
+  './img-progresso.png',
+  './img-exercicio.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'
 ];
@@ -13,9 +17,9 @@ const ASSETS = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => {
-      // Cache local assets immediately; external fonts/libs best-effort
-      return c.addAll(['./index.html', './manifest.json', './icon-192.png', './icon-512.png'])
-        .then(() => Promise.allSettled(ASSETS.slice(4).map(url => c.add(url))));
+      return c.addAll(['./index.html','./manifest.json','./icon-192.png','./icon-512.png',
+        './img-dieta.png','./img-aplicacoes.png','./img-progresso.png','./img-exercicio.png'])
+        .then(() => Promise.allSettled(ASSETS.slice(9).map(url => c.add(url))));
     }).then(() => self.skipWaiting())
   );
 });
