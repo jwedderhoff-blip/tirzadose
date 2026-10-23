@@ -2508,8 +2508,20 @@ sb.auth.onAuthStateChange(async (event, session) => {
     hideAuthGate();
     _setSyncStatus('Carregando dados da nuvem…', '');
     await loadFromCloud();
+    // Pre-fill onboarding name from Google profile if not set
+    if (!S.profile.name && sbUser?.user_metadata?.full_name) {
+      S.profile.name = sbUser.user_metadata.full_name;
+    }
     initOnboarding();
-    if (isOnboarded()) { renderAll(); generatePlan(); }
+    if (isOnboarded()) {
+      renderAll(); generatePlan();
+    } else {
+      // New user with Google — pre-fill name in onboarding form
+      const nameInput = document.getElementById('obName');
+      if (nameInput && sbUser?.user_metadata?.full_name) {
+        nameInput.value = sbUser.user_metadata.full_name;
+      }
+    }
     subscribeToRealtime();
     _setSyncStatus('✓ Sincronizado', 'ok');
   } else if (event === 'TOKEN_REFRESHED') {
@@ -2527,12 +2539,14 @@ sb.auth.getSession().then(async ({ data: { session } }) => {
     _renderAuthCard();
     _setSyncStatus('Carregando dados da nuvem…', '');
     await loadFromCloud();
+    if (!S.profile.name && sbUser?.user_metadata?.full_name) {
+      S.profile.name = sbUser.user_metadata.full_name;
+    }
     initOnboarding();
     if (isOnboarded()) { renderAll(); generatePlan(); }
     subscribeToRealtime();
     _setSyncStatus('✓ Sincronizado', 'ok');
   } else if (!isOnboarded() && !_skipAuth) {
-    // Confirmed no session — keep gate visible
     showAuthGate();
   }
 });
