@@ -430,11 +430,6 @@ input, select, textarea { font-family: var(--f); }
           <option value="6">Sábado</option>
         </select>
       </div>
-      <div class="fg">
-        <label class="fl" style="display:flex;align-items:center;gap:6px;">Meta de proteína (g/kg/dia)<button type="button" onclick="document.getElementById('mo-protein-ref').hidden=false" style="background:var(--ac-lt);border:none;color:var(--ac);border-radius:50%;width:20px;height:20px;font-size:12px;font-weight:700;cursor:pointer;line-height:1;flex-shrink:0;">?</button></label>
-        <input class="fi" id="obProtein" type="number" min="0.5" max="3" step="0.1" value="1.2" placeholder="1.2">
-        <p class="fh">Recomendado: 1,2 g/kg durante perda de peso ativa</p>
-      </div>
       <div class="callout warn"><span class="ci">⚠</span><span>Este app é auxiliar. Sempre siga as orientações do seu médico.</span></div>
       <div class="row">
         <button class="btn btn-g" onclick="obPrev()">Voltar</button>
@@ -817,57 +812,6 @@ input, select, textarea { font-family: var(--f); }
   </nav>
 </div>
 
-<!-- MODAL: TABELA PROTEÍNA REFERÊNCIA -->
-<div class="overlay" id="mo-protein-ref" hidden onclick="if(event.target===this)this.hidden=true">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <h2 class="sheet-title">Índice proteico de referência</h2>
-    <p style="font-size:13px;color:var(--fg-m);margin-bottom:14px">Escolha o valor mais adequado ao seu perfil e objetivo. Consulte sempre seu nutricionista ou médico.</p>
-    <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead>
-          <tr style="background:var(--ac-lt);color:var(--ac)">
-            <th style="text-align:left;padding:8px 10px;border-radius:8px 0 0 0">Perfil</th>
-            <th style="text-align:center;padding:8px 10px">g/kg/dia</th>
-            <th style="text-align:left;padding:8px 10px;border-radius:0 8px 0 0">Observação</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom:1px solid var(--border)">
-            <td style="padding:9px 10px;font-weight:600">Sedentário em perda de peso</td>
-            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--ac-2);font-weight:700">1,0–1,2</td>
-            <td style="padding:9px 10px;color:var(--fg-m)">Mínimo para preservar massa muscular</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);background:var(--bg-warm)">
-            <td style="padding:9px 10px;font-weight:600">Ativo em perda de peso <span style="font-size:11px;background:var(--ac-lt);color:var(--ac);padding:2px 6px;border-radius:4px;margin-left:4px">recomendado</span></td>
-            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--ac);font-weight:700">1,2–1,6</td>
-            <td style="padding:9px 10px;color:var(--fg-m)">Valor usado durante tratamento com GLP-1</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border)">
-            <td style="padding:9px 10px;font-weight:600">Idoso (acima de 65 anos)</td>
-            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--ac-2);font-weight:700">1,2–1,5</td>
-            <td style="padding:9px 10px;color:var(--fg-m)">Risco maior de sarcopenia</td>
-          </tr>
-          <tr style="border-bottom:1px solid var(--border);background:var(--bg-warm)">
-            <td style="padding:9px 10px;font-weight:600">Praticante de musculação</td>
-            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--ac-2);font-weight:700">1,6–2,0</td>
-            <td style="padding:9px 10px;color:var(--fg-m)">Hipertrofia ou manutenção de massa</td>
-          </tr>
-          <tr>
-            <td style="padding:9px 10px;font-weight:600">Atleta de alto rendimento</td>
-            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--fg-m);font-weight:700">1,6–2,2</td>
-            <td style="padding:9px 10px;color:var(--fg-m)">Conforme orientação específica</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="callout warn" style="margin-top:14px"><span class="ci">⚠</span><span style="font-size:12px">Fonte de referência: diretrizes gerais de nutrição clínica (ESPEN). Os valores acima são orientações gerais — <strong>consulte seu nutricionista</strong> para ajuste individual.</span></div>
-    <div class="sheet-actions">
-      <button class="btn btn-g" onclick="document.getElementById('mo-protein-ref').hidden=true">Fechar</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL: EDITAR PERFIL -->
 <div class="overlay" id="mo-profile" hidden>
   <div class="sheet">
@@ -899,12 +843,7 @@ input, select, textarea { font-family: var(--f); }
         <option value="6">Sábado</option>
       </select>
     </div>
-    <div class="fg">
-      <label class="fl" style="display:flex;align-items:center;gap:6px;">Meta de proteína (g/kg/dia)<button type="button" onclick="document.getElementById('mo-protein-ref').hidden=false" style="background:var(--ac-lt);border:none;color:var(--ac);border-radius:50%;width:20px;height:20px;font-size:12px;font-weight:700;cursor:pointer;line-height:1;flex-shrink:0;">?</button></label>
-      <input class="fi" id="prProtein" type="number" min="0.5" max="3" step="0.1" placeholder="1.2">
-      <p class="fh">Recomendado: 1,2–1,6 g/kg durante perda de peso ativa</p>
-    </div>
-    <div class="callout info"><span class="ci">ℹ</span><span>O <strong>peso inicial</strong> é apenas o do perfil (usado para cálculos de IMC/meta proteica). Para registrar pesagens no histórico, use o botão "+ Peso" na aba Progresso.</span></div>
+    <div class="callout info"><span class="ci">ℹ</span><span>O <strong>peso inicial</strong> é apenas o do perfil (usado para cálculos de IMC). Para registrar pesagens no histórico, use o botão "+ Peso" na aba Progresso.</span></div>
     <div class="sheet-actions">
       <button class="btn btn-g" onclick="closeModal('mo-profile')">Cancelar</button>
       <button class="btn btn-p" style="flex:1" onclick="saveProfile()">Salvar dados</button>
@@ -1056,7 +995,7 @@ const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal'
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
-  profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, proteinGoalGperKg:1.2 },
+  profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5 },
   applications:[], weights:[], symptoms:[], dietLogs:[]
 };
 
@@ -1119,11 +1058,9 @@ function obFinish(){
   if(!start){ alert2('Informe a data de início.'); return; }
   const dose = parseFloat(document.getElementById('obDose').value);
   const day = parseInt(document.getElementById('obDay').value);
-  const prot = parseFloat(document.getElementById('obProtein').value)||1.2;
   S.profile.startDate = start;
   S.profile.currentDoseMg = dose;
   S.profile.weekDay = day;
-  S.profile.proteinGoalGperKg = prot;
   save();
   document.getElementById('ob').hidden = true;
   renderAll();
@@ -1258,7 +1195,6 @@ function openProfileModal(){
   document.getElementById('prStart').value = p.startDate||'';
   document.getElementById('prDose').value = p.currentDoseMg||2.5;
   document.getElementById('prDay').value = p.weekDay||4;
-  document.getElementById('prProtein').value = p.proteinGoalGperKg||1.2;
   document.getElementById('mo-profile').hidden = false;
 }
 function saveProfile(){
@@ -1268,12 +1204,11 @@ function saveProfile(){
   const start = document.getElementById('prStart').value;
   const dose = parseFloat(document.getElementById('prDose').value);
   const day = parseInt(document.getElementById('prDay').value);
-  const prot = parseFloat(document.getElementById('prProtein').value)||1.2;
   if(!name){ alert2('Informe seu nome.'); return; }
   if(!w||w<30||w>300){ alert2('Peso inválido (30–300 kg).'); return; }
   if(!h||h<100||h>250){ alert2('Altura inválida (100–250 cm).'); return; }
   if(!start){ alert2('Informe a data de início.'); return; }
-  S.profile = { name, weightKg:w, heightCm:h, startDate:start, weekDay:day, currentDoseMg:dose, proteinGoalGperKg:prot };
+  S.profile = { name, weightKg:w, heightCm:h, startDate:start, weekDay:day, currentDoseMg:dose };
   save();
   closeModal('mo-profile');
   renderAll();
@@ -1294,7 +1229,7 @@ function renderProfileSummary(){
       <div class="stat"><div class="stat-v">${fmtD(p.startDate)}</div><div class="stat-l">Início</div></div>
       <div class="stat"><div class="stat-v">${p.currentDoseMg} mg</div><div class="stat-l">Dose atual</div></div>
     </div>
-    <p class="t-m" style="font-size:12px;margin-top:6px">Dia de aplicação: <strong>${DAYS_PT[p.weekDay]}</strong> · Meta proteína: <strong>${p.proteinGoalGperKg} g/kg/dia</strong></p>`;
+    <p class="t-m" style="font-size:12px;margin-top:6px">Dia de aplicação: <strong>${DAYS_PT[p.weekDay]}</strong></p>`;
 }
 
 /* ===== EDIT APPLICATION ===== */
@@ -1682,7 +1617,7 @@ function renderChart(){
 /* ===== RENDER DIETA ===== */
 function renderDiet(){
   const prof = S.profile;
-  const goalGperKg = prof.proteinGoalGperKg || 1.2;
+  const goalGperKg = 1.2;
   const goalG = Math.round(goalGperKg * (prof.weightKg || 70));
   const td = today();
   const todayLogs = S.dietLogs.filter(d => d.date === td);
@@ -2109,8 +2044,7 @@ function doSeedDemo(){
       heightCm: 173,
       startDate: '2026-03-26',
       weekDay: 4,
-      currentDoseMg: 15,
-      proteinGoalGperKg: 1.2
+      currentDoseMg: 15
     },
     applications,
     weights,
