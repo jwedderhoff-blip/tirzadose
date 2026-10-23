@@ -567,6 +567,11 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
   <button onclick="wgtMenuDelete()" style="width:100%;background:none;border:none;padding:13px 16px;font-size:14px;font-family:var(--f);color:var(--danger);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">🗑️ Excluir</button>
 </div>
 
+<!-- PROFILE CONTEXT MENU -->
+<div id="prof-ctx-menu" hidden style="position:fixed;z-index:4000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);overflow:hidden;min-width:150px">
+  <button onclick="profMenuEdit()" style="width:100%;background:none;border:none;padding:13px 16px;font-size:14px;font-family:var(--f);color:var(--fg);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">✏️ Editar perfil</button>
+</div>
+
 <!-- TOUR INVITE BALLOON -->
 <div id="tour-invite" hidden style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:2500;background:#2D5A3D;color:#fff;border-radius:20px;padding:14px 20px 14px 16px;box-shadow:0 6px 24px rgba(0,0,0,.28);display:flex;align-items:center;gap:12px;max-width:calc(100vw - 40px);animation:tourBounce .6s ease">
   <span style="font-size:26px;line-height:1">📖</span>
@@ -791,7 +796,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
             <div id="perfil-name" style="color:#fff;font-family:var(--fd);font-size:24px;font-weight:400;line-height:1.2">Meu Perfil</div>
             <div id="perfil-sub" style="color:rgba(255,255,255,.7);font-size:14px;margin-top:3px">Configure seu acompanhamento</div>
           </div>
-          <button onclick="openProfileModal()" style="margin-left:auto;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:7px 14px;font-size:14px;font-weight:600;cursor:pointer">✏️ Editar</button>
+          <button onclick="openProfileMenu(this)" style="margin-left:auto;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 12px;font-size:20px;font-weight:700;line-height:1;cursor:pointer;min-width:38px;min-height:36px;display:flex;align-items:center;justify-content:center">⋮</button>
         </div>
         <div id="perfil-stats-hero" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:20px"></div>
       </div>
@@ -3437,6 +3442,46 @@ document.addEventListener('click', e => {
   if (!menu || menu.hidden) return;
   if (!menu.contains(e.target) && !e.target.closest('[onclick^="openWeightMenu"]')) {
     closeWeightMenu();
+  }
+});
+
+/* ===== PROFILE CONTEXT MENU ===== */
+function openProfileMenu(btn) {
+  const menu = document.getElementById('prof-ctx-menu');
+  menu.hidden = false;
+
+  const r = btn.getBoundingClientRect();
+  const mw = 170;
+  const mh = 55;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  let top = r.bottom + 4;
+  let left = r.right - mw;
+
+  if (top + mh > vh - 10) top = r.top - mh - 4;
+  if (left < 8) left = 8;
+  if (left + mw > vw - 8) left = vw - mw - 8;
+
+  menu.style.top  = top + 'px';
+  menu.style.left = left + 'px';
+}
+
+function closeProfileMenu() {
+  const menu = document.getElementById('prof-ctx-menu');
+  if (menu) menu.hidden = true;
+}
+
+function profMenuEdit() {
+  closeProfileMenu();
+  openProfileModal();
+}
+
+document.addEventListener('click', e => {
+  const menu = document.getElementById('prof-ctx-menu');
+  if (!menu || menu.hidden) return;
+  if (!menu.contains(e.target) && !e.target.closest('[onclick^="openProfileMenu"]')) {
+    closeProfileMenu();
   }
 });
 
