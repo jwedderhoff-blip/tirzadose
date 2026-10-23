@@ -929,6 +929,11 @@ input, select, textarea { font-family: var(--f); }
       <label class="fl">Local de aplicação</label>
       <div class="site-grid" id="siteGrid"></div>
     </div>
+    <div class="fg">
+      <label class="fl">⚖️ Peso no dia (opcional, mas recomendado)</label>
+      <input class="fi" id="apWeight" type="number" step="0.1" min="30" max="300" placeholder="Ex: 112.5">
+      <div class="fh">Registrar junto ajuda a cruzar evolução no gráfico</div>
+    </div>
     <div class="fg"><label class="fl">Observações (opcional)</label><input class="fi" id="apNotes" placeholder="Ex: leve náusea nas primeiras horas"></div>
     <div class="sheet-actions">
       <button class="btn btn-g" onclick="closeModal('mo-apply')">Cancelar</button>
@@ -1119,6 +1124,7 @@ function openApplyModal(){
   document.getElementById('apDate').value = today();
   document.getElementById('apTime').value = now();
   document.getElementById('apNotes').value = '';
+  document.getElementById('apWeight').value = '';
   renderSiteGrid(null);
   document.getElementById('mo-apply').hidden = false;
 }
@@ -1245,6 +1251,15 @@ function renderProfileSummary(){
     <p class="t-m" style="font-size:12px;margin-top:6px">Dia de aplicação: <strong>${DAYS_PT[p.weekDay]}</strong></p>`;
 }
 
+/* ===== QUICK ADD WEIGHT FROM HISTORY ===== */
+function quickAddWeight(date){
+  // Open the weight modal pre-filled with the application date
+  const existing = S.weights.find(w=>w.date===date);
+  document.getElementById('wDate').value = date;
+  document.getElementById('wKg').value = existing ? existing.kg : '';
+  document.getElementById('mo-weight').hidden = false;
+}
+
 /* ===== EDIT APPLICATION ===== */
 let editingAppId = null;
 function editApp(id){
@@ -1256,17 +1271,22 @@ function editApp(id){
   document.getElementById('apTime').value = a.time||'';
   document.getElementById('apDose').value = a.doseMg;
   document.getElementById('apNotes').value = a.notes||'';
+  // Pre-fill weight if one exists for that date
+  const existingW = S.weights.find(w=>w.date===a.date);
+  document.getElementById('apWeight').value = existingW ? existingW.kg : '';
   renderSiteGrid(a.site);
   document.getElementById('mo-apply').hidden = false;
 }
 
 function saveApplication(){
-  const date = document.getElementById('apDate').value;
-  const time = document.getElementById('apTime').value;
-  const dose = parseFloat(document.getElementById('apDose').value);
+  const date  = document.getElementById('apDate').value;
+  const time  = document.getElementById('apTime').value;
+  const dose  = parseFloat(document.getElementById('apDose').value);
   const notes = document.getElementById('apNotes').value.trim();
+  const wVal  = parseFloat(document.getElementById('apWeight').value);
   if(!date){ alert2('Informe a data.'); return; }
   if(!selectedSite){ alert2('Selecione o local de aplicação.'); return; }
+
   if(editingAppId){
     const idx = S.applications.findIndex(a=>a.id===editingAppId);
     if(idx>=0) S.applications[idx] = {...S.applications[idx], date, time, doseMg:dose, site:selectedSite, notes};
@@ -1278,6 +1298,21 @@ function saveApplication(){
     alert2('Aplicação registrada!');
   }
   S.applications.sort((a,b)=>a.date<b.date?1:-1);
+
+  // Save weight if provided — update existing entry for that date or create new
+  if(wVal && wVal >= 30 && wVal <= 300){
+    const existIdx = S.weights.findIndex(w=>w.date===date);
+    if(existIdx >= 0){
+      S.weights[existIdx].kg = wVal;
+    } else {
+      S.weights.push({id:uid(), date, kg:wVal});
+    }
+    S.weights.sort((a,b)=>a.date<b.date?1:-1);
+  }
+
+  // Clear weight field for next use
+  document.getElementById('apWeight').value = '';
+
   save();
   closeModal('mo-apply');
   renderAll();
@@ -1477,14 +1512,18 @@ function renderApp(){
   const sorted = [...S.applications].sort((a,b)=>a.date<b.date?1:-1);
   hist.innerHTML = sorted.map(a => {
     const siteLabel = SITES.find(s=>s.id===a.site)?.label||a.site;
+    const hasWeight = S.weights.some(w => w.date === a.date);
+    const weightBadge = hasWeight
+      ? `<span title="Peso registrado neste dia" style="background:color-mix(in srgb,var(--ok) 15%,transparent);border:1px solid color-mix(in srgb,var(--ok) 40%,transparent);color:var(--ok);border-radius:8px;padding:4px 8px;font-size:13px;line-height:1;white-space:nowrap">⚖️ ✓</span>`
+      : `<button title="Registrar peso neste dia" onclick="quickAddWeight('${a.date}')" style="background:color-mix(in srgb,#F59E0B 12%,transparent);border:1px solid color-mix(in srgb,#F59E0B 35%,transparent);color:#B45309;border-radius:8px;padding:4px 8px;font-size:13px;line-height:1;cursor:pointer;white-space:nowrap">⚖️ + peso</button>`;
     return `<div class="h-item">
       <div class="h-dot"></div>
       <div class="h-main">
         <div class="h-title">${a.doseMg} mg · ${siteLabel}</div>
         <div class="h-meta">${fmtD(a.date)}${a.time?' às '+a.time:''}${a.notes?' · '+a.notes:''}</div>
       </div>
-      <div class="h-right" style="flex-direction:row;gap:4px;align-items:center">
-        <span class="badge-ok">${a.doseMg} mg</span>
+      <div class="h-right" style="flex-direction:row;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+        ${weightBadge}
         <button title="Editar" onclick="editApp('${a.id}')" style="background:var(--ac-lt);border:1px solid color-mix(in srgb,var(--ac) 30%,transparent);color:var(--ac);border-radius:8px;padding:6px 10px;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px">✏️</button>
         <button title="Excluir" onclick="if(confirm2('Excluir esta aplicação?',()=>deleteApplication('${a.id}'))) {}" style="background:var(--danger-lt);border:1px solid color-mix(in srgb,var(--danger) 30%,transparent);color:var(--danger);border-radius:8px;padding:6px 10px;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px">🗑️</button>
       </div>
