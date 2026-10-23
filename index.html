@@ -791,6 +791,44 @@ input, select, textarea { font-family: var(--f); }
           <div class="h-item" style="padding:6px 0;border-bottom:none"><div class="h-dot ok"></div><div class="h-main"><div style="font-size:13px;font-weight:600">Acompanhamento profissional</div><div class="h-meta">Médico + nutricionista + educador físico — trio ideal</div></div></div>
         </div>
 
+        <!-- NOTIFICAÇÕES -->
+        <div class="card" style="margin-top:4px">
+          <div class="card-title">🔔 Lembretes &amp; Avisos</div>
+          <p class="t-m" style="margin-bottom:12px">Ative para receber lembretes de hidratação e aviso no dia da aplicação. O celular precisa estar desbloqueado para receber as notificações.</p>
+          <div id="notif-status" style="margin-bottom:10px"></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-p btn-w" id="btn-notif-enable" onclick="enableNotifications()">Ativar notificações</button>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border)" id="water-row" hidden>
+              <div>
+                <div style="font-size:14px;font-weight:600">💧 Lembrete de água</div>
+                <div class="t-m" style="font-size:12px;margin-top:2px">A cada 2 horas enquanto o app estiver aberto</div>
+              </div>
+              <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">
+                <input type="checkbox" id="toggle-water" onchange="toggleWaterReminder(this.checked)" style="opacity:0;width:0;height:0">
+                <span style="position:absolute;cursor:pointer;inset:0;background:var(--border-2);border-radius:12px;transition:.3s" id="water-thumb"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- FEEDBACK -->
+        <div class="card" style="margin-top:4px">
+          <div class="card-title">💬 Enviar Feedback</div>
+          <p class="t-m" style="margin-bottom:12px">Sugestões, problemas ou dúvidas? Seu feedback chega diretamente ao desenvolvedor.</p>
+          <form id="feedback-form" onsubmit="submitFeedback(event)">
+            <div class="fg">
+              <label class="fl">Seu nome (opcional)</label>
+              <input class="fi" id="fb-name" type="text" placeholder="Como posso te chamar?">
+            </div>
+            <div class="fg">
+              <label class="fl">Mensagem *</label>
+              <textarea class="fi" id="fb-msg" rows="4" placeholder="O que você achou? Algo que não funcionou? Alguma sugestão?" style="resize:vertical;min-height:90px" required></textarea>
+            </div>
+            <button class="btn btn-p btn-w" type="submit" id="fb-btn">Enviar feedback</button>
+            <div id="fb-result" style="margin-top:8px"></div>
+          </form>
+        </div>
+
         <div class="card">
           <div class="card-title">Avisos legais</div>
           <p class="t-m">Este aplicativo é uma ferramenta auxiliar de acompanhamento pessoal e NÃO substitui o acompanhamento médico. Todas as decisões clínicas devem ser tomadas em conjunto com o seu médico e/ou farmacêutico. Informações baseadas na bula Mounjaro (Eli Lilly, 2025), bula EMA e revisão acadêmica Univ. Florença (2024).</p>
@@ -2201,6 +2239,141 @@ if ('serviceWorker' in navigator) {
       .catch(e => console.warn('SW falhou:', e));
   });
 }
+</script>
+
+<script>
+/* ===== NOTIFICAÇÕES ===== */
+let waterTimer = null;
+
+function updateNotifUI() {
+  const perm = ('Notification' in window) ? Notification.permission : 'denied';
+  const statusEl = document.getElementById('notif-status');
+  const btnEl   = document.getElementById('btn-notif-enable');
+  const waterRow = document.getElementById('water-row');
+
+  if (!('Notification' in window)) {
+    statusEl.innerHTML = '<div class="callout warn"><span class="ci">⚠</span><span>Seu navegador não suporta notificações.</span></div>';
+    btnEl.hidden = true;
+    return;
+  }
+  if (perm === 'granted') {
+    statusEl.innerHTML = '<div class="callout" style="background:var(--ok-lt);border-color:var(--ok)"><span class="ci" style="color:var(--ok)">✓</span><span style="color:var(--ok)">Notificações ativadas!</span></div>';
+    btnEl.hidden = true;
+    waterRow.hidden = false;
+    const saved = localStorage.getItem('waterReminder') === 'true';
+    const tog = document.getElementById('toggle-water');
+    if (tog) { tog.checked = saved; styleToggle(saved); }
+    if (saved && !waterTimer) startWaterTimer();
+    // Check injection day on load
+    checkInjectionDay();
+  } else if (perm === 'denied') {
+    statusEl.innerHTML = '<div class="callout warn"><span class="ci">⚠</span><span>Notificações bloqueadas. Habilite nas configurações do navegador/celular.</span></div>';
+    btnEl.hidden = true;
+  } else {
+    statusEl.innerHTML = '';
+    btnEl.hidden = false;
+    waterRow.hidden = true;
+  }
+}
+
+async function enableNotifications() {
+  if (!('Notification' in window)) return;
+  const perm = await Notification.requestPermission();
+  updateNotifUI();
+  if (perm === 'granted') showToast('Notificações ativadas!');
+}
+
+function styleToggle(on) {
+  const thumb = document.getElementById('water-thumb');
+  if (thumb) thumb.style.background = on ? 'var(--ac)' : 'var(--border-2)';
+}
+
+function toggleWaterReminder(on) {
+  localStorage.setItem('waterReminder', on);
+  styleToggle(on);
+  if (on) {
+    startWaterTimer();
+    showToast('Lembrete de água ativado a cada 2h');
+  } else {
+    if (waterTimer) { clearTimeout(waterTimer); waterTimer = null; }
+    showToast('Lembrete de água desativado');
+  }
+}
+
+function startWaterTimer() {
+  if (waterTimer) clearTimeout(waterTimer);
+  waterTimer = setTimeout(function remind() {
+    if (Notification.permission === 'granted' && localStorage.getItem('waterReminder') === 'true') {
+      new Notification('💧 TirzaDose — Beba água!', {
+        body: 'Hidratação constante é essencial durante o tratamento com tirzepatida.',
+        icon: './icon-192.png',
+        tag: 'water-reminder',
+        renotify: true
+      });
+      waterTimer = setTimeout(remind, 2 * 60 * 60 * 1000);
+    }
+  }, 2 * 60 * 60 * 1000);
+}
+
+function checkInjectionDay() {
+  if (Notification.permission !== 'granted') return;
+  try {
+    const apps = JSON.parse(localStorage.getItem('tirzadose_apps') || '[]');
+    if (!apps.length) return;
+    const last = apps.sort((a,b)=>a.date.localeCompare(b.date)).pop();
+    const lastDate = new Date(last.date + 'T12:00:00');
+    const nextDate = new Date(lastDate);
+    nextDate.setDate(nextDate.getDate() + 7);
+    const today = new Date().toISOString().slice(0,10);
+    const nextStr = nextDate.toISOString().slice(0,10);
+    if (today === nextStr) {
+      new Notification('💉 TirzaDose — Dia de aplicação!', {
+        body: 'Hoje é o dia da sua aplicação de tirzepatida. Não esqueça!',
+        icon: './icon-192.png',
+        tag: 'injection-day'
+      });
+    }
+  } catch(e) { console.warn('checkInjectionDay:', e); }
+}
+
+/* ===== FEEDBACK (Formspree) ===== */
+async function submitFeedback(e) {
+  e.preventDefault();
+  const btn = document.getElementById('fb-btn');
+  const result = document.getElementById('fb-result');
+  const name = document.getElementById('fb-name').value.trim();
+  const msg  = document.getElementById('fb-msg').value.trim();
+  if (!msg) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+
+  // INSTRUÇÕES: substitua FORMSPREE_ID pelo ID do seu form em formspree.io
+  const FORMSPREE_ID = 'xpwzgkno'; // <- substitua aqui
+
+  try {
+    const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name || 'Anônimo', message: msg, _replyto: 'noreply@tirzadose' })
+    });
+    if (res.ok) {
+      result.innerHTML = '<div class="callout" style="background:var(--ok-lt);border-color:var(--ok)"><span class="ci" style="color:var(--ok)">✓</span><span style="color:var(--ok)">Feedback enviado com sucesso! Obrigado.</span></div>';
+      document.getElementById('fb-name').value = '';
+      document.getElementById('fb-msg').value = '';
+    } else {
+      throw new Error('Erro ao enviar');
+    }
+  } catch {
+    result.innerHTML = '<div class="callout warn"><span class="ci">⚠</span><span>Não foi possível enviar. Tente novamente mais tarde.</span></div>';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Enviar feedback';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateNotifUI();
+});
 </script>
 </body>
 </html>
