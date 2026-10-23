@@ -1220,6 +1220,7 @@ function initOnboarding(){
   const ob = document.getElementById('ob');
   if(isOnboarded()){ if(ob) ob.hidden = true; return; }
   if(ob) ob.hidden = false;
+  obGo(0);
   const d = new Date(); document.getElementById('obStart').value = today();
   const wd = (d.getDay()+1)%7;
   document.getElementById('obDay').value = wd;
@@ -1574,7 +1575,15 @@ function countdownDays(nextDate){
 function renderInicio(){
   const el = document.getElementById('inicio-inner');
   const prof = S.profile;
-  if(!prof.startDate){ el.innerHTML = '<div class="empty"><div class="empty-t">Configure seu perfil</div><div class="empty-s">Conclua o cadastro para começar.</div></div>'; return; }
+  if(!prof.startDate){
+    el.innerHTML = '';
+    // Auth gate is hidden but profile not complete — force onboarding visible
+    const gate = document.getElementById('auth-gate');
+    const ob = document.getElementById('ob');
+    if (gate && !gate.hidden) return; // auth gate is showing, don't interfere
+    if (ob) ob.hidden = false;
+    return;
+  }
 
   const nextDate = computeNextDoseDate();
   const days = countdownDays(nextDate);
