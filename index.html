@@ -2416,23 +2416,30 @@ if(isOnboarded()){ renderAll(); generatePlan(); }
 sb.auth.onAuthStateChange(async (event, session) => {
   sbUser = session?.user || null;
   _renderAuthCard();
-  if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+  if (event === 'SIGNED_IN') {
     _setSyncStatus('Carregando dados da nuvem…', '');
     await loadFromCloud();
     if (isOnboarded()) { renderAll(); generatePlan(); }
     subscribeToRealtime();
     _setSyncStatus('✓ Sincronizado', 'ok');
+  } else if (event === 'TOKEN_REFRESHED') {
+    // Token renovado — apenas re-subscreve o canal realtime se necessário
+    if (!_realtimeChannel) subscribeToRealtime();
   } else if (event === 'SIGNED_OUT') {
     if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
   }
 });
 
 // Restore existing session on load (async, non-blocking)
-sb.auth.getSession().then(({ data: { session } }) => {
+sb.auth.getSession().then(async ({ data: { session } }) => {
   if (session) {
     sbUser = session.user;
     _renderAuthCard();
-    // Realtime subscription restores on TOKEN_REFRESHED or SIGNED_IN event above
+    _setSyncStatus('Carregando dados da nuvem…', '');
+    await loadFromCloud();
+    if (isOnboarded()) { renderAll(); generatePlan(); }
+    subscribeToRealtime();
+    _setSyncStatus('✓ Sincronizado', 'ok');
   }
 });
 
