@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
 <!-- SEO / description -->
-<meta name="description" content="Controle inteligente do tratamento com tirzepatida — doses, aplicações, dieta e progresso.">
+<meta name="description" content="Controle inteligente do acompanhamento com tirzepatida — doses, aplicações, dieta e progresso.">
 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -438,7 +438,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
   <div class="ob-inner">
     <div class="ob-hero-img"><img src="img-dieta.png" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:60px;box-shadow:0 4px 20px rgba(74,124,89,.25)"></div>
     <div class="ob-logo">Tirza<em>Dose</em></div>
-    <p class="ob-tagline">Controle inteligente para o seu tratamento</p>
+    <p class="ob-tagline">Controle inteligente para o seu acompanhamento</p>
     <div class="ob-dots">
       <div class="ob-dot on" id="dot0"></div>
       <div class="ob-dot" id="dot1"></div>
@@ -457,9 +457,9 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     </div>
     <!-- Step 1 -->
     <div class="ob-step" id="obStep1">
-      <div class="ob-step-title">Configurar tratamento</div>
+      <div class="ob-step-title">Configurar acompanhamento</div>
       <p class="ob-step-sub">Informe quando iniciou e qual sua dose atual.</p>
-      <div class="fg"><label class="fl">Data de início do tratamento</label><input class="fi" id="obStart" type="date"></div>
+      <div class="fg"><label class="fl">Data de início do acompanhamento</label><input class="fi" id="obStart" type="date"></div>
       <div class="fg">
         <label class="fl">Dose atual (mg)</label>
         <select class="fs" id="obDose">
@@ -697,7 +697,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           <div id="perfil-avatar" style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.18);border:2.5px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--fd)">?</div>
           <div>
             <div id="perfil-name" style="color:#fff;font-family:var(--fd);font-size:24px;font-weight:400;line-height:1.2">Meu Perfil</div>
-            <div id="perfil-sub" style="color:rgba(255,255,255,.7);font-size:14px;margin-top:3px">Configure seu tratamento</div>
+            <div id="perfil-sub" style="color:rgba(255,255,255,.7);font-size:14px;margin-top:3px">Configure seu acompanhamento</div>
           </div>
           <button onclick="openProfileModal()" style="margin-left:auto;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:7px 14px;font-size:14px;font-weight:600;cursor:pointer">✏️ Editar</button>
         </div>
@@ -793,7 +793,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         <!-- INFORMAÇÕES MÉDICAS (colapsável) -->
         <div class="card" style="margin-top:4px">
           <button onclick="toggleMedInfo()" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:14px;font-weight:600;font-family:var(--f)">
-            <span>ℹ Informações médicas do tratamento</span>
+            <span>ℹ Informações médicas do acompanhamento</span>
             <span id="med-info-arrow" style="color:var(--ac);font-size:18px;transition:transform .2s">▸</span>
           </button>
           <div id="med-info-content" hidden style="margin-top:14px">
@@ -922,7 +922,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
       <div class="fg"><label class="fl">Peso inicial (kg)</label><input class="fi" id="prWeight" type="number" min="30" max="300" step="0.1" placeholder="Ex: 95.0"></div>
       <div class="fg"><label class="fl">Altura (cm)</label><input class="fi" id="prHeight" type="number" min="100" max="250" placeholder="Ex: 170"></div>
     </div>
-    <div class="fg"><label class="fl">Data de início do tratamento</label><input class="fi" id="prStart" type="date"></div>
+    <div class="fg"><label class="fl">Data de início do acompanhamento</label><input class="fi" id="prStart" type="date"></div>
     <div class="fg">
       <label class="fl">Dose atual (mg)</label>
       <select class="fs" id="prDose">
@@ -1618,7 +1618,7 @@ function renderInicio(){
       <div class="card-title">Dose atual · <span class="t-a">${prof.currentDoseMg} mg</span></div>
       <div class="row">
         <div>
-          <div style="font-size:13px;color:var(--fg-2)">Semana ${weeksSince > 0 ? weeksSince : 1} de tratamento</div>
+          <div style="font-size:13px;color:var(--fg-2)">Semana ${weeksSince > 0 ? weeksSince : 1} de acompanhamento</div>
           <div class="t-m">${DAYS_PT[prof.weekDay]}s · iniciado em ${fmtD(prof.startDate)}</div>
         </div>
         <span class="spacer"></span>
@@ -2755,7 +2755,7 @@ function startWaterTimer() {
   waterTimer = setTimeout(function remind() {
     if (Notification.permission === 'granted' && localStorage.getItem('waterReminder') === 'true') {
       new Notification('💧 TirzaDose — Beba água!', {
-        body: 'Hidratação constante é essencial durante o tratamento com tirzepatida.',
+        body: 'Hidratação constante é essencial durante o acompanhamento com tirzepatida.',
         icon: './icon-192.png',
         tag: 'water-reminder',
         renotify: true
@@ -2845,9 +2845,9 @@ function renderPerfilTab() {
   if (sub) {
     if (p.startDate && p.weekDay) {
       const weeks = Math.floor((new Date() - new Date(p.startDate)) / (7 * 86400000));
-      sub.textContent = `${weeks} semana${weeks !== 1 ? 's' : ''} de tratamento · ${p.currentDoseMg || '?'} mg`;
+      sub.textContent = `${weeks} semana${weeks !== 1 ? 's' : ''} de acompanhamento · ${p.currentDoseMg || '?'} mg`;
     } else {
-      sub.textContent = 'Configure seu tratamento';
+      sub.textContent = 'Configure seu acompanhamento';
     }
   }
 
@@ -3156,7 +3156,7 @@ async function shareCard() {
       await navigator.share({
         files: [file],
         title: 'Minha evolução — TirzaDose',
-        text: `${p.name ? p.name + ' — ' : ''}Acompanhando meu tratamento com tirzepatida pelo TirzaDose 💉`
+        text: `${p.name ? p.name + ' — ' : ''}Meu acompanhamento com tirzepatida pelo TirzaDose 💉`
       });
     } catch(e) {
       if (e.name !== 'AbortError') fallbackDownload();
