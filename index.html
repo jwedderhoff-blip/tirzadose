@@ -390,7 +390,7 @@ input, select, textarea { font-family: var(--f); }
     <div style="font-size:12px;color:#666;margin-top:2px">Adicionar à tela inicial</div>
   </div>
   <button onclick="triggerInstall()" style="background:#4A7C59;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0">Instalar</button>
-  <button onclick="dismissInstall()" style="background:none;border:none;color:#999;font-size:20px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1">×</button>
+  <button onclick="dismissInstall()" style="background:none;border:none;color:#999;font-size:22px;cursor:pointer;padding:8px 10px;flex-shrink:0;line-height:1;min-width:40px;min-height:40px">×</button>
 </div>
 
 <!-- ONBOARDING -->
@@ -2113,6 +2113,12 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
       .then(r => console.log('SW registrado:', r.scope))
       .catch(e => console.warn('SW falhou:', e));
+  });
+  // Quando o SW atualiza, recarrega a página para o usuário pegar o JS novo
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && e.data.type === 'SW_UPDATED') {
+      window.location.reload();
+    }
   });
 }
 </script>
