@@ -2580,20 +2580,14 @@ async function authSignUp() {
   else { alert2('Conta criada! Verifique seu e-mail para confirmar.'); }
 }
 
-async function authSignOut(btn) {
+function authSignOut(btn) {
   if (btn) { btn.textContent = 'Saindo…'; btn.disabled = true; }
-  // Set a 5s timeout — if Supabase hangs, force logout anyway
-  const forceOut = setTimeout(() => {
-    try { localStorage.removeItem('tirza_skip_auth'); } catch{}
-    location.reload();
-  }, 5000);
-  try {
-    if (_realtimeChannel) { try { sb.removeChannel(_realtimeChannel); } catch{} _realtimeChannel = null; }
-    await sb.auth.signOut({ scope: 'local' });
-  } catch(e) {}
-  clearTimeout(forceOut);
+  // Local cleanup first — don't wait for network
   sbUser = null;
+  if (_realtimeChannel) { try { sb.removeChannel(_realtimeChannel); } catch{} _realtimeChannel = null; }
   try { localStorage.removeItem('tirza_skip_auth'); } catch{}
+  // Revoke server-side token in background (fire and forget)
+  try { sb.auth.signOut({ scope: 'local' }).catch(()=>{}); } catch{}
   _renderAuthCard();
   _setSyncStatus('', '');
   enterDemoMode();
