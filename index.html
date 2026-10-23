@@ -573,15 +573,17 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 </div>
 
 <!-- TOUR INVITE BALLOON -->
-<div id="tour-invite" hidden style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:2500;background:#2D5A3D;color:#fff;border-radius:20px;padding:14px 20px 14px 16px;box-shadow:0 6px 24px rgba(0,0,0,.28);display:flex;align-items:center;gap:12px;max-width:calc(100vw - 40px);animation:tourBounce .6s ease">
-  <span style="font-size:26px;line-height:1">📖</span>
-  <div style="flex:1;min-width:0">
-    <div style="font-size:14px;font-weight:700;margin-bottom:2px">Quer um tour rápido?</div>
-    <div style="font-size:12px;opacity:.85">Veja como usar cada parte do app</div>
+<div id="tour-invite" hidden style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:2500;background:#2D5A3D;color:#fff;border-radius:20px;padding:16px 18px;box-shadow:0 6px 24px rgba(0,0,0,.28);width:min(320px,calc(100vw - 40px));animation:tourBounce .6s ease">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <span style="font-size:24px;line-height:1;flex-shrink:0">📖</span>
+    <div>
+      <div style="font-size:15px;font-weight:700;line-height:1.3">Quer um tour rápido?</div>
+      <div style="font-size:12px;opacity:.85;margin-top:2px">Veja como usar cada parte do app</div>
+    </div>
   </div>
-  <div style="display:flex;gap:6px;flex-shrink:0">
-    <button onclick="hideTourInvite()" style="background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:10px;padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--f)">Agora não</button>
-    <button onclick="hideTourInvite();startTour()" style="background:#fff;border:none;color:#2D5A3D;border-radius:10px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--f)">Iniciar →</button>
+  <div style="display:flex;gap:8px">
+    <button onclick="hideTourInvite()" style="flex:1;background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:10px;padding:9px 10px;font-size:13px;cursor:pointer;font-family:var(--f)">Agora não</button>
+    <button onclick="hideTourInvite();startTour()" style="flex:1;background:#fff;border:none;color:#2D5A3D;border-radius:10px;padding:9px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--f)">Iniciar →</button>
   </div>
 </div>
 
