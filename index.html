@@ -2607,19 +2607,16 @@ sb.auth.onAuthStateChange(async (event, session) => {
     hideAuthGate();
     _setSyncStatus('Carregando dados da nuvem…', '');
     await loadFromCloud();
-    // Pre-fill onboarding name from Google profile if not set
-    if (!S.profile.name && sbUser?.user_metadata?.full_name) {
-      S.profile.name = sbUser.user_metadata.full_name;
+    // Always sync name from Google — user can override in profile editor
+    const _gName = sbUser?.user_metadata?.full_name || sbUser?.user_metadata?.name;
+    if (_gName) {
+      S.profile.name = _gName;
+      const nameInput = document.getElementById('obName');
+      if (nameInput) nameInput.value = _gName;
     }
     initOnboarding();
     if (isOnboarded()) {
-      renderAll(); generatePlan();
-    } else {
-      // New user with Google — pre-fill name in onboarding form
-      const nameInput = document.getElementById('obName');
-      if (nameInput && sbUser?.user_metadata?.full_name) {
-        nameInput.value = sbUser.user_metadata.full_name;
-      }
+      save(); renderAll(); generatePlan();
     }
     subscribeToRealtime();
     _setSyncStatus('✓ Sincronizado', 'ok');
@@ -2638,11 +2635,14 @@ sb.auth.getSession().then(async ({ data: { session } }) => {
     _renderAuthCard();
     _setSyncStatus('Carregando dados da nuvem…', '');
     await loadFromCloud();
-    if (!S.profile.name && sbUser?.user_metadata?.full_name) {
-      S.profile.name = sbUser.user_metadata.full_name;
+    const _gName2 = sbUser?.user_metadata?.full_name || sbUser?.user_metadata?.name;
+    if (_gName2) {
+      S.profile.name = _gName2;
+      const nameInput2 = document.getElementById('obName');
+      if (nameInput2) nameInput2.value = _gName2;
     }
     initOnboarding();
-    if (isOnboarded()) { renderAll(); generatePlan(); }
+    if (isOnboarded()) { save(); renderAll(); generatePlan(); }
     subscribeToRealtime();
     _setSyncStatus('✓ Sincronizado', 'ok');
   } else if (!isOnboarded() && !_skipAuth) {
