@@ -1217,7 +1217,9 @@ function nextWeekdayFrom(fromStr, weekDay){
 let obCurrentStep = 0;
 function isOnboarded(){ return !!(S.profile && S.profile.startDate); }
 function initOnboarding(){
-  if(isOnboarded()){ document.getElementById('ob').hidden = true; return; }
+  const ob = document.getElementById('ob');
+  if(isOnboarded()){ if(ob) ob.hidden = true; return; }
+  if(ob) ob.hidden = false;
   const d = new Date(); document.getElementById('obStart').value = today();
   const wd = (d.getDay()+1)%7;
   document.getElementById('obDay').value = wd;
