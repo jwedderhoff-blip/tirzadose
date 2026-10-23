@@ -143,6 +143,7 @@ input, select, textarea { font-family: var(--f); }
 .logo { font-size: 23px; font-family: var(--fd); font-weight: 400; color: var(--ac); letter-spacing: -.01em; line-height: 1; }
 .logo em { font-style: italic; color: var(--ac-2); }
 .header-right { display: flex; align-items: center; gap: 8px; }
+#hdr-account-btn:hover { background: var(--ac-lt) !important; }
 .dose-pill {
   background: var(--ac);
   color: #fff;
@@ -498,6 +499,12 @@ input, select, textarea { font-family: var(--f); }
     <div class="logo">Tirza<em>Dose</em></div>
     <div class="header-right">
       <span class="dose-pill" id="hdrDose">--</span>
+      <button id="hdr-account-btn" onclick="goToAccountTab()" style="display:none;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:20px;transition:background .15s" title="Minha conta">
+        <img id="hdr-avatar" src="" alt="" width="28" height="28" style="border-radius:50%;border:1.5px solid var(--ac);display:none">
+        <div id="hdr-avatar-ph" style="width:28px;height:28px;border-radius:50%;background:var(--ac-lt);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;display:none">👤</div>
+        <span id="hdr-name" style="font-size:13px;font-weight:600;color:var(--fg);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+      </button>
+      <button id="hdr-signin-btn" onclick="showAuthGate()" style="display:none;font-size:12px;font-weight:600;padding:5px 10px;border-radius:16px;background:var(--ac-lt);color:var(--ac);border:none;cursor:pointer">Entrar</button>
     </div>
   </header>
 
@@ -718,7 +725,7 @@ input, select, textarea { font-family: var(--f); }
                 <div id="sync-status" style="font-size:13px;color:var(--fg-m)">Sincronizando…</div>
               </div>
             </div>
-            <button class="btn btn-g btn-sm btn-w" onclick="authSignOut()">Sair da conta</button>
+            <button class="btn btn-g btn-sm btn-w" onclick="authSignOut(this)">Sair da conta</button>
           </div>
         </div>
 
@@ -2425,23 +2432,55 @@ function _renderAuthCard() {
   const out = document.getElementById('auth-signed-out');
   const inn = document.getElementById('auth-signed-in');
   if (!out || !inn) return;
+
+  const hdrBtn    = document.getElementById('hdr-account-btn');
+  const hdrSignIn = document.getElementById('hdr-signin-btn');
+  const hdrAvatar = document.getElementById('hdr-avatar');
+  const hdrAvatarPh = document.getElementById('hdr-avatar-ph');
+  const hdrName   = document.getElementById('hdr-name');
+
   if (sbUser) {
     out.hidden = true;
     inn.hidden = false;
     const meta = sbUser.user_metadata || {};
+    const displayName = meta.full_name || meta.name || sbUser.email;
+
     const nameEl   = document.getElementById('auth-name-display');
     const avatarImg = document.getElementById('auth-avatar');
     const avatarPh  = document.getElementById('auth-avatar-placeholder');
-    if (nameEl) nameEl.textContent = meta.full_name || meta.name || sbUser.email;
+    if (nameEl) nameEl.textContent = displayName;
     if (meta.avatar_url && avatarImg && avatarPh) {
       avatarImg.src = meta.avatar_url;
       avatarImg.style.display = 'block';
       avatarPh.style.display = 'none';
     }
+
+    // Update header
+    if (hdrBtn)  hdrBtn.style.display  = 'flex';
+    if (hdrSignIn) hdrSignIn.style.display = 'none';
+    if (hdrName) hdrName.textContent = displayName.split(' ')[0]; // first name only
+    if (meta.avatar_url && hdrAvatar && hdrAvatarPh) {
+      hdrAvatar.src = meta.avatar_url;
+      hdrAvatar.style.display = 'block';
+      hdrAvatarPh.style.display = 'none';
+    } else if (hdrAvatarPh) {
+      hdrAvatarPh.style.display = 'flex';
+    }
   } else {
     out.hidden = false;
     inn.hidden = true;
+
+    if (hdrBtn)    hdrBtn.style.display    = 'none';
+    if (hdrSignIn) hdrSignIn.style.display = 'block';
+    if (hdrAvatar) { hdrAvatar.src = ''; hdrAvatar.style.display = 'none'; }
+    if (hdrAvatarPh) hdrAvatarPh.style.display = 'none';
+    if (hdrName)   hdrName.textContent = '';
   }
+}
+
+function goToAccountTab() {
+  const tab = document.getElementById('nb-info');
+  if (tab) tab.click();
 }
 
 function _showAuthError(msg) {
@@ -2478,12 +2517,17 @@ async function authSignUp() {
   else { alert2('Conta criada! Verifique seu e-mail para confirmar.'); }
 }
 
-async function authSignOut() {
-  if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
-  await sb.auth.signOut();
+async function authSignOut(btn) {
+  if (btn) { btn.textContent = 'Saindo…'; btn.disabled = true; }
+  try {
+    if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
+    await sb.auth.signOut();
+  } catch(e) {}
   sbUser = null;
+  try { localStorage.removeItem('tirza_skip_auth'); } catch{}
   _renderAuthCard();
   _setSyncStatus('', '');
+  showAuthGate();
 }
 
 /* ===== INIT ===== */
