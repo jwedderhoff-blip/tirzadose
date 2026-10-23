@@ -1206,6 +1206,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const sb = supabase.createClient(SB_URL, SB_KEY);
 let sbUser = null;
 let _syncTimer = null;
+let _syncing = false;
 let _realtimeChannel = null;
 // Each tab/device gets a random ID so it can ignore its own realtime events
 const _deviceId = Math.random().toString(36).slice(2);
@@ -1218,15 +1219,24 @@ function scheduleSyncToCloud() {
 
 async function syncToCloud() {
   if (!sbUser) return;
+  // Evita chamadas concorrentes: se já está salvando, apenas reagenda
+  if (_syncing) { scheduleSyncToCloud(); return; }
+  _syncing = true;
   _setSyncStatus('↑ Salvando…', '');
   try {
-    await sb.from('user_data').upsert(
-      { user_id: sbUser.id, data: { ...S, _deviceId } },
-      { onConflict: 'user_id' }
-    );
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000));
+    await Promise.race([
+      sb.from('user_data').upsert(
+        { user_id: sbUser.id, data: { ...S, _deviceId } },
+        { onConflict: 'user_id' }
+      ),
+      timeout
+    ]);
     _setSyncStatus('✓ Sincronizado', 'ok');
   } catch(e) {
     _setSyncStatus('⚠ Falha na sincronização', 'warn');
+  } finally {
+    _syncing = false;
   }
 }
 
@@ -1367,7 +1377,6 @@ function obFinish(){
   S.profile.currentDoseMg = dose;
   S.profile.weekDay = day;
   save();
-  syncToCloud(); // sync imediato ao concluir cadastro inicial
   document.getElementById('ob').hidden = true;
   renderAll();
 }
@@ -1515,7 +1524,6 @@ function saveProfile(){
   if(!start){ alert2('Informe a data de início.'); return; }
   S.profile = { ...S.profile, name, weightKg:w, heightCm:h, startDate:start, weekDay:day, currentDoseMg:dose };
   save();
-  syncToCloud();
   closeModal('mo-profile');
   renderAll();
   alert2('Perfil atualizado!');
@@ -1601,13 +1609,12 @@ function saveApplication(){
   document.getElementById('apWeight').value = '';
 
   save();
-  syncToCloud();
   closeModal('mo-apply');
   renderAll();
 }
 function deleteApplication(id){
   S.applications = S.applications.filter(a=>a.id!==id);
-  save(); syncToCloud(); renderAll();
+  save(); renderAll();
 }
 
 /* ===== EDIT WEIGHT ===== */
@@ -1638,11 +1645,11 @@ function saveWeight(){
     alert2('Peso registrado!');
   }
   S.weights.sort((a,b)=>a.date<b.date?1:-1);
-  save(); syncToCloud(); closeModal('mo-weight'); renderChart(); renderProg();
+  save(); closeModal('mo-weight'); renderChart(); renderProg();
 }
 function deleteWeight(id){
   S.weights = S.weights.filter(w=>w.id!==id);
-  save(); syncToCloud(); renderChart(); renderProg();
+  save(); renderChart(); renderProg();
 }
 
 function saveDiet(){
@@ -1653,12 +1660,12 @@ function saveDiet(){
   if(!date){ alert2('Informe a data.'); return; }
   S.dietLogs.push({id:uid(), date, proteinG:protein, caloriesKcal:cals, notes});
   S.dietLogs.sort((a,b)=>a.date<b.date?1:-1);
-  save(); syncToCloud(); closeModal('mo-diet'); renderDiet();
+  save(); closeModal('mo-diet'); renderDiet();
   alert2('Registro salvo!');
 }
 function deleteDiet(id){
   S.dietLogs = S.dietLogs.filter(d=>d.id!==id);
-  save(); syncToCloud(); renderDiet();
+  save(); renderDiet();
 }
 
 function saveSymptom(){
@@ -1667,7 +1674,7 @@ function saveSymptom(){
   if(!date){ alert2('Informe a data.'); return; }
   S.symptoms.push({id:uid(), date, symptoms:selSymptoms, severity:selSev, notes});
   S.symptoms.sort((a,b)=>a.date<b.date?1:-1);
-  save(); syncToCloud(); closeModal('mo-symp'); renderInicio();
+  save(); closeModal('mo-symp'); renderInicio();
   alert2('Sintomas registrados!');
 }
 
