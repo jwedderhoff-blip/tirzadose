@@ -378,10 +378,12 @@ input, select, textarea { font-family: var(--f); }
 .meal-ingr { font-size: 12px; color: var(--fg-m); }
 .pref-chip.avoided { background: var(--danger-lt) !important; border-color: var(--danger) !important; color: var(--danger) !important; }
 .pref-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); margin: 14px 0 8px; }
+/* Garante que [hidden] funciona mesmo com display inline */
+[hidden] { display: none !important; }
 </style>
 
 <!-- INSTALL BANNER -->
-<div id="install-banner" hidden style="position:fixed;bottom:80px;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:9000;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.18);padding:14px 16px;display:flex;align-items:center;gap:12px;border:1.5px solid rgba(74,124,89,.25)">
+<div id="install-banner" style="display:none;position:fixed;bottom:80px;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:9000;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.18);padding:14px 16px;align-items:center;gap:12px;border:1.5px solid rgba(74,124,89,.25)">
   <img src="icon-192.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0" alt="">
   <div style="flex:1;min-width:0">
     <div style="font-size:14px;font-weight:700;color:#1a1a1a">Instalar TirzaDose</div>
@@ -2468,14 +2470,20 @@ function fallbackDownload() {
 /* ===== PWA INSTALL PROMPT ===== */
 let deferredInstall = null;
 
+function showInstallBanner() {
+  const b = document.getElementById('install-banner');
+  if (b) b.style.display = 'flex';
+}
+function hideInstallBanner() {
+  const b = document.getElementById('install-banner');
+  if (b) b.style.display = 'none';
+}
+
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   deferredInstall = e;
   if (!localStorage.getItem('installDismissed')) {
-    setTimeout(() => {
-      const banner = document.getElementById('install-banner');
-      if (banner && deferredInstall) banner.hidden = false;
-    }, 3000);
+    setTimeout(() => { if (deferredInstall) showInstallBanner(); }, 3000);
   }
 });
 
@@ -2484,18 +2492,17 @@ async function triggerInstall() {
   deferredInstall.prompt();
   const { outcome } = await deferredInstall.userChoice;
   deferredInstall = null;
-  document.getElementById('install-banner').hidden = true;
+  hideInstallBanner();
   if (outcome === 'accepted') showToast('App instalado! 🎉');
 }
 
 function dismissInstall() {
-  document.getElementById('install-banner').hidden = true;
+  hideInstallBanner();
   try { localStorage.setItem('installDismissed', '1'); } catch(e) {}
 }
 
 window.addEventListener('appinstalled', () => {
-  const banner = document.getElementById('install-banner');
-  if (banner) banner.hidden = true;
+  hideInstallBanner();
   deferredInstall = null;
 });
 
