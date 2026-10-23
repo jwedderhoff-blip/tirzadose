@@ -105,7 +105,7 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--f);
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.6;
   height: 100%;
   overflow: hidden;
@@ -140,13 +140,13 @@ input, select, textarea { font-family: var(--f); }
   z-index: 10;
   box-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(100,80,50,.05);
 }
-.logo { font-size: 21px; font-family: var(--fd); font-weight: 400; color: var(--ac); letter-spacing: -.01em; line-height: 1; }
+.logo { font-size: 23px; font-family: var(--fd); font-weight: 400; color: var(--ac); letter-spacing: -.01em; line-height: 1; }
 .logo em { font-style: italic; color: var(--ac-2); }
 .header-right { display: flex; align-items: center; gap: 8px; }
 .dose-pill {
   background: var(--ac);
   color: #fff;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   font-family: var(--fm);
   padding: 3px 10px;
@@ -179,7 +179,7 @@ input, select, textarea { font-family: var(--f); }
   padding-right: max(0px, env(safe-area-inset-right, 0px));
   z-index: 10;
 }
-.nb { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: none; cursor: pointer; color: var(--fg-m); font-size: 10px; font-weight: 500; padding: 6px 2px; transition: color .2s; -webkit-tap-highlight-color: transparent; position: relative; }
+.nb { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: none; cursor: pointer; color: var(--fg-m); font-size: 12px; font-weight: 500; padding: 6px 2px; transition: color .2s; -webkit-tap-highlight-color: transparent; position: relative; }
 .nb svg { width: 22px; height: 22px; transition: transform .2s; }
 .nb.active { color: var(--ac); }
 .nb.active svg { transform: translateY(-1px); }
@@ -187,7 +187,7 @@ input, select, textarea { font-family: var(--f); }
 
 /* === CARDS === */
 .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--rl); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
-.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--fg-m); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--fg-m); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
 
 /* === HERO CARD === */
 .hero-card {
@@ -202,22 +202,22 @@ input, select, textarea { font-family: var(--f); }
 }
 .hero-card::before { content: ''; position: absolute; left: -40px; bottom: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.06); pointer-events: none; }
 .hero-card::after { content: ''; position: absolute; right: -20px; top: -20px; width: 130px; height: 130px; border-radius: 50%; background: rgba(255,255,255,.08); pointer-events: none; }
-.hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
-.hero-countdown { font-size: 52px; font-family: var(--fd); font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; margin-top: 2px; }
-.hero-sub { font-size: 13px; opacity: .88; margin-top: 5px; }
+.hero-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+.hero-countdown { font-size: 56px; font-family: var(--fd); font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.hero-sub { font-size: 15px; opacity: .88; margin-top: 5px; }
 .hero-actions { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
-.hero-btn { background: rgba(255,255,255,.18); border: 1.5px solid rgba(255,255,255,.35); border-radius: 99px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: #fff; cursor: pointer; font-family: var(--f); transition: background .15s; -webkit-tap-highlight-color: transparent; }
+.hero-btn { background: rgba(255,255,255,.18); border: 1.5px solid rgba(255,255,255,.35); border-radius: 99px; padding: 8px 16px; font-size: 15px; font-weight: 600; color: #fff; cursor: pointer; font-family: var(--f); transition: background .15s; -webkit-tap-highlight-color: transparent; }
 .hero-btn:active { background: rgba(255,255,255,.32); }
 .hero-btn.primary { background: rgba(255,255,255,.92); color: var(--ac); border-color: transparent; }
 
 /* === STAT TILES === */
 .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
 .stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 10px; text-align: center; box-shadow: var(--shadow); }
-.stat-v { font-size: 22px; font-family: var(--fd); font-weight: 400; color: var(--ac); font-variant-numeric: tabular-nums; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.stat-l { font-size: 10px; color: var(--fg-m); margin-top: 3px; font-weight: 500; letter-spacing: .03em; }
+.stat-v { font-size: 25px; font-family: var(--fd); font-weight: 400; color: var(--ac); font-variant-numeric: tabular-nums; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stat-l { font-size: 12px; color: var(--fg-m); margin-top: 3px; font-weight: 500; letter-spacing: .03em; }
 
 /* === BUTTONS === */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 20px; border-radius: 99px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s, transform .1s, box-shadow .15s; -webkit-tap-highlight-color: transparent; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 22px; border-radius: 99px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity .15s, transform .1s, box-shadow .15s; -webkit-tap-highlight-color: transparent; }
 .btn:active { transform: scale(.97); }
 .btn-p { background: var(--ac); color: #fff; box-shadow: 0 3px 10px rgba(74,124,89,.30); }
 .btn-p:active { box-shadow: none; }
@@ -225,28 +225,28 @@ input, select, textarea { font-family: var(--f); }
 .btn-g { background: var(--bg); color: var(--fg-2); border: 1.5px solid var(--border); }
 .btn-d { background: var(--danger-lt); color: var(--danger); border: 1.5px solid color-mix(in srgb, var(--danger) 25%, transparent); }
 .btn-w { width: 100%; }
-.btn-sm { padding: 7px 14px; font-size: 13px; }
+.btn-sm { padding: 8px 16px; font-size: 15px; }
 
 /* === FORMS === */
 .fg { margin-bottom: 14px; }
-.fl { display: block; font-size: 13px; font-weight: 500; color: var(--fg-2); margin-bottom: 5px; }
+.fl { display: block; font-size: 15px; font-weight: 500; color: var(--fg-2); margin-bottom: 5px; }
 .fi, .fs {
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 13px;
   background: var(--bg);
   border: 1.5px solid var(--border);
   border-radius: var(--r);
-  font-size: 15px;
+  font-size: 17px;
   color: var(--fg);
   outline: none;
   transition: border-color .15s;
 }
 .fi:focus, .fs:focus { border-color: var(--ac); }
-.fh { font-size: 12px; color: var(--fg-m); margin-top: 4px; }
+.fh { font-size: 14px; color: var(--fg-m); margin-top: 4px; }
 .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 /* === CALLOUTS === */
-.callout { border-radius: var(--r); padding: 11px 13px; margin-bottom: 12px; font-size: 13px; line-height: 1.5; display: flex; gap: 9px; align-items: flex-start; }
+.callout { border-radius: var(--r); padding: 12px 14px; margin-bottom: 12px; font-size: 15px; line-height: 1.5; display: flex; gap: 9px; align-items: flex-start; }
 .ci { flex-shrink: 0; }
 .callout.info { background: var(--ac-lt); color: var(--ac); }
 .callout.warn { background: var(--warn-lt); color: var(--warn); }
@@ -258,7 +258,7 @@ input, select, textarea { font-family: var(--f); }
 .overlay[hidden] { display: none !important; }
 .sheet { background: var(--bg-card); border-radius: 20px 20px 0 0; padding: 18px max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; }
 .sheet-handle { width: 36px; height: 4px; background: var(--border-2); border-radius: 99px; margin: 0 auto 14px; }
-.sheet-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+.sheet-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
 .sheet-actions { display: flex; gap: 8px; margin-top: 16px; }
 
 /* === HISTORY ITEMS === */
@@ -268,14 +268,14 @@ input, select, textarea { font-family: var(--f); }
 .h-dot.warn { background: var(--warn); }
 .h-dot.ok { background: var(--ok); }
 .h-main { flex: 1; min-width: 0; }
-.h-title { font-size: 14px; font-weight: 500; }
-.h-meta { font-size: 12px; color: var(--fg-m); }
-.h-right { font-size: 12px; color: var(--fg-m); text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.del-btn { font-size: 11px; color: var(--danger); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--f); }
+.h-title { font-size: 16px; font-weight: 500; }
+.h-meta { font-size: 14px; color: var(--fg-m); }
+.h-right { font-size: 14px; color: var(--fg-m); text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.del-btn { font-size: 13px; color: var(--danger); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--f); }
 
 /* === SITE GRID === */
 .site-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-.site-btn { border: 1.5px solid var(--border); border-radius: var(--r); padding: 10px 6px; background: var(--bg-card); cursor: pointer; text-align: center; font-size: 12px; font-weight: 500; color: var(--fg-2); transition: all .15s; -webkit-tap-highlight-color: transparent; line-height: 1.3; }
+.site-btn { border: 1.5px solid var(--border); border-radius: var(--r); padding: 10px 6px; background: var(--bg-card); cursor: pointer; text-align: center; font-size: 14px; font-weight: 500; color: var(--fg-2); transition: all .15s; -webkit-tap-highlight-color: transparent; line-height: 1.3; }
 .site-btn.selected { background: var(--ac-lt); border-color: var(--ac); color: var(--ac); }
 .site-btn.prev { border-color: var(--warn); color: var(--warn); background: var(--warn-lt); }
 .site-btn.suggest { background: var(--ok-lt); border-color: var(--ok); color: var(--ok); }
@@ -284,15 +284,15 @@ input, select, textarea { font-family: var(--f); }
 /* === CALCULATOR === */
 .calc-out { background: linear-gradient(135deg,var(--ac-lt),#F0F9F2); border: 1.5px solid color-mix(in srgb, var(--ac) 25%, transparent); border-radius: var(--rl); padding: 20px 16px; margin: 14px 0; text-align: center; }
 .calc-val { font-size: 42px; font-family: var(--fd); font-weight: 400; color: var(--ac); font-variant-numeric: tabular-nums; line-height: 1; }
-.calc-lbl { font-size: 12px; color: var(--fg-m); margin-top: 6px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+.calc-lbl { font-size: 14px; color: var(--fg-m); margin-top: 6px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
 .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .calc-item { text-align: center; padding: 14px 12px; background: var(--bg-warm); border-radius: var(--r); border: 1px solid var(--border); }
 .calc-item .cv { font-size: 24px; font-family: var(--fd); font-weight: 400; color: var(--ac-2); font-variant-numeric: tabular-nums; }
-.calc-item .cl { font-size: 11px; color: var(--fg-m); margin-top: 4px; }
+.calc-item .cl { font-size: 13px; color: var(--fg-m); margin-top: 4px; }
 
 /* === CHART === */
 .chart-wrap { position: relative; height: 190px; margin-bottom: 14px; }
-.chart-empty { display: flex; align-items: center; justify-content: center; height: 190px; color: var(--fg-m); font-size: 13px; }
+.chart-empty { display: flex; align-items: center; justify-content: center; height: 190px; color: var(--fg-m); font-size: 15px; }
 
 /* === PROGRESS BAR === */
 .pb-wrap { background: var(--bg); border-radius: 99px; height: 10px; overflow: hidden; margin: 6px 0; }
@@ -302,12 +302,12 @@ input, select, textarea { font-family: var(--f); }
 
 /* === CHIPS === */
 .chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { border: 1.5px solid var(--border); border-radius: 99px; padding: 4px 12px; font-size: 13px; font-weight: 500; cursor: pointer; background: var(--bg-card); color: var(--fg-2); transition: all .15s; -webkit-tap-highlight-color: transparent; user-select: none; }
+.chip { border: 1.5px solid var(--border); border-radius: 99px; padding: 5px 14px; font-size: 15px; font-weight: 500; cursor: pointer; background: var(--bg-card); color: var(--fg-2); transition: all .15s; -webkit-tap-highlight-color: transparent; user-select: none; }
 .chip.on { background: var(--ac-lt); border-color: var(--ac); color: var(--ac); }
 
 /* === SEVERITY BTNS === */
 .sev-row { display: flex; gap: 6px; }
-.sev-b { width: 40px; height: 40px; border-radius: var(--r); border: 1.5px solid var(--border); background: var(--bg-card); font-size: 13px; font-weight: 700; font-family: var(--fm); cursor: pointer; color: var(--fg-m); transition: all .15s; -webkit-tap-highlight-color: transparent; }
+.sev-b { width: 44px; height: 44px; border-radius: var(--r); border: 1.5px solid var(--border); background: var(--bg-card); font-size: 15px; font-weight: 700; font-family: var(--fm); cursor: pointer; color: var(--fg-m); transition: all .15s; -webkit-tap-highlight-color: transparent; }
 .sev-b.on { background: var(--ac); border-color: var(--ac); color: #fff; }
 
 /* === TIMELINE === */
@@ -315,23 +315,23 @@ input, select, textarea { font-family: var(--f); }
 .tl-item { display: flex; gap: 12px; position: relative; }
 .tl-item::before { content: ''; position: absolute; left: 12px; top: 28px; bottom: -4px; width: 2px; background: var(--border); }
 .tl-item:last-child::before { display: none; }
-.tl-dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg-card); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--fm); font-size: 10px; font-weight: 600; color: var(--fg-m); position: relative; z-index: 1; }
+.tl-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg-card); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--fm); font-size: 12px; font-weight: 600; color: var(--fg-m); position: relative; z-index: 1; }
 .tl-item.done .tl-dot { background: var(--ok); border-color: var(--ok); color: #fff; }
 .tl-item.cur .tl-dot { background: var(--ac); border-color: var(--ac); color: #fff; box-shadow: 0 0 0 4px var(--ac-lt); }
 .tl-item.fut .tl-dot { opacity: .4; }
 .tl-body { padding-bottom: 18px; min-width: 0; }
-.tl-dose { font-size: 15px; font-weight: 600; }
+.tl-dose { font-size: 17px; font-weight: 600; }
 .tl-item.fut .tl-dose { color: var(--fg-m); }
-.tl-meta { font-size: 12px; color: var(--fg-m); }
+.tl-meta { font-size: 14px; color: var(--fg-m); }
 
 /* === TABLES === */
 .tw { overflow-x: auto; }
-.rt { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 340px; }
-.rt th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--fg-m); padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+.rt { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 340px; }
+.rt th { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--fg-m); padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
 .rt td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
 .rt tr:last-child td { border-bottom: none; }
 .rt tr:hover td { background: var(--ac-lt); }
-.tag { background: var(--ac); color: #fff; font-family: var(--fm); font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; white-space: nowrap; display: inline-block; }
+.tag { background: var(--ac); color: #fff; font-family: var(--fm); font-size: 13px; font-weight: 600; padding: 3px 8px; border-radius: 4px; white-space: nowrap; display: inline-block; }
 .tag.max { background: var(--warn); }
 
 /* === ONBOARDING === */
@@ -340,44 +340,44 @@ input, select, textarea { font-family: var(--f); }
 .ob-hero-img { text-align: center; font-size: 56px; margin-bottom: 16px; line-height: 1; }
 .ob-logo { font-size: 40px; font-family: var(--fd); font-weight: 400; color: var(--ac); text-align: center; letter-spacing: -.01em; margin-bottom: 6px; }
 .ob-logo em { font-style: italic; color: var(--ac-2); }
-.ob-tagline { text-align: center; color: var(--fg-m); font-size: 14px; margin-bottom: 36px; }
+.ob-tagline { text-align: center; color: var(--fg-m); font-size: 16px; margin-bottom: 36px; }
 .ob-inner { max-width: 400px; margin: 0 auto; }
 .ob-step { display: none; }
 .ob-step.active { display: block; }
-.ob-step-title { font-size: 22px; font-family: var(--fd); font-weight: 400; margin-bottom: 6px; text-wrap: balance; }
-.ob-step-sub { font-size: 14px; color: var(--fg-m); margin-bottom: 24px; line-height: 1.6; }
+.ob-step-title { font-size: 24px; font-family: var(--fd); font-weight: 400; margin-bottom: 6px; text-wrap: balance; }
+.ob-step-sub { font-size: 16px; color: var(--fg-m); margin-bottom: 24px; line-height: 1.6; }
 .ob-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 28px; }
 .ob-dot { width: 28px; height: 4px; border-radius: 99px; background: var(--border); transition: background .2s; }
 .ob-dot.on { background: var(--ac); }
 
 /* === MISC === */
-.sec-title { font-size: 17px; font-family: var(--fd); font-weight: 400; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; color: var(--fg); }
-.t-m { color: var(--fg-m); font-size: 13px; }
+.sec-title { font-size: 19px; font-family: var(--fd); font-weight: 400; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; color: var(--fg); }
+.t-m { color: var(--fg-m); font-size: 15px; }
 .t-a { color: var(--ac); font-weight: 600; }
 .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 .empty { text-align: center; padding: 36px 20px; color: var(--fg-m); }
-.empty-t { font-size: 15px; font-weight: 600; color: var(--fg); margin-bottom: 6px; }
-.empty-s { font-size: 13px; max-width: 240px; margin: 0 auto 16px; }
+.empty-t { font-size: 17px; font-weight: 600; color: var(--fg); margin-bottom: 6px; }
+.empty-s { font-size: 15px; max-width: 240px; margin: 0 auto 16px; }
 .row { display: flex; align-items: center; gap: 8px; }
 .spacer { flex: 1; }
-.badge-ok { background: var(--ok-lt); color: var(--ok); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
-.badge-warn { background: var(--warn-lt); color: var(--warn); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+.badge-ok { background: var(--ok-lt); color: var(--ok); font-size: 13px; font-weight: 600; padding: 3px 9px; border-radius: 99px; }
+.badge-warn { background: var(--warn-lt); color: var(--warn); font-size: 13px; font-weight: 600; padding: 3px 9px; border-radius: 99px; }
 
 /* === MEAL PLAN === */
 .meal-day { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--rl); margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); }
 .meal-day.enjoo { border-color: var(--warn); }
 .meal-day-header { padding: 12px 16px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; background: var(--bg-warm); }
 .meal-day.enjoo .meal-day-header { background: var(--warn-lt); }
-.meal-day-name { font-size: 14px; font-family: var(--fd); font-weight: 400; letter-spacing: .02em; }
+.meal-day-name { font-size: 16px; font-family: var(--fd); font-weight: 400; letter-spacing: .02em; }
 .meal-slot { padding: 11px 16px; border-bottom: 1px solid var(--border); }
 .meal-slot:last-child { border-bottom: none; }
 .meal-slot-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
 .meal-icon { width: 28px; height: 28px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
-.meal-slot-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); }
-.meal-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; line-height: 1.4; color: var(--fg); }
-.meal-ingr { font-size: 12px; color: var(--fg-m); }
+.meal-slot-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); }
+.meal-name { font-size: 16px; font-weight: 500; margin-bottom: 3px; line-height: 1.4; color: var(--fg); }
+.meal-ingr { font-size: 14px; color: var(--fg-m); }
 .pref-chip.avoided { background: var(--danger-lt) !important; border-color: var(--danger) !important; color: var(--danger) !important; }
-.pref-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); margin: 14px 0 8px; }
+.pref-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); margin: 14px 0 8px; }
 /* Garante que [hidden] funciona mesmo com display inline */
 [hidden] { display: none !important; }
 </style>
@@ -386,10 +386,10 @@ input, select, textarea { font-family: var(--f); }
 <div id="install-banner" style="display:none;position:fixed;bottom:80px;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:9000;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.18);padding:14px 16px;align-items:center;gap:12px;border:1.5px solid rgba(74,124,89,.25)">
   <img src="icon-192.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0" alt="">
   <div style="flex:1;min-width:0">
-    <div style="font-size:14px;font-weight:700;color:#1a1a1a">Instalar TirzaDose</div>
-    <div style="font-size:12px;color:#666;margin-top:2px">Adicionar à tela inicial</div>
+    <div style="font-size:15px;font-weight:700;color:#1a1a1a">Instalar TirzaDose</div>
+    <div style="font-size:13px;color:#666;margin-top:2px">Adicionar à tela inicial</div>
   </div>
-  <button onclick="triggerInstall()" style="background:#4A7C59;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0">Instalar</button>
+  <button onclick="triggerInstall()" style="background:#4A7C59;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">Instalar</button>
   <button onclick="dismissInstall()" style="background:none;border:none;color:#999;font-size:22px;cursor:pointer;padding:8px 10px;flex-shrink:0;line-height:1;min-width:40px;min-height:40px">×</button>
 </div>
 
@@ -483,8 +483,8 @@ input, select, textarea { font-family: var(--f); }
         <img src="img-aplicacoes.png" alt="" style="width:100%;height:160px;object-fit:cover;object-position:center 30%;display:block;">
         <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.78),rgba(61,110,74,.52))"></div>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 max(16px,env(safe-area-inset-left,0px));">
-          <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Controle Semanal</div>
-          <div style="color:#fff;font-family:var(--fd);font-size:26px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Suas<br><em>Aplicações</em></div>
+          <div style="color:rgba(255,255,255,.75);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Controle Semanal</div>
+          <div style="color:#fff;font-family:var(--fd);font-size:28px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Suas<br><em>Aplicações</em></div>
         </div>
       </div>
       <div class="inner">
@@ -583,8 +583,8 @@ input, select, textarea { font-family: var(--f); }
         <img src="img-progresso.png" alt="" style="width:100%;height:160px;object-fit:cover;object-position:center;display:block;">
         <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.78),rgba(61,110,74,.52))"></div>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 max(16px,env(safe-area-inset-left,0px));">
-          <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Evolução do Tratamento</div>
-          <div style="color:#fff;font-family:var(--fd);font-size:26px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu<br><em>Progresso</em></div>
+          <div style="color:rgba(255,255,255,.75);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Evolução do Tratamento</div>
+          <div style="color:#fff;font-family:var(--fd);font-size:28px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu<br><em>Progresso</em></div>
         </div>
       </div>
       <div class="inner">
@@ -610,9 +610,9 @@ input, select, textarea { font-family: var(--f); }
         <img src="img-dieta.png" alt="Alimentação saudável" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
         <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,60,35,.72),rgba(61,110,74,.55))"></div>
         <div style="position:relative;padding:22px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:640px;margin:0 auto;">
-          <div style="color:rgba(255,255,255,.8);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Alimentação &amp; Tratamento</div>
-          <div style="color:#fff;font-family:var(--fd);font-size:28px;line-height:1.2;margin-bottom:4px;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu Plano<br><em style="opacity:.95">Alimentar</em></div>
-          <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.3)">Cardápio semanal personalizado para tirzepatida</div>
+          <div style="color:rgba(255,255,255,.8);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Alimentação &amp; Tratamento</div>
+          <div style="color:#fff;font-family:var(--fd);font-size:30px;line-height:1.2;margin-bottom:4px;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu Plano<br><em style="opacity:.95">Alimentar</em></div>
+          <div style="color:rgba(255,255,255,.85);font-size:15px;margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.3)">Cardápio semanal personalizado para tirzepatida</div>
         </div>
       </div>
       <div class="inner">
@@ -644,10 +644,10 @@ input, select, textarea { font-family: var(--f); }
         <div style="display:flex;align-items:center;gap:16px">
           <div id="perfil-avatar" style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.18);border:2.5px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--fd)">?</div>
           <div>
-            <div id="perfil-name" style="color:#fff;font-family:var(--fd);font-size:22px;font-weight:400;line-height:1.2">Meu Perfil</div>
-            <div id="perfil-sub" style="color:rgba(255,255,255,.7);font-size:12px;margin-top:3px">Configure seu tratamento</div>
+            <div id="perfil-name" style="color:#fff;font-family:var(--fd);font-size:24px;font-weight:400;line-height:1.2">Meu Perfil</div>
+            <div id="perfil-sub" style="color:rgba(255,255,255,.7);font-size:14px;margin-top:3px">Configure seu tratamento</div>
           </div>
-          <button onclick="openProfileModal()" style="margin-left:auto;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer">✏️ Editar</button>
+          <button onclick="openProfileModal()" style="margin-left:auto;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:7px 14px;font-size:14px;font-weight:600;cursor:pointer">✏️ Editar</button>
         </div>
         <div id="perfil-stats-hero" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:20px"></div>
       </div>
