@@ -148,6 +148,48 @@ input, select, textarea { font-family: var(--f); }
 #demo-banner.visible { display: flex; }
 #demo-banner-enter { background: rgba(255,255,255,.22); border: 1.5px solid rgba(255,255,255,.5); color: #fff; border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: var(--f); }
 body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40px); }
+
+/* ── Tour de Destaques ── */
+#tour-wrap { position: fixed; inset: 0; z-index: 3000; pointer-events: none; }
+#tour-spot {
+  position: fixed;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,.62);
+  border-radius: 12px;
+  pointer-events: none;
+  transition: top .35s cubic-bezier(.4,0,.2,1), left .35s cubic-bezier(.4,0,.2,1),
+              width .35s cubic-bezier(.4,0,.2,1), height .35s cubic-bezier(.4,0,.2,1);
+  outline: 3px solid rgba(255,255,255,.55);
+}
+#tour-tip {
+  position: fixed;
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 18px 14px;
+  width: min(320px, calc(100vw - 40px));
+  box-shadow: 0 12px 40px rgba(0,0,0,.3);
+  pointer-events: all;
+  transition: top .35s cubic-bezier(.4,0,.2,1), left .35s cubic-bezier(.4,0,.2,1);
+}
+#tour-arrow {
+  position: absolute;
+  width: 14px; height: 14px;
+  background: #fff;
+  transform: rotate(45deg);
+}
+.tour-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: background .2s;
+}
+.tour-dot.on { background: #2D5A3D; }
+@media (prefers-color-scheme: dark) {
+  #tour-tip { background: #1e1e1e; }
+  #tour-tip #tour-title { color: #f0f0f0; }
+  #tour-tip #tour-text { color: #aaa; }
+  #tour-arrow { background: #1e1e1e; }
+  #tour-tip button[onclick="tourStep(-1)"] { border-color: #444; color: #aaa; }
+}
 .dose-pill {
   background: var(--ac);
   color: #fff;
@@ -500,7 +542,28 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 <!-- DEMO BANNER -->
 <div id="demo-banner">
   <span>🔍 Modo Demo — dados fictícios</span>
-  <button id="demo-banner-enter" onclick="showAuthGate();hideDemoBanner()">Entrar com sua conta</button>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button onclick="startTour()" style="background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:20px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--f)">📖 Tutorial</button>
+    <button id="demo-banner-enter" onclick="showAuthGate();hideDemoBanner()">Entrar com sua conta</button>
+  </div>
+</div>
+
+<!-- TOUR DE DESTAQUES -->
+<div id="tour-wrap" hidden>
+  <div id="tour-spot"></div>
+  <div id="tour-tip">
+    <div id="tour-arrow"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div id="tour-dots" style="display:flex;gap:5px"></div>
+      <button onclick="tourSkip()" style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;padding:2px 4px;font-family:var(--f)">Pular</button>
+    </div>
+    <div id="tour-title" style="font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:6px"></div>
+    <div id="tour-text" style="font-size:14px;color:#555;line-height:1.55;margin-bottom:16px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <button id="tour-prev-btn" onclick="tourStep(-1)" style="background:none;border:1.5px solid #ddd;color:#555;border-radius:9px;padding:8px 16px;font-size:14px;cursor:pointer;font-family:var(--f)">← Anterior</button>
+      <button id="tour-next-btn" onclick="tourStep(1)" style="background:#2D5A3D;color:#fff;border:none;border-radius:9px;padding:8px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--f)">Próximo →</button>
+    </div>
+  </div>
 </div>
 
 <!-- MAIN APP -->
@@ -2454,6 +2517,8 @@ function enterDemoMode() {
   document.body.classList.add('demo-mode');
   initOnboarding();
   renderAll(); generatePlan();
+  // Auto-start tour after render
+  setTimeout(startTour, 400);
 }
 
 function hideDemoBanner() {
@@ -3237,6 +3302,161 @@ window.addEventListener('appinstalled', () => {
 document.addEventListener('DOMContentLoaded', () => {
   updateNotifUI();
 });
+
+/* ===== TOUR DE DESTAQUES ===== */
+const TOUR_STEPS = [
+  {
+    sel: '#demo-banner',
+    tab: null,
+    title: '👋 Bem-vindo ao TirzaDose!',
+    text: 'Você está no modo demo com dados fictícios. Este tutorial mostra como usar cada parte do app. Vamos lá?',
+  },
+  {
+    sel: '#nb-inicio',
+    tab: 'inicio',
+    title: '🏠 Início — Visão Geral',
+    text: 'Aqui você vê um resumo do acompanhamento: próxima dose, semanas de tratamento e evolução do peso.',
+  },
+  {
+    sel: '#nb-app',
+    tab: 'app',
+    title: '💉 Aplicações Semanais',
+    text: 'Registre cada aplicação com a dose usada, local de injeção e horário. O app alerta no dia certo.',
+  },
+  {
+    sel: '#nb-prog',
+    tab: 'prog',
+    title: '📈 Progresso & Peso',
+    text: 'Acompanhe seu peso semana a semana com gráfico de evolução. Registre pesagens para ver a curva.',
+  },
+  {
+    sel: '#nb-diet',
+    tab: 'diet',
+    title: '🥗 Dicas de Dieta',
+    text: 'Orientações de alimentação para potencializar os resultados durante o acompanhamento.',
+  },
+  {
+    sel: '#nb-info',
+    tab: 'info',
+    title: '☁️ Conta & Sincronização',
+    text: 'Entre com sua conta Google para salvar todos os dados na nuvem e acessá-los em qualquer dispositivo.',
+  },
+];
+
+let _tourIdx = 0;
+let _tourActive = false;
+
+function startTour() {
+  _tourIdx = 0;
+  _tourActive = true;
+  document.getElementById('tour-wrap').hidden = false;
+  _showTourStep(_tourIdx);
+}
+
+function tourSkip() {
+  _tourActive = false;
+  document.getElementById('tour-wrap').hidden = true;
+  // Return to início tab
+  goTab('inicio', document.getElementById('nb-inicio'));
+}
+
+function tourStep(delta) {
+  const next = _tourIdx + delta;
+  if (next < 0) return;
+  if (next >= TOUR_STEPS.length) { tourSkip(); return; }
+  _tourIdx = next;
+  _showTourStep(_tourIdx);
+}
+
+function _showTourStep(i) {
+  const step = TOUR_STEPS[i];
+
+  // Navigate to tab if needed
+  if (step.tab) {
+    const tabBtn = document.getElementById('nb-' + step.tab);
+    if (tabBtn) goTab(step.tab, tabBtn);
+  }
+
+  // Update dots
+  const dotsEl = document.getElementById('tour-dots');
+  dotsEl.innerHTML = TOUR_STEPS.map((_, j) =>
+    `<div class="tour-dot${j === i ? ' on' : ''}"></div>`
+  ).join('');
+
+  // Update text
+  document.getElementById('tour-title').textContent = step.title;
+  document.getElementById('tour-text').textContent = step.text;
+
+  // Prev button visibility
+  const prevBtn = document.getElementById('tour-prev-btn');
+  prevBtn.style.visibility = i === 0 ? 'hidden' : 'visible';
+
+  // Next button label
+  const nextBtn = document.getElementById('tour-next-btn');
+  nextBtn.textContent = i === TOUR_STEPS.length - 1 ? '✓ Concluir' : 'Próximo →';
+
+  // Position spotlight + tooltip after a small delay for tab render
+  setTimeout(() => _positionTour(step.sel), 80);
+}
+
+function _positionTour(sel) {
+  const el = document.querySelector(sel);
+  const wrap = document.getElementById('tour-wrap');
+  const spot = document.getElementById('tour-spot');
+  const tip = document.getElementById('tour-tip');
+  const arrow = document.getElementById('tour-arrow');
+
+  if (!el) return;
+
+  const r = el.getBoundingClientRect();
+  const pad = 6;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Position spotlight
+  spot.style.top    = (r.top - pad) + 'px';
+  spot.style.left   = (r.left - pad) + 'px';
+  spot.style.width  = (r.width + pad * 2) + 'px';
+  spot.style.height = (r.height + pad * 2) + 'px';
+
+  // Decide tooltip placement: above or below spotlight
+  const tipH = 200; // approx height
+  const spaceBelow = vh - r.bottom - pad;
+  const spaceAbove = r.top - pad;
+  const placeBelow = spaceBelow >= tipH || spaceBelow >= spaceAbove;
+
+  const tipW = Math.min(320, vw - 40);
+  let tipLeft = Math.max(20, Math.min(r.left + r.width / 2 - tipW / 2, vw - tipW - 20));
+  let tipTop;
+
+  if (placeBelow) {
+    tipTop = r.bottom + pad + 14;
+    // arrow above tooltip
+    arrow.style.top = '-7px';
+    arrow.style.bottom = '';
+    arrow.style.left = Math.max(16, Math.min(r.left + r.width / 2 - tipLeft - 7, tipW - 30)) + 'px';
+    arrow.style.boxShadow = '-2px -2px 4px rgba(0,0,0,.06)';
+  } else {
+    tipTop = r.top - pad - tipH - 14;
+    // arrow below tooltip
+    arrow.style.bottom = '-7px';
+    arrow.style.top = '';
+    arrow.style.left = Math.max(16, Math.min(r.left + r.width / 2 - tipLeft - 7, tipW - 30)) + 'px';
+    arrow.style.boxShadow = '2px 2px 4px rgba(0,0,0,.06)';
+  }
+
+  // Clamp vertically
+  tipTop = Math.max(env_top() + 8, Math.min(tipTop, vh - 20 - tipH));
+
+  tip.style.left = tipLeft + 'px';
+  tip.style.top  = tipTop + 'px';
+  tip.style.width = tipW + 'px';
+}
+
+function env_top() {
+  // approximate safe area top
+  try { return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0'); } catch { return 0; }
+}
 </script>
 </body>
 </html>
