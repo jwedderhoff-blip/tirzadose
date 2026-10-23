@@ -1120,6 +1120,7 @@ function scheduleSyncToCloud() {
 
 async function syncToCloud() {
   if (!sbUser) return;
+  _setSyncStatus('↑ Salvando…', '');
   try {
     await sb.from('user_data').upsert(
       { user_id: sbUser.id, data: { ...S, _deviceId } },
@@ -1416,8 +1417,9 @@ function saveProfile(){
   if(!w||w<30||w>300){ alert2('Peso inválido (30–300 kg).'); return; }
   if(!h||h<100||h>250){ alert2('Altura inválida (100–250 cm).'); return; }
   if(!start){ alert2('Informe a data de início.'); return; }
-  S.profile = { name, weightKg:w, heightCm:h, startDate:start, weekDay:day, currentDoseMg:dose };
+  S.profile = { ...S.profile, name, weightKg:w, heightCm:h, startDate:start, weekDay:day, currentDoseMg:dose };
   save();
+  syncToCloud();
   closeModal('mo-profile');
   renderAll();
   alert2('Perfil atualizado!');
@@ -1503,12 +1505,13 @@ function saveApplication(){
   document.getElementById('apWeight').value = '';
 
   save();
+  syncToCloud();
   closeModal('mo-apply');
   renderAll();
 }
 function deleteApplication(id){
   S.applications = S.applications.filter(a=>a.id!==id);
-  save(); renderAll();
+  save(); syncToCloud(); renderAll();
 }
 
 /* ===== EDIT WEIGHT ===== */
@@ -1539,11 +1542,11 @@ function saveWeight(){
     alert2('Peso registrado!');
   }
   S.weights.sort((a,b)=>a.date<b.date?1:-1);
-  save(); closeModal('mo-weight'); renderChart(); renderProg();
+  save(); syncToCloud(); closeModal('mo-weight'); renderChart(); renderProg();
 }
 function deleteWeight(id){
   S.weights = S.weights.filter(w=>w.id!==id);
-  save(); renderChart(); renderProg();
+  save(); syncToCloud(); renderChart(); renderProg();
 }
 
 function saveDiet(){
@@ -1554,12 +1557,12 @@ function saveDiet(){
   if(!date){ alert2('Informe a data.'); return; }
   S.dietLogs.push({id:uid(), date, proteinG:protein, caloriesKcal:cals, notes});
   S.dietLogs.sort((a,b)=>a.date<b.date?1:-1);
-  save(); closeModal('mo-diet'); renderDiet();
+  save(); syncToCloud(); closeModal('mo-diet'); renderDiet();
   alert2('Registro salvo!');
 }
 function deleteDiet(id){
   S.dietLogs = S.dietLogs.filter(d=>d.id!==id);
-  save(); renderDiet();
+  save(); syncToCloud(); renderDiet();
 }
 
 function saveSymptom(){
@@ -1568,7 +1571,7 @@ function saveSymptom(){
   if(!date){ alert2('Informe a data.'); return; }
   S.symptoms.push({id:uid(), date, symptoms:selSymptoms, severity:selSev, notes});
   S.symptoms.sort((a,b)=>a.date<b.date?1:-1);
-  save(); closeModal('mo-symp'); renderInicio();
+  save(); syncToCloud(); closeModal('mo-symp'); renderInicio();
   alert2('Sintomas registrados!');
 }
 
