@@ -291,7 +291,7 @@ input, select, textarea { font-family: var(--f); }
 .calc-item .cl { font-size: 13px; color: var(--fg-m); margin-top: 4px; }
 
 /* === CHART === */
-.chart-wrap { position: relative; height: 190px; margin-bottom: 14px; }
+.chart-wrap { position: relative; height: 280px; margin-bottom: 14px; }
 .chart-empty { display: flex; align-items: center; justify-content: center; height: 190px; color: var(--fg-m); font-size: 15px; }
 
 /* === PROGRESS BAR === */
@@ -1558,75 +1558,168 @@ function renderProg(){
 function renderChart(){
   renderProg();
   const weights = [...S.weights].sort((a,b)=>a.date<b.date?-1:1);
-  const canvas = document.getElementById('wChart');
-  const empty = document.getElementById('wChartEmpty');
+  const apps    = [...S.applications].sort((a,b)=>a.date<b.date?-1:1);
+  const canvas  = document.getElementById('wChart');
+  const empty   = document.getElementById('wChartEmpty');
 
   if(weights.length < 2){
-    canvas.hidden = true;
-    empty.style.display = 'flex';
+    canvas.hidden = true; empty.style.display = 'flex';
     if(wChart){ wChart.destroy(); wChart = null; }
     return;
   }
-  canvas.hidden = false;
-  empty.style.display = 'none';
+  canvas.hidden = false; empty.style.display = 'none';
 
-  const labels = weights.map(w => fmtD(w.date));
-  const data = weights.map(w => w.kg);
+  // Unified date axis: merge weight dates + application dates, sorted
+  const allDates = [...new Set([
+    ...weights.map(w=>w.date),
+    ...apps.map(a=>a.date)
+  ])].sort();
+
+  // Quick-lookup maps
+  const weightMap = {};
+  weights.forEach(w => { weightMap[w.date] = +w.kg; });
+
+  const appMap = {};
+  apps.forEach(a => {
+    if(!appMap[a.date]) appMap[a.date] = [];
+    appMap[a.date].push(+a.doseMg);
+  });
+
+  // Weight range — used to position application markers below the line
+  const kgVals = weights.map(w=>+w.kg);
+  const minKg  = Math.min(...kgVals);
+  const maxKg  = Math.max(...kgVals);
+  const range  = maxKg - minKg || 5;
+  const appBand = minKg - range * 0.28; // band 28% below min weight
+
+  // Build label array and per-dataset data
+  const labels     = allDates.map(d => fmtD(d));
+  const weightData = allDates.map(d => weightMap[d] !== undefined ? weightMap[d] : null);
+
+  // Scatter points for applications — y fixed at appBand
+  const appPoints = [];
+  allDates.forEach((d, i) => {
+    if(appMap[d]) appPoints.push({ x: labels[i], y: appBand, doses: appMap[d] });
+  });
 
   const isDark = document.documentElement.getAttribute('data-theme')==='dark' ||
     (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-  const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
-  const tickColor = isDark ? '#6A7E96' : '#6B7A90';
-  const acColor = isDark ? '#2AB09A' : '#0D7A69';
-  const fillColor = isDark ? 'rgba(42,176,154,.12)' : 'rgba(13,122,105,.1)';
+  const gridColor   = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+  const tickColor   = isDark ? '#8899AA' : '#6B7A90';
+  const weightColor = isDark ? '#6DBF82' : '#3D7A56';
+  const fillColor   = isDark ? 'rgba(109,191,130,.1)' : 'rgba(61,122,86,.09)';
+  const appColor    = isDark ? '#E08040' : '#C96A2B';
+  const bgCard      = isDark ? '#201D18' : '#fff';
+  const fgCard      = isDark ? '#EDE8DF' : '#1A180E';
+  const fgM         = isDark ? '#A0B090' : '#5A6A5A';
+  const bdCard      = isDark ? '#2C2820' : '#E4DDD2';
 
   if(wChart){ wChart.destroy(); }
   wChart = new Chart(canvas, {
     type: 'line',
     data: {
       labels,
-      datasets: [{
-        label: 'Peso (kg)',
-        data,
-        borderColor: acColor,
-        backgroundColor: fillColor,
-        fill: true,
-        tension: 0.35,
-        borderWidth: 2,
-        pointBackgroundColor: acColor,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        pointBorderColor: isDark ? '#131B26' : '#fff',
-        pointBorderWidth: 2,
-      }]
+      datasets: [
+        {
+          label: 'Peso (kg)',
+          type: 'line',
+          data: weightData,
+          borderColor: weightColor,
+          backgroundColor: fillColor,
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointBackgroundColor: weightColor,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBorderColor: isDark ? '#161410' : '#fff',
+          pointBorderWidth: 2,
+          spanGaps: true,
+          order: 2,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Aplicação',
+          type: 'scatter',
+          data: appPoints,
+          backgroundColor: appColor,
+          borderColor: isDark ? '#161410' : '#fff',
+          borderWidth: 2,
+          pointStyle: 'triangle',
+          pointRadius: 9,
+          pointHoverRadius: 11,
+          order: 1,
+          yAxisID: 'y'
+        }
+      ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'start',
+          labels: {
+            color: tickColor,
+            font: { size: 13 },
+            usePointStyle: true,
+            pointStyleWidth: 14,
+            padding: 18,
+            generateLabels() {
+              return [
+                { text: 'Peso', fillStyle: weightColor, strokeStyle: weightColor,
+                  lineWidth: 2.5, pointStyle: 'line', fontColor: tickColor },
+                { text: 'Aplicação', fillStyle: appColor, strokeStyle: appColor,
+                  lineWidth: 0, pointStyle: 'triangle', fontColor: tickColor }
+              ];
+            }
+          }
+        },
         tooltip: {
-          backgroundColor: isDark ? '#1D2A3A' : '#fff',
-          titleColor: isDark ? '#E6EEF8' : '#141C28',
-          bodyColor: isDark ? '#A8B8CC' : '#3D4E62',
-          borderColor: isDark ? '#273649' : '#DDE3EE',
+          backgroundColor: bgCard,
+          titleColor: fgCard,
+          bodyColor: fgM,
+          borderColor: bdCard,
           borderWidth: 1,
-          padding: 10,
+          padding: 12,
+          mode: 'index',
+          intersect: false,
           callbacks: {
-            label: ctx => `${ctx.parsed.y.toFixed(1)} kg`
+            title(items) {
+              return items[0]?.label || '';
+            },
+            label(ctx) {
+              if(ctx.datasetIndex === 0) {
+                return ctx.parsed.y != null ? `⚖️  ${ctx.parsed.y.toFixed(1)} kg` : null;
+              }
+              if(ctx.datasetIndex === 1) {
+                return `💉  ${ctx.raw.doses.map(d=>d+' mg').join(' + ')}`;
+              }
+            }
           }
         }
       },
       scales: {
         x: {
           grid: { color: gridColor },
-          ticks: { color: tickColor, font: { size: 11 }, maxTicksLimit: 6, maxRotation: 0 }
+          ticks: { color: tickColor, font: { size: 12 }, maxTicksLimit: 7, maxRotation: 30 }
         },
         y: {
           grid: { color: gridColor },
-          ticks: { color: tickColor, font: { size: 11 }, callback: v => v.toFixed(1) + ' kg' },
-          grace: '5%'
+          min: appBand - range * 0.04,
+          ticks: {
+            color: tickColor,
+            font: { size: 12 },
+            callback(v) {
+              // Hide ticks in the application band area
+              if(v < minKg - range * 0.05) return '';
+              return v.toFixed(1) + ' kg';
+            }
+          },
+          grace: '3%'
         }
       },
       interaction: { mode: 'index', intersect: false }
