@@ -334,6 +334,11 @@ input, select, textarea { font-family: var(--f); }
 .tag { background: var(--ac); color: #fff; font-family: var(--fm); font-size: 13px; font-weight: 600; padding: 3px 8px; border-radius: 4px; white-space: nowrap; display: inline-block; }
 .tag.max { background: var(--warn); }
 
+/* === AUTH GATE === */
+#auth-gate { position: fixed; inset: 0; background: linear-gradient(160deg,#1E3D2A 0%,#2D5A3D 60%,#3a6b4a 100%); z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top,0px) + 32px) max(24px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 32px); padding-right: max(24px,env(safe-area-inset-right,0px)); }
+#auth-gate[hidden] { display: none !important; }
+#auth-gate-inner { width: 100%; max-width: 360px; }
+
 /* === ONBOARDING === */
 .ob-overlay { position: fixed; inset: 0; background: var(--bg-warm); z-index: 200; overflow-y: auto; padding: calc(env(safe-area-inset-top,0px) + 40px) max(24px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 40px); padding-right: max(24px,env(safe-area-inset-right,0px)); }
 .ob-overlay[hidden] { display: none !important; }
@@ -391,6 +396,35 @@ input, select, textarea { font-family: var(--f); }
   </div>
   <button onclick="triggerInstall()" style="background:#4A7C59;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">Instalar</button>
   <button onclick="dismissInstall()" style="background:none;border:none;color:#999;font-size:22px;cursor:pointer;padding:8px 10px;flex-shrink:0;line-height:1;min-width:40px;min-height:40px">×</button>
+</div>
+
+<!-- AUTH GATE (shown before onboarding on first use) -->
+<div id="auth-gate" hidden>
+  <div id="auth-gate-inner">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:48px;font-family:var(--fd);color:#fff;letter-spacing:-.01em;line-height:1">Tirza<em style="font-style:italic;color:#a8d5b5">Dose</em></div>
+      <div style="color:rgba(255,255,255,.7);font-size:15px;margin-top:8px">Seu acompanhamento na nuvem</div>
+    </div>
+    <button onclick="authGateGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:15px 18px;border:none;border-radius:14px;background:#fff;color:#1a1a1a;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--f);margin-bottom:12px;box-shadow:0 2px 12px rgba(0,0,0,.18)">
+      <svg width="22" height="22" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.29-8.16 2.29-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Entrar com Google
+    </button>
+    <div style="display:flex;align-items:center;gap:8px;margin:14px 0">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.2)"></div>
+      <span style="font-size:13px;color:rgba(255,255,255,.5)">ou</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.2)"></div>
+    </div>
+    <div style="margin-bottom:10px"><input id="gate-email" type="email" placeholder="seu@email.com" autocomplete="email" style="width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:15px;font-family:var(--f);box-sizing:border-box;outline:none" onfocus="this.style.borderColor='rgba(255,255,255,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.2)'"></div>
+    <div style="margin-bottom:10px"><input id="gate-password" type="password" placeholder="Senha (mín. 6 caracteres)" autocomplete="current-password" style="width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:15px;font-family:var(--f);box-sizing:border-box;outline:none" onfocus="this.style.borderColor='rgba(255,255,255,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.2)'"></div>
+    <div id="gate-error" style="color:#ffb3b3;font-size:14px;margin-bottom:8px;min-height:20px;text-align:center"></div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button onclick="authGateSignIn()" style="flex:1;padding:13px;border-radius:12px;border:1.5px solid rgba(255,255,255,.35);background:transparent;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--f)">Entrar</button>
+      <button onclick="authGateSignUp()" style="flex:1;padding:13px;border-radius:12px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--f)">Criar conta</button>
+    </div>
+    <div style="text-align:center">
+      <button onclick="authGateSkip()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;font-family:var(--f);padding:8px;text-decoration:underline">Usar sem conta (dados só neste dispositivo)</button>
+    </div>
+  </div>
 </div>
 
 <!-- ONBOARDING -->
@@ -2341,6 +2375,51 @@ function renderAll(){
   renderProfileSummary();
 }
 
+/* ===== AUTH GATE (tela inicial de login) ===== */
+function showAuthGate() {
+  document.getElementById('auth-gate').hidden = false;
+  document.getElementById('ob').hidden = true;
+}
+function hideAuthGate() {
+  document.getElementById('auth-gate').hidden = true;
+}
+function _gateError(msg) {
+  document.getElementById('gate-error').textContent = msg;
+}
+async function authGateGoogle() {
+  await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.href }
+  });
+}
+async function authGateSignIn() {
+  const email = document.getElementById('gate-email').value.trim();
+  const pass  = document.getElementById('gate-password').value;
+  if (!email || !pass) { _gateError('Preencha e-mail e senha.'); return; }
+  _gateError('');
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { _gateError(error.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos.' : error.message); }
+  // Success handled by onAuthStateChange
+}
+async function authGateSignUp() {
+  const email = document.getElementById('gate-email').value.trim();
+  const pass  = document.getElementById('gate-password').value;
+  if (!email || !pass) { _gateError('Preencha e-mail e senha.'); return; }
+  if (pass.length < 6) { _gateError('Senha deve ter ao menos 6 caracteres.'); return; }
+  _gateError('');
+  const { error } = await sb.auth.signUp({ email, password: pass });
+  if (error) { _gateError(error.message); return; }
+  // If email confirmation is off, SIGNED_IN fires immediately
+  // If on, show message
+  if (!sbUser) _gateError('✓ Conta criada! Verifique seu e-mail ou já pode entrar.');
+}
+function authGateSkip() {
+  try { localStorage.setItem('tirza_skip_auth', '1'); } catch{}
+  hideAuthGate();
+  initOnboarding();
+  if (isOnboarded()) { renderAll(); generatePlan(); }
+}
+
 /* ===== AUTH FUNCTIONS ===== */
 function _renderAuthCard() {
   const out = document.getElementById('auth-signed-out');
@@ -2409,21 +2488,31 @@ async function authSignOut() {
 
 /* ===== INIT ===== */
 load();
-initOnboarding();
-if(isOnboarded()){ renderAll(); generatePlan(); }
+
+// Show auth gate for new users (not onboarded, no skip flag, no existing session)
+// Existing users with local data go straight to the app
+const _skipAuth = (() => { try { return localStorage.getItem('tirza_skip_auth'); } catch{ return null; } })();
+if (!isOnboarded() && !_skipAuth) {
+  // Temporarily show gate; will hide if session is found below
+  showAuthGate();
+} else {
+  initOnboarding();
+  if (isOnboarded()) { renderAll(); generatePlan(); }
+}
 
 // Supabase auth listener — fires on login/logout and on page load if session exists
 sb.auth.onAuthStateChange(async (event, session) => {
   sbUser = session?.user || null;
   _renderAuthCard();
   if (event === 'SIGNED_IN') {
+    hideAuthGate();
     _setSyncStatus('Carregando dados da nuvem…', '');
     await loadFromCloud();
+    initOnboarding();
     if (isOnboarded()) { renderAll(); generatePlan(); }
     subscribeToRealtime();
     _setSyncStatus('✓ Sincronizado', 'ok');
   } else if (event === 'TOKEN_REFRESHED') {
-    // Token renovado — apenas re-subscreve o canal realtime se necessário
     if (!_realtimeChannel) subscribeToRealtime();
   } else if (event === 'SIGNED_OUT') {
     if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
@@ -2434,12 +2523,17 @@ sb.auth.onAuthStateChange(async (event, session) => {
 sb.auth.getSession().then(async ({ data: { session } }) => {
   if (session) {
     sbUser = session.user;
+    hideAuthGate();
     _renderAuthCard();
     _setSyncStatus('Carregando dados da nuvem…', '');
     await loadFromCloud();
+    initOnboarding();
     if (isOnboarded()) { renderAll(); generatePlan(); }
     subscribeToRealtime();
     _setSyncStatus('✓ Sincronizado', 'ok');
+  } else if (!isOnboarded() && !_skipAuth) {
+    // Confirmed no session — keep gate visible
+    showAuthGate();
   }
 });
 
