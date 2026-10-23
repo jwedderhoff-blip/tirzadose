@@ -1449,8 +1449,6 @@ function closeModal(id){
 let selectedSite = null;
 function renderSiteGrid(prevId){
   if(prevId) selectedSite = prevId;
-  renderSiteGridTo('siteGrid');
-  // re-render with onclick pointing to siteGrid
   const g = document.getElementById('siteGrid');
   const lastApp = [...S.applications].sort((a,b)=>a.date<b.date?1:-1)[0];
   const lastSite = lastApp ? lastApp.site : null;
