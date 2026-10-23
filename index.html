@@ -1,0 +1,2137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TirzaDose</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4A7C59">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TirzaDose">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<!-- SEO / description -->
+<meta name="description" content="Controle inteligente do tratamento com tirzepatida — doses, aplicações, dieta e progresso.">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* === TOKENS — warm natural palette (food photography reference) === */
+:root {
+  --bg:         #F7F5F0;
+  --bg-card:    #FFFFFF;
+  --bg-warm:    #FDF8F2;
+  --fg:         #1A180E;
+  --fg-2:       #4A4236;
+  --fg-m:       #7A7264;
+  --ac:         #4A7C59;
+  --ac-2:       #C96A2B;
+  --ac-lt:      #EAF3EC;
+  --ac2-lt:     #FAEEE4;
+  --warn:       #A85C00;
+  --warn-lt:    #FEF2E0;
+  --danger:     #C0392B;
+  --danger-lt:  #FDECEC;
+  --ok:         #2D7A4E;
+  --ok-lt:      #E5F5EC;
+  --border:     #E4DDD2;
+  --border-2:   #C8BFB4;
+  --overlay:    rgba(26,24,14,.55);
+  --nav-h:      62px;
+  --f:          'Inter', system-ui, sans-serif;
+  --fd:         'DM Serif Display', Georgia, serif;
+  --fm:         'JetBrains Mono', monospace;
+  --r:          12px;
+  --rl:         18px;
+  --shadow:     0 1px 5px rgba(100,80,50,.08);
+  --shadow-md:  0 6px 20px rgba(100,80,50,.11);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #161410;
+    --bg-card:   #201D18;
+    --bg-warm:   #1A1712;
+    --fg:        #EDE8DF;
+    --fg-2:      #B0A898;
+    --fg-m:      #706860;
+    --ac:        #6DBF82;
+    --ac-2:      #E08040;
+    --ac-lt:     #0E2416;
+    --ac2-lt:    #271404;
+    --warn:      #E0A030;
+    --warn-lt:   #251800;
+    --danger:    #F07070;
+    --danger-lt: #240A0A;
+    --ok:        #50D080;
+    --ok-lt:     #041C0E;
+    --border:    #2C2820;
+    --border-2:  #3A342A;
+    --shadow:    0 1px 5px rgba(0,0,0,.35);
+    --shadow-md: 0 6px 20px rgba(0,0,0,.50);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #161410;
+  --bg-card:   #201D18;
+  --bg-warm:   #1A1712;
+  --fg:        #EDE8DF;
+  --fg-2:      #B0A898;
+  --fg-m:      #706860;
+  --ac:        #6DBF82;
+  --ac-2:      #E08040;
+  --ac-lt:     #0E2416;
+  --ac2-lt:    #271404;
+  --warn:      #E0A030;
+  --warn-lt:   #251800;
+  --danger:    #F07070;
+  --danger-lt: #240A0A;
+  --ok:        #50D080;
+  --ok-lt:     #041C0E;
+  --border:    #2C2820;
+  --border-2:  #3A342A;
+  --shadow:    0 1px 5px rgba(0,0,0,.35);
+  --shadow-md: 0 6px 20px rgba(0,0,0,.50);
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--f);
+  font-size: 15px;
+  line-height: 1.6;
+  height: 100%;
+  overflow: hidden;
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 50;
+  background: var(--bg-card);
+}
+button { font-family: var(--f); }
+input, select, textarea { font-family: var(--f); }
+
+/* === LAYOUT === */
+#app { display: flex; flex-direction: column; height: 100%; }
+.app-header {
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 13px max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  box-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(100,80,50,.05);
+}
+.logo { font-size: 21px; font-family: var(--fd); font-weight: 400; color: var(--ac); letter-spacing: -.01em; line-height: 1; }
+.logo em { font-style: italic; color: var(--ac-2); }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.dose-pill {
+  background: var(--ac);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--fm);
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+.main-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 20px);
+}
+.panel { display: none; }
+.panel.active { display: block; }
+.inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 18px max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+  z-index: 10;
+}
+.nb { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: none; cursor: pointer; color: var(--fg-m); font-size: 10px; font-weight: 500; padding: 6px 2px; transition: color .2s; -webkit-tap-highlight-color: transparent; position: relative; }
+.nb svg { width: 22px; height: 22px; transition: transform .2s; }
+.nb.active { color: var(--ac); }
+.nb.active svg { transform: translateY(-1px); }
+.nb.active::after { content: ''; position: absolute; bottom: calc(env(safe-area-inset-bottom,0px) + 6px); width: 18px; height: 3px; border-radius: 99px; background: var(--ac); }
+
+/* === CARDS === */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--rl); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--fg-m); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+
+/* === HERO CARD === */
+.hero-card {
+  border-radius: var(--rl);
+  padding: 22px 20px 20px;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, #3D6E4A 0%, #5A8F5E 60%, #7AAD70 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(74,124,89,.30);
+}
+.hero-card::before { content: ''; position: absolute; left: -40px; bottom: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.06); pointer-events: none; }
+.hero-card::after { content: ''; position: absolute; right: -20px; top: -20px; width: 130px; height: 130px; border-radius: 50%; background: rgba(255,255,255,.08); pointer-events: none; }
+.hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+.hero-countdown { font-size: 52px; font-family: var(--fd); font-weight: 400; line-height: 1; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.hero-sub { font-size: 13px; opacity: .88; margin-top: 5px; }
+.hero-actions { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+.hero-btn { background: rgba(255,255,255,.18); border: 1.5px solid rgba(255,255,255,.35); border-radius: 99px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: #fff; cursor: pointer; font-family: var(--f); transition: background .15s; -webkit-tap-highlight-color: transparent; }
+.hero-btn:active { background: rgba(255,255,255,.32); }
+.hero-btn.primary { background: rgba(255,255,255,.92); color: var(--ac); border-color: transparent; }
+
+/* === STAT TILES === */
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 10px; text-align: center; box-shadow: var(--shadow); }
+.stat-v { font-size: 22px; font-family: var(--fd); font-weight: 400; color: var(--ac); font-variant-numeric: tabular-nums; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stat-l { font-size: 10px; color: var(--fg-m); margin-top: 3px; font-weight: 500; letter-spacing: .03em; }
+
+/* === BUTTONS === */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 20px; border-radius: 99px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s, transform .1s, box-shadow .15s; -webkit-tap-highlight-color: transparent; }
+.btn:active { transform: scale(.97); }
+.btn-p { background: var(--ac); color: #fff; box-shadow: 0 3px 10px rgba(74,124,89,.30); }
+.btn-p:active { box-shadow: none; }
+.btn-o { background: transparent; color: var(--ac); border: 1.5px solid var(--ac); }
+.btn-g { background: var(--bg); color: var(--fg-2); border: 1.5px solid var(--border); }
+.btn-d { background: var(--danger-lt); color: var(--danger); border: 1.5px solid color-mix(in srgb, var(--danger) 25%, transparent); }
+.btn-w { width: 100%; }
+.btn-sm { padding: 7px 14px; font-size: 13px; }
+
+/* === FORMS === */
+.fg { margin-bottom: 14px; }
+.fl { display: block; font-size: 13px; font-weight: 500; color: var(--fg-2); margin-bottom: 5px; }
+.fi, .fs {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  font-size: 15px;
+  color: var(--fg);
+  outline: none;
+  transition: border-color .15s;
+}
+.fi:focus, .fs:focus { border-color: var(--ac); }
+.fh { font-size: 12px; color: var(--fg-m); margin-top: 4px; }
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* === CALLOUTS === */
+.callout { border-radius: var(--r); padding: 11px 13px; margin-bottom: 12px; font-size: 13px; line-height: 1.5; display: flex; gap: 9px; align-items: flex-start; }
+.ci { flex-shrink: 0; }
+.callout.info { background: var(--ac-lt); color: var(--ac); }
+.callout.warn { background: var(--warn-lt); color: var(--warn); }
+.callout.danger { background: var(--danger-lt); color: var(--danger); }
+.callout.ok { background: var(--ok-lt); color: var(--ok); }
+
+/* === MODALS === */
+.overlay { position: fixed; inset: 0; background: var(--overlay); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
+.overlay[hidden] { display: none !important; }
+.sheet { background: var(--bg-card); border-radius: 20px 20px 0 0; padding: 18px max(18px, env(safe-area-inset-left, 0px)); padding-right: max(18px, env(safe-area-inset-right, 0px)); padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; }
+.sheet-handle { width: 36px; height: 4px; background: var(--border-2); border-radius: 99px; margin: 0 auto 14px; }
+.sheet-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+.sheet-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+/* === HISTORY ITEMS === */
+.h-item { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.h-item:last-child { border-bottom: none; }
+.h-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ac); flex-shrink: 0; margin-top: 6px; }
+.h-dot.warn { background: var(--warn); }
+.h-dot.ok { background: var(--ok); }
+.h-main { flex: 1; min-width: 0; }
+.h-title { font-size: 14px; font-weight: 500; }
+.h-meta { font-size: 12px; color: var(--fg-m); }
+.h-right { font-size: 12px; color: var(--fg-m); text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.del-btn { font-size: 11px; color: var(--danger); background: none; border: none; cursor: pointer; padding: 0; font-family: var(--f); }
+
+/* === SITE GRID === */
+.site-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.site-btn { border: 1.5px solid var(--border); border-radius: var(--r); padding: 10px 6px; background: var(--bg-card); cursor: pointer; text-align: center; font-size: 12px; font-weight: 500; color: var(--fg-2); transition: all .15s; -webkit-tap-highlight-color: transparent; line-height: 1.3; }
+.site-btn.selected { background: var(--ac-lt); border-color: var(--ac); color: var(--ac); }
+.site-btn.prev { border-color: var(--warn); color: var(--warn); background: var(--warn-lt); }
+.site-btn.suggest { background: var(--ok-lt); border-color: var(--ok); color: var(--ok); }
+.site-icon { font-size: 20px; display: block; margin-bottom: 3px; }
+
+/* === CALCULATOR === */
+.calc-out { background: linear-gradient(135deg,var(--ac-lt),#F0F9F2); border: 1.5px solid color-mix(in srgb, var(--ac) 25%, transparent); border-radius: var(--rl); padding: 20px 16px; margin: 14px 0; text-align: center; }
+.calc-val { font-size: 42px; font-family: var(--fd); font-weight: 400; color: var(--ac); font-variant-numeric: tabular-nums; line-height: 1; }
+.calc-lbl { font-size: 12px; color: var(--fg-m); margin-top: 6px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.calc-item { text-align: center; padding: 14px 12px; background: var(--bg-warm); border-radius: var(--r); border: 1px solid var(--border); }
+.calc-item .cv { font-size: 24px; font-family: var(--fd); font-weight: 400; color: var(--ac-2); font-variant-numeric: tabular-nums; }
+.calc-item .cl { font-size: 11px; color: var(--fg-m); margin-top: 4px; }
+
+/* === CHART === */
+.chart-wrap { position: relative; height: 190px; margin-bottom: 14px; }
+.chart-empty { display: flex; align-items: center; justify-content: center; height: 190px; color: var(--fg-m); font-size: 13px; }
+
+/* === PROGRESS BAR === */
+.pb-wrap { background: var(--bg); border-radius: 99px; height: 10px; overflow: hidden; margin: 6px 0; }
+.pb-fill { height: 100%; border-radius: 99px; background: var(--ac); transition: width .4s; min-width: 4px; }
+.pb-fill.warn { background: var(--warn); }
+.pb-fill.ok { background: var(--ok); }
+
+/* === CHIPS === */
+.chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1.5px solid var(--border); border-radius: 99px; padding: 4px 12px; font-size: 13px; font-weight: 500; cursor: pointer; background: var(--bg-card); color: var(--fg-2); transition: all .15s; -webkit-tap-highlight-color: transparent; user-select: none; }
+.chip.on { background: var(--ac-lt); border-color: var(--ac); color: var(--ac); }
+
+/* === SEVERITY BTNS === */
+.sev-row { display: flex; gap: 6px; }
+.sev-b { width: 40px; height: 40px; border-radius: var(--r); border: 1.5px solid var(--border); background: var(--bg-card); font-size: 13px; font-weight: 700; font-family: var(--fm); cursor: pointer; color: var(--fg-m); transition: all .15s; -webkit-tap-highlight-color: transparent; }
+.sev-b.on { background: var(--ac); border-color: var(--ac); color: #fff; }
+
+/* === TIMELINE === */
+.tl { display: flex; flex-direction: column; }
+.tl-item { display: flex; gap: 12px; position: relative; }
+.tl-item::before { content: ''; position: absolute; left: 12px; top: 28px; bottom: -4px; width: 2px; background: var(--border); }
+.tl-item:last-child::before { display: none; }
+.tl-dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg-card); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--fm); font-size: 10px; font-weight: 600; color: var(--fg-m); position: relative; z-index: 1; }
+.tl-item.done .tl-dot { background: var(--ok); border-color: var(--ok); color: #fff; }
+.tl-item.cur .tl-dot { background: var(--ac); border-color: var(--ac); color: #fff; box-shadow: 0 0 0 4px var(--ac-lt); }
+.tl-item.fut .tl-dot { opacity: .4; }
+.tl-body { padding-bottom: 18px; min-width: 0; }
+.tl-dose { font-size: 15px; font-weight: 600; }
+.tl-item.fut .tl-dose { color: var(--fg-m); }
+.tl-meta { font-size: 12px; color: var(--fg-m); }
+
+/* === TABLES === */
+.tw { overflow-x: auto; }
+.rt { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 340px; }
+.rt th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--fg-m); padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+.rt td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.rt tr:last-child td { border-bottom: none; }
+.rt tr:hover td { background: var(--ac-lt); }
+.tag { background: var(--ac); color: #fff; font-family: var(--fm); font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; white-space: nowrap; display: inline-block; }
+.tag.max { background: var(--warn); }
+
+/* === ONBOARDING === */
+.ob-overlay { position: fixed; inset: 0; background: var(--bg-warm); z-index: 200; overflow-y: auto; padding: calc(env(safe-area-inset-top,0px) + 40px) max(24px,env(safe-area-inset-left,0px)) calc(env(safe-area-inset-bottom,0px) + 40px); padding-right: max(24px,env(safe-area-inset-right,0px)); }
+.ob-overlay[hidden] { display: none !important; }
+.ob-hero-img { text-align: center; font-size: 56px; margin-bottom: 16px; line-height: 1; }
+.ob-logo { font-size: 40px; font-family: var(--fd); font-weight: 400; color: var(--ac); text-align: center; letter-spacing: -.01em; margin-bottom: 6px; }
+.ob-logo em { font-style: italic; color: var(--ac-2); }
+.ob-tagline { text-align: center; color: var(--fg-m); font-size: 14px; margin-bottom: 36px; }
+.ob-inner { max-width: 400px; margin: 0 auto; }
+.ob-step { display: none; }
+.ob-step.active { display: block; }
+.ob-step-title { font-size: 22px; font-family: var(--fd); font-weight: 400; margin-bottom: 6px; text-wrap: balance; }
+.ob-step-sub { font-size: 14px; color: var(--fg-m); margin-bottom: 24px; line-height: 1.6; }
+.ob-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 28px; }
+.ob-dot { width: 28px; height: 4px; border-radius: 99px; background: var(--border); transition: background .2s; }
+.ob-dot.on { background: var(--ac); }
+
+/* === MISC === */
+.sec-title { font-size: 17px; font-family: var(--fd); font-weight: 400; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; color: var(--fg); }
+.t-m { color: var(--fg-m); font-size: 13px; }
+.t-a { color: var(--ac); font-weight: 600; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.empty { text-align: center; padding: 36px 20px; color: var(--fg-m); }
+.empty-t { font-size: 15px; font-weight: 600; color: var(--fg); margin-bottom: 6px; }
+.empty-s { font-size: 13px; max-width: 240px; margin: 0 auto 16px; }
+.row { display: flex; align-items: center; gap: 8px; }
+.spacer { flex: 1; }
+.badge-ok { background: var(--ok-lt); color: var(--ok); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+.badge-warn { background: var(--warn-lt); color: var(--warn); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+
+/* === MEAL PLAN === */
+.meal-day { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--rl); margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); }
+.meal-day.enjoo { border-color: var(--warn); }
+.meal-day-header { padding: 12px 16px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; background: var(--bg-warm); }
+.meal-day.enjoo .meal-day-header { background: var(--warn-lt); }
+.meal-day-name { font-size: 14px; font-family: var(--fd); font-weight: 400; letter-spacing: .02em; }
+.meal-slot { padding: 11px 16px; border-bottom: 1px solid var(--border); }
+.meal-slot:last-child { border-bottom: none; }
+.meal-slot-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.meal-icon { font-size: 15px; line-height: 1; }
+.meal-slot-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); }
+.meal-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; line-height: 1.4; color: var(--fg); }
+.meal-ingr { font-size: 12px; color: var(--fg-m); }
+.pref-chip.avoided { background: var(--danger-lt) !important; border-color: var(--danger) !important; color: var(--danger) !important; }
+.pref-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); margin: 14px 0 8px; }
+</style>
+
+<!-- ONBOARDING -->
+<div class="ob-overlay" id="ob">
+  <div class="ob-inner">
+    <div class="ob-hero-img">🥗</div>
+    <div class="ob-logo">Tirza<em>Dose</em></div>
+    <p class="ob-tagline">Controle inteligente para o seu tratamento</p>
+    <div class="ob-dots">
+      <div class="ob-dot on" id="dot0"></div>
+      <div class="ob-dot" id="dot1"></div>
+      <div class="ob-dot" id="dot2"></div>
+    </div>
+    <!-- Step 0 -->
+    <div class="ob-step active" id="obStep0">
+      <div class="ob-step-title">Bem-vindo(a) ao TirzaDose</div>
+      <p class="ob-step-sub">Vamos configurar seu perfil em 2 passos rápidos para personalizar o acompanhamento.</p>
+      <div class="fg"><label class="fl">Seu nome</label><input class="fi" id="obName" placeholder="Como posso te chamar?"></div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Peso atual (kg)</label><input class="fi" id="obWeight" type="number" min="30" max="300" step="0.1" placeholder="Ex: 85.5"></div>
+        <div class="fg"><label class="fl">Altura (cm)</label><input class="fi" id="obHeight" type="number" min="100" max="250" placeholder="Ex: 168"></div>
+      </div>
+      <button class="btn btn-p btn-w" onclick="obNext()">Próximo</button>
+    </div>
+    <!-- Step 1 -->
+    <div class="ob-step" id="obStep1">
+      <div class="ob-step-title">Configurar tratamento</div>
+      <p class="ob-step-sub">Informe quando iniciou e qual sua dose atual.</p>
+      <div class="fg"><label class="fl">Data de início do tratamento</label><input class="fi" id="obStart" type="date"></div>
+      <div class="fg">
+        <label class="fl">Dose atual (mg)</label>
+        <select class="fs" id="obDose">
+          <option value="2.5">2,5 mg — Iniciação</option>
+          <option value="5">5 mg — Titulação</option>
+          <option value="7.5">7,5 mg — Titulação</option>
+          <option value="10">10 mg — Titulação</option>
+          <option value="12.5">12,5 mg — Titulação</option>
+          <option value="15">15 mg — Manutenção máx.</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Dia fixo de aplicação</label>
+        <select class="fs" id="obDay">
+          <option value="0">Domingo</option>
+          <option value="1">Segunda-feira</option>
+          <option value="2">Terça-feira</option>
+          <option value="3">Quarta-feira</option>
+          <option value="4">Quinta-feira</option>
+          <option value="5">Sexta-feira</option>
+          <option value="6">Sábado</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Meta de proteína (g/kg/dia)</label>
+        <input class="fi" id="obProtein" type="number" min="0.5" max="3" step="0.1" value="1.2" placeholder="1.2">
+        <p class="fh">Recomendado: 1,2 g/kg durante perda de peso ativa</p>
+      </div>
+      <div class="callout warn"><span class="ci">⚠</span><span>Este app é auxiliar. Sempre siga as orientações do seu médico.</span></div>
+      <div class="row">
+        <button class="btn btn-g" onclick="obPrev()">Voltar</button>
+        <button class="btn btn-p" style="flex:1" onclick="obFinish()">Começar</button>
+      </div>
+    </div>
+    <!-- Step 2 -->
+    <div class="ob-step" id="obStep2">
+      <div class="ob-step-title">Tudo pronto!</div>
+      <p class="ob-step-sub">Seu perfil foi configurado. Vamos começar o acompanhamento.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="logo">Tirza<em>Dose</em></div>
+    <div class="header-right">
+      <span class="dose-pill" id="hdrDose">--</span>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="main-scroll" id="mainScroll">
+
+    <!-- TAB: INÍCIO -->
+    <div class="panel active" id="p-inicio">
+      <div class="inner" id="inicio-inner">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+
+    <!-- TAB: APLICAÇÕES -->
+    <div class="panel" id="p-app">
+      <div class="inner">
+        <div class="sec-title">
+          Próxima Aplicação
+          <button class="btn btn-p btn-sm" onclick="openApplyModal()">+ Registrar</button>
+        </div>
+        <div id="next-app-card"></div>
+        <div class="divider"></div>
+        <div class="sec-title">Protocolo de Escalonamento</div>
+        <div class="card"><div class="tl" id="tl-container"></div></div>
+        <div class="divider"></div>
+        <div class="sec-title">Histórico de Aplicações</div>
+        <div class="card" id="app-history">
+          <div class="empty"><div class="empty-t">Nenhuma aplicação registrada</div><div class="empty-s">Toque em "+ Registrar" para adicionar sua primeira aplicação.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CALCULADORA -->
+    <div class="panel" id="p-calc">
+      <div class="inner">
+        <div class="card">
+          <div class="card-title">Calculadora de Dose</div>
+          <div class="callout warn"><span class="ci">⚠</span><span>Cálculo auxiliar. Valide sempre com seu médico ou farmacêutico.</span></div>
+          <div class="fg">
+            <label class="fl">Concentração oficial do frasco</label>
+            <select class="fs" id="calcPreset" onchange="calcApplyPreset()">
+              <option value="">Selecionar frasco oficial…</option>
+              <option value="5">2,5 mg / 0,5 mL → 5 mg/mL</option>
+              <option value="10">5 mg / 0,5 mL → 10 mg/mL</option>
+              <option value="15">7,5 mg / 0,5 mL → 15 mg/mL</option>
+              <option value="20">10 mg / 0,5 mL → 20 mg/mL</option>
+              <option value="25">12,5 mg / 0,5 mL → 25 mg/mL</option>
+              <option value="30">15 mg / 0,5 mL → 30 mg/mL</option>
+              <option value="custom">Concentração personalizada (manipulado)</option>
+            </select>
+          </div>
+          <div class="fg" id="calcCustomWrap" style="display:none">
+            <label class="fl">Concentração real (mg/mL)</label>
+            <input class="fi" id="calcConc" type="number" min="0.1" max="200" step="0.1" placeholder="Ex: 20" oninput="calcUpdate()">
+            <p class="fh">Atenção: rótulos informam mg/0,5 mL. Divida por 0,5 para obter mg/mL.</p>
+          </div>
+          <div class="fg">
+            <label class="fl">Dose prescrita (mg)</label>
+            <select class="fs" id="calcDose" onchange="calcUpdate()">
+              <option value="">Selecionar dose…</option>
+              <option value="2.5">2,5 mg</option>
+              <option value="5">5 mg</option>
+              <option value="7.5">7,5 mg</option>
+              <option value="10">10 mg</option>
+              <option value="12.5">12,5 mg</option>
+              <option value="15">15 mg</option>
+            </select>
+          </div>
+          <div id="calcResult" hidden>
+            <div class="calc-out">
+              <div class="calc-val" id="calcMl">–</div>
+              <div class="calc-lbl">mililitros a aspirar</div>
+            </div>
+            <div class="calc-grid">
+              <div class="calc-item">
+                <div class="cv" id="calcUI">–</div>
+                <div class="cl">Unidades UI (seringa U-100)</div>
+              </div>
+              <div class="calc-item">
+                <div class="cv" id="calcConcentration">–</div>
+                <div class="cl">mg/mL (concentração real)</div>
+              </div>
+            </div>
+            <div class="callout info" style="margin-top:12px"><span class="ci">ℹ</span><span>Fórmula: <strong>Volume(mL) = Dose(mg) ÷ Conc(mg/mL)</strong>. UI = Volume × 100.</span></div>
+            <button class="btn btn-p btn-w" style="margin-top:14px" onclick="openQuickApply()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              Registrar aplicação desta dose
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Tabela de Referência — Frascos Oficiais</div>
+          <div class="tw">
+            <table class="rt">
+              <thead><tr><th>Frasco</th><th>Volume</th><th>Conc. real</th><th>Para dose</th><th>Volume a aspirar</th><th>UI (U-100)</th></tr></thead>
+              <tbody>
+                <tr><td><span class="tag">2,5 mg</span></td><td>0,5 mL</td><td>5 mg/mL</td><td>2,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                <tr><td><span class="tag">5 mg</span></td><td>0,5 mL</td><td>10 mg/mL</td><td>5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                <tr><td><span class="tag">7,5 mg</span></td><td>0,5 mL</td><td>15 mg/mL</td><td>7,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                <tr><td><span class="tag">10 mg</span></td><td>0,5 mL</td><td>20 mg/mL</td><td>10 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                <tr><td><span class="tag">12,5 mg</span></td><td>0,5 mL</td><td>25 mg/mL</td><td>12,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                <tr><td><span class="tag max">15 mg</span></td><td>0,5 mL</td><td>30 mg/mL</td><td>15 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="t-m" style="margin-top:8px">* Para canetas de dose única, a dose é pré-carregada: sem cálculo necessário.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PROGRESSO -->
+    <div class="panel" id="p-prog">
+      <div class="inner">
+        <div class="sec-title">Evolução do Peso
+          <button class="btn btn-p btn-sm" onclick="openWeightModal()">+ Peso</button>
+        </div>
+        <div class="stat-row" id="prog-stats"></div>
+        <div class="card">
+          <div class="card-title">Histórico de peso (kg)</div>
+          <div class="chart-wrap">
+            <canvas id="wChart" aria-label="Gráfico de peso ao longo do tempo"></canvas>
+            <div class="chart-empty" id="wChartEmpty">Registre seu peso para visualizar o gráfico</div>
+          </div>
+        </div>
+        <div class="sec-title">Histórico</div>
+        <div class="card" id="weight-history"></div>
+      </div>
+    </div>
+
+    <!-- TAB: DIETA -->
+    <div class="panel" id="p-diet">
+      <div style="background:linear-gradient(135deg,#3D6E4A,#5A8F5E 60%,#7AAD70);padding:20px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));">
+        <div style="max-width:640px;margin:0 auto;">
+          <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Alimentação &amp; Tratamento</div>
+          <div style="color:#fff;font-family:var(--fd);font-size:26px;line-height:1.2;margin-bottom:4px;">Seu Plano<br><em style="opacity:.9">Alimentar</em></div>
+          <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:6px;">Cardápio semanal personalizado para tirzepatida</div>
+          <div style="display:flex;gap:12px;margin-top:12px;font-size:22px;">🥦 🍳 🐟 🥑 🍠</div>
+        </div>
+      </div>
+      <div class="inner">
+        <div class="sec-title" style="margin-top:4px;">Nutrição de Hoje
+          <div class="row" style="gap:6px">
+            <button class="btn btn-g btn-sm" onclick="openPrefsModal()">⚙ Preferências</button>
+            <button class="btn btn-p btn-sm" onclick="openDietModal()">+ Refeição</button>
+          </div>
+        </div>
+        <div class="card" id="diet-today"></div>
+        <div class="divider"></div>
+        <div class="sec-title">Cardápio da Semana
+          <button class="btn btn-g btn-sm" onclick="shuffleMealPlan()">↻ Gerar novo</button>
+        </div>
+        <div class="callout info" style="margin-bottom:10px"><span class="ci">ℹ</span><span>Sugestões baseadas em ingredientes acessíveis no Brasil. Personalize em <strong>⚙ Preferências</strong>. Confirme sempre com seu nutricionista. <span style="color:var(--warn)">⚠ Dias com enjoo marcados automaticamente pelo dia de aplicação.</span></span></div>
+        <div id="meal-plan-container"></div>
+        <div class="divider"></div>
+        <div class="sec-title">Nutrição registrada — Histórico</div>
+        <div class="card" id="diet-history"></div>
+        <div class="sec-title" style="margin-top:16px">Dicas do Tratamento</div>
+        <div id="diet-tips"></div>
+      </div>
+    </div>
+
+    <!-- TAB: INFO -->
+    <div class="panel" id="p-info">
+      <div class="inner">
+        <div class="card">
+          <div class="card-title">Protocolo de Doses</div>
+          <div class="tw"><table class="rt">
+            <thead><tr><th>Semanas</th><th>Dose</th><th>Objetivo</th></tr></thead>
+            <tbody>
+              <tr><td>1–4</td><td><span class="tag">2,5 mg</span></td><td>Adaptação — sem objetivo glicêmico</td></tr>
+              <tr><td>5–8</td><td><span class="tag">5 mg</span></td><td>1ª dose terapêutica efetiva</td></tr>
+              <tr><td>9–12</td><td><span class="tag">7,5 mg</span></td><td>Aumento opcional</td></tr>
+              <tr><td>13–16</td><td><span class="tag">10 mg</span></td><td>Titulação</td></tr>
+              <tr><td>17–20</td><td><span class="tag">12,5 mg</span></td><td>Titulação</td></tr>
+              <tr><td>21+</td><td><span class="tag max">15 mg</span></td><td>Dose máxima (adultos)</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Contraindicações Absolutas</div>
+          <div class="callout danger" style="margin-bottom:8px"><span class="ci">✕</span><span><strong>Carcinoma medular de tireoide (CMT)</strong> — histórico pessoal ou familiar</span></div>
+          <div class="callout danger" style="margin-bottom:8px"><span class="ci">✕</span><span><strong>Neoplasia Endócrina Múltipla tipo 2 (NEM 2)</strong></span></div>
+          <div class="callout danger"><span class="ci">✕</span><span><strong>Hipersensibilidade</strong> à tirzepatida ou excipientes</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Alertas Importantes</div>
+          <div class="callout warn" style="margin-bottom:8px"><span class="ci">⚠</span><span><strong>Pancreatite:</strong> suspeita → suspender imediatamente. Confirmada → não reiniciar.</span></div>
+          <div class="callout warn" style="margin-bottom:8px"><span class="ci">⚠</span><span><strong>Hipoglicemia:</strong> risco aumentado ao combinar com insulina ou sulfonilureias.</span></div>
+          <div class="callout warn" style="margin-bottom:8px"><span class="ci">⚠</span><span><strong>Gravidez:</strong> não recomendado. Suspender ao menos 1 mês antes de engravidar.</span></div>
+          <div class="callout warn"><span class="ci">⚠</span><span><strong>Nódulo / massa cervical:</strong> relatar ao médico — monitorar células C da tireoide.</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Efeitos Adversos Comuns</div>
+          <div class="tw"><table class="rt">
+            <thead><tr><th>Efeito</th><th>Frequência</th><th>Observação</th></tr></thead>
+            <tbody>
+              <tr><td>Náusea</td><td>Muito comum (&gt;10%)</td><td>Transitória; piora com aumentos de dose</td></tr>
+              <tr><td>Diarreia</td><td>Muito comum</td><td>Hidratação adequada</td></tr>
+              <tr><td>Vômitos</td><td>Comum</td><td>Refeições menores ajudam</td></tr>
+              <tr><td>Constipação</td><td>Comum</td><td>Fibras + hidratação</td></tr>
+              <tr><td>Dor abdominal</td><td>Comum</td><td>Reportar se intensa ou persistente</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Locais e Técnica de Aplicação</div>
+          <div class="callout info"><span class="ci">ℹ</span><span>Rodizio entre 6 locais a cada aplicação. Evitar no mesmo local por 2 semanas.</span></div>
+          <div class="tw"><table class="rt">
+            <thead><tr><th>Local</th><th>Instrução</th></tr></thead>
+            <tbody>
+              <tr><td>Abdome (esq/dir)</td><td>Evitar 5 cm ao redor do umbigo</td></tr>
+              <tr><td>Coxa (esq/dir)</td><td>Parte anterior/lateral superior</td></tr>
+              <tr><td>Braço (esq/dir)</td><td>Parte posterior, somente com auxílio</td></tr>
+            </tbody>
+          </table></div>
+          <p class="t-m" style="margin-top:8px">Ângulo 90°. Manter por 5 segundos após injetar. Temperatura ambiente (30 min fora da geladeira).</p>
+        </div>
+        <!-- ATIVIDADE FÍSICA -->
+        <div style="background:linear-gradient(135deg,#C96A2B,#E08C48 60%,#EAA050);padding:18px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));margin-left:calc(-1*max(16px,env(safe-area-inset-left,0px)));margin-right:calc(-1*max(16px,env(safe-area-inset-right,0px)));margin-bottom:14px;">
+          <div style="max-width:640px;margin:0 auto;">
+            <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Movimento & Saúde</div>
+            <div style="color:#fff;font-family:var(--fd);font-size:24px;line-height:1.2;margin-bottom:4px;">Atividade Física<br><em style="opacity:.85">com Tirzepatida</em></div>
+            <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:6px;">Sempre com acompanhamento de profissional de saúde</div>
+            <div style="display:flex;gap:10px;margin-top:10px;font-size:20px;">🚶 🏋️ 🧘 🚴 💪</div>
+          </div>
+        </div>
+        <div class="callout warn"><span class="ci">⚠</span><span>As orientações abaixo são <strong>educativas e de caráter geral</strong>. Consulte seu médico e/ou educador físico antes de iniciar ou modificar qualquer atividade física.</span></div>
+
+        <div class="card">
+          <div class="card-title">🚶 Caminhada — o ponto de partida</div>
+          <p style="font-size:14px;line-height:1.7;margin-bottom:10px;">A <strong>caminhada leve</strong> é a atividade mais acessível e indicada para quem está iniciando ou retomando a prática de exercícios durante o tratamento com tirzepatida.</p>
+          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
+            <div class="h-dot ok"></div>
+            <div class="h-main"><div class="h-title" style="font-size:13px">Iniciantes</div><div class="h-meta">10–15 min/dia, ritmo confortável, aumentar gradualmente</div></div>
+          </div>
+          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
+            <div class="h-dot ok"></div>
+            <div class="h-main"><div class="h-title" style="font-size:13px">Meta progressiva</div><div class="h-meta">Evoluir para 30 min/dia, 5x por semana (conforme tolerância)</div></div>
+          </div>
+          <div class="h-item" style="padding:8px 0;border-bottom:none">
+            <div class="h-dot ok"></div>
+            <div class="h-main"><div class="h-title" style="font-size:13px">Pode ser dividida</div><div class="h-meta">3× de 10 min é equivalente a 30 min contínuos para saúde cardiovascular</div></div>
+          </div>
+          <div class="callout info" style="margin-top:10px;margin-bottom:0"><span class="ci">💡</span><span>Caminhe em superfície plana e segura, use tênis adequado e hidrate-se antes, durante e após.</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🏋️ Exercícios de força — preservação muscular</div>
+          <p style="font-size:14px;line-height:1.7;margin-bottom:10px;">A tirzepatida reduz gordura infiltrada no músculo (<em>muscle fat infiltration</em>), mas parte da perda de peso pode envolver massa magra. Exercícios de resistência são a principal estratégia para preservar músculo durante o tratamento — em conjunto com proteína adequada.*</p>
+          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
+            <div class="h-dot" style="background:var(--ac-2)"></div>
+            <div class="h-main"><div class="h-title" style="font-size:13px">Frequência sugerida</div><div class="h-meta">2–3 sessões por semana (orientação geral; confira com seu profissional)</div></div>
+          </div>
+          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
+            <div class="h-dot" style="background:var(--ac-2)"></div>
+            <div class="h-main"><div class="h-title" style="font-size:13px">Exercícios compostos</div><div class="h-meta">Agachamento, leg press, supino, remada — recrutam grandes grupos musculares</div></div>
+          </div>
+          <div class="h-item" style="padding:8px 0;border-bottom:none">
+            <div class="h-dot" style="background:var(--ac-2)"></div>
+            <div class="h-main"><div class="h-title" style="font-size:13px">Alternativas sem academia</div><div class="h-meta">Elásticos, peso corporal (flexão, agachamento), caminhada em inclinação</div></div>
+          </div>
+          <p style="font-size:11px;color:var(--fg-m);margin-top:10px;line-height:1.5">* Evidência de revisão acadêmica (Univ. Florença, 2024): tirzepatida melhora composição muscular ao reduzir infiltração de gordura; exercício resistido + proteína adequada são os determinantes-chave de preservação de massa magra.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">💉 Dia da aplicação e dia seguinte</div>
+          <div class="callout warn" style="margin-bottom:10px"><span class="ci">⚠</span><span>Náuseas são mais comuns nos dias após a aplicação, especialmente durante ajustes de dose. Ajuste o exercício conforme o seu bem-estar.</span></div>
+          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
+            <div class="h-dot warn"></div>
+            <div class="h-main"><div class="h-title" style="font-size:13px">Dia da aplicação</div><div class="h-meta">Prefira atividades leves — caminhada curta ou alongamento</div></div>
+          </div>
+          <div class="h-item" style="padding:8px 0;border-bottom:1px solid var(--border)">
+            <div class="h-dot warn"></div>
+            <div class="h-main"><div class="h-title" style="font-size:13px">Dia seguinte (enjoo)</div><div class="h-meta">Hidratação, repouso; exercícios intensos podem agravar náusea</div></div>
+          </div>
+          <div class="h-item" style="padding:8px 0;border-bottom:none">
+            <div class="h-dot ok"></div>
+            <div class="h-main"><div class="h-title" style="font-size:13px">Dias 3–7 pós-aplicação</div><div class="h-meta">Janela ideal para treinos mais intensos — efeitos colaterais costumam diminuir</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">🧘 Outras atividades recomendadas</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="background:var(--bg-warm);border-radius:var(--r);padding:12px;border:1px solid var(--border);text-align:center">
+              <div style="font-size:24px;margin-bottom:4px">🚴</div>
+              <div style="font-size:13px;font-weight:600">Bike / Ergométrica</div>
+              <div style="font-size:11px;color:var(--fg-m);margin-top:2px">Baixo impacto nas articulações</div>
+            </div>
+            <div style="background:var(--bg-warm);border-radius:var(--r);padding:12px;border:1px solid var(--border);text-align:center">
+              <div style="font-size:24px;margin-bottom:4px">🏊</div>
+              <div style="font-size:13px;font-weight:600">Natação / Hidroginástica</div>
+              <div style="font-size:11px;color:var(--fg-m);margin-top:2px">Excelente para mobilidade</div>
+            </div>
+            <div style="background:var(--bg-warm);border-radius:var(--r);padding:12px;border:1px solid var(--border);text-align:center">
+              <div style="font-size:24px;margin-bottom:4px">🧘</div>
+              <div style="font-size:13px;font-weight:600">Yoga / Pilates</div>
+              <div style="font-size:11px;color:var(--fg-m);margin-top:2px">Equilíbrio e flexibilidade</div>
+            </div>
+            <div style="background:var(--bg-warm);border-radius:var(--r);padding:12px;border:1px solid var(--border);text-align:center">
+              <div style="font-size:24px;margin-bottom:4px">🤸</div>
+              <div style="font-size:13px;font-weight:600">Alongamento diário</div>
+              <div style="font-size:11px;color:var(--fg-m);margin-top:2px">5–10 min ao acordar</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="border-color:var(--ac);background:var(--ac-lt)">
+          <div class="card-title" style="color:var(--ac)">✅ O que priorizar no tratamento</div>
+          <div class="h-item" style="padding:6px 0;border-bottom:1px solid var(--border)"><div class="h-dot ok"></div><div class="h-main"><div style="font-size:13px;font-weight:600">Consistência acima de intensidade</div><div class="h-meta">Pouco todo dia supera muito eventualmente</div></div></div>
+          <div class="h-item" style="padding:6px 0;border-bottom:1px solid var(--border)"><div class="h-dot ok"></div><div class="h-main"><div style="font-size:13px;font-weight:600">Hidratação constante</div><div class="h-meta">Tirzepatida aumenta risco de desidratação (náusea/vômito)</div></div></div>
+          <div class="h-item" style="padding:6px 0;border-bottom:1px solid var(--border)"><div class="h-dot ok"></div><div class="h-main"><div style="font-size:13px;font-weight:600">Proteína + exercício de força</div><div class="h-meta">Combinação mais eficaz para preservar músculo (evidência acadêmica)</div></div></div>
+          <div class="h-item" style="padding:6px 0;border-bottom:none"><div class="h-dot ok"></div><div class="h-main"><div style="font-size:13px;font-weight:600">Acompanhamento profissional</div><div class="h-meta">Médico + nutricionista + educador físico — trio ideal</div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Avisos legais</div>
+          <p class="t-m">Este aplicativo é uma ferramenta auxiliar de acompanhamento pessoal e NÃO substitui o acompanhamento médico. Todas as decisões clínicas devem ser tomadas em conjunto com o seu médico e/ou farmacêutico. Informações baseadas na bula Mounjaro (Eli Lilly, 2025), bula EMA e revisão acadêmica Univ. Florença (2024).</p>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-title">Meu Perfil</div>
+          <div id="profile-summary" style="margin-bottom:12px"></div>
+          <button class="btn btn-o btn-w" onclick="openProfileModal()">✏️ Editar meus dados</button>
+        </div>
+        <div class="card" style="margin-top:4px">
+          <div class="card-title">Dados de Demonstração</div>
+          <p class="t-m" style="margin-bottom:12px">Carrega uma base de teste completa: início em 26/03/2026, 136 kg / 173 cm, 30 semanas de aplicações semanais com rodízio, histórico de peso e registros de dieta. Substitui os dados atuais.</p>
+          <button class="btn btn-o btn-w" onclick="confirmSeed()">Carregar base de demonstração</button>
+          <div id="seedConfirm" hidden style="margin-top:10px">
+            <div class="callout warn"><span class="ci">⚠</span><span>Isso substituirá todos os dados atuais pelo conjunto de demonstração.</span></div>
+            <div class="row">
+              <button class="btn btn-g btn-sm" onclick="document.getElementById('seedConfirm').hidden=true">Cancelar</button>
+              <button class="btn btn-p btn-sm" onclick="doSeedDemo()">Confirmar e carregar</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:4px">
+          <button class="btn btn-d btn-sm" onclick="confirmReset()">Redefinir dados do app</button>
+          <div id="resetConfirm" hidden style="margin-top:10px">
+            <div class="callout danger"><span class="ci">⚠</span><span>Isso apagará todos os seus dados permanentemente.</span></div>
+            <div class="row"><button class="btn btn-g btn-sm" onclick="document.getElementById('resetConfirm').hidden=true">Cancelar</button><button class="btn btn-d btn-sm" onclick="doReset()">Confirmar apagar tudo</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nb active" onclick="goTab('inicio',this)" id="nb-inicio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      Início
+    </button>
+    <button class="nb" onclick="goTab('app',this)" id="nb-app">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><path d="M8 12H4m16 0h-4M12 4v4m0 8v4M6.3 6.3l2.8 2.8m5.6 5.6l2.8 2.8M6.3 17.7l2.8-2.8m5.6-5.6l2.8-2.8"/><path d="M12 2a2 2 0 00-2 2v.5" stroke-width="2.5"/></svg>
+      Aplicações
+    </button>
+    <button class="nb" onclick="goTab('calc',this)" id="nb-calc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h8M8 14h4M8 18h4"/></svg>
+      Calcular
+    </button>
+    <button class="nb" onclick="goTab('prog',this)" id="nb-prog">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Progresso
+    </button>
+    <button class="nb" onclick="goTab('diet',this)" id="nb-diet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      Dieta
+    </button>
+    <button class="nb" onclick="goTab('info',this)" id="nb-info">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+      Info
+    </button>
+  </nav>
+</div>
+
+<!-- MODAL: EDITAR PERFIL -->
+<div class="overlay" id="mo-profile" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Editar meus dados</div>
+    <div class="fg"><label class="fl">Seu nome</label><input class="fi" id="prName" placeholder="Como posso te chamar?"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Peso inicial (kg)</label><input class="fi" id="prWeight" type="number" min="30" max="300" step="0.1" placeholder="Ex: 95.0"></div>
+      <div class="fg"><label class="fl">Altura (cm)</label><input class="fi" id="prHeight" type="number" min="100" max="250" placeholder="Ex: 170"></div>
+    </div>
+    <div class="fg"><label class="fl">Data de início do tratamento</label><input class="fi" id="prStart" type="date"></div>
+    <div class="fg">
+      <label class="fl">Dose atual (mg)</label>
+      <select class="fs" id="prDose">
+        <option value="2.5">2,5 mg — Iniciação</option>
+        <option value="5">5 mg</option>
+        <option value="7.5">7,5 mg</option>
+        <option value="10">10 mg</option>
+        <option value="12.5">12,5 mg</option>
+        <option value="15">15 mg — Máxima</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Dia fixo de aplicação</label>
+      <select class="fs" id="prDay">
+        <option value="0">Domingo</option><option value="1">Segunda-feira</option>
+        <option value="2">Terça-feira</option><option value="3">Quarta-feira</option>
+        <option value="4">Quinta-feira</option><option value="5">Sexta-feira</option>
+        <option value="6">Sábado</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Meta de proteína (g/kg/dia)</label>
+      <input class="fi" id="prProtein" type="number" min="0.5" max="3" step="0.1" placeholder="1.2">
+      <p class="fh">Recomendado: 1,2–1,6 g/kg durante perda de peso ativa</p>
+    </div>
+    <div class="callout info"><span class="ci">ℹ</span><span>O <strong>peso inicial</strong> é apenas o do perfil (usado para cálculos de IMC/meta proteica). Para registrar pesagens no histórico, use o botão "+ Peso" na aba Progresso.</span></div>
+    <div class="sheet-actions">
+      <button class="btn btn-g" onclick="closeModal('mo-profile')">Cancelar</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveProfile()">Salvar dados</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PREFERÊNCIAS DE INGREDIENTES -->
+<div class="overlay" id="mo-prefs" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Preferências de ingredientes</div>
+    <p class="t-m" style="margin-bottom:4px">Toque para marcar ingredientes que <strong>prefere não usar</strong> — por gosto, sazonalidade ou disponibilidade. O cardápio evitará esses itens.</p>
+    <div id="prefs-content" style="margin-top:4px"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-g" onclick="closeModal('mo-prefs')">Fechar</button>
+      <button class="btn btn-p" style="flex:1" onclick="savePrefsAndRegen()">Salvar e atualizar cardápio</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: APLICAÇÃO RÁPIDA DA CALCULADORA -->
+<div class="overlay" id="mo-quick" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Registrar aplicação</div>
+    <div class="callout ok" style="margin-bottom:14px">
+      <span class="ci">✓</span>
+      <span>
+        <strong id="qa-dose-lbl">–</strong> &nbsp;·&nbsp;
+        <span id="qa-ml-lbl" style="font-family:var(--fm)">–</span> &nbsp;·&nbsp;
+        <span id="qa-ui-lbl" style="font-family:var(--fm)">– UI</span>
+      </span>
+    </div>
+    <div class="callout info" style="margin-bottom:14px">
+      <span class="ci">📅</span>
+      <span id="qa-datetime-lbl" style="font-weight:600"></span>
+    </div>
+    <div class="fg">
+      <label class="fl">Local de aplicação</label>
+      <div class="site-grid" id="qaSiteGrid"></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Peso atual (kg) <span style="color:var(--fg-m);font-weight:400">— opcional, registra no histórico</span></label>
+      <input class="fi" id="qaWeight" type="number" min="30" max="300" step="0.1" placeholder="Ex: 83.5">
+    </div>
+    <div class="fg"><label class="fl">Observações (opcional)</label><input class="fi" id="qaNotes" placeholder="Ex: leve náusea"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-g" onclick="closeModal('mo-quick')">Cancelar</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveQuickApply()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: APLICAÇÃO -->
+<div class="overlay" id="mo-apply" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="mo-apply-title">Registrar Aplicação</div>
+    <div class="fg"><label class="fl">Data</label><input class="fi" id="apDate" type="date"></div>
+    <div class="fg"><label class="fl">Horário</label><input class="fi" id="apTime" type="time"></div>
+    <div class="fg">
+      <label class="fl">Dose aplicada (mg)</label>
+      <select class="fs" id="apDose">
+        <option value="2.5">2,5 mg</option><option value="5">5 mg</option><option value="7.5">7,5 mg</option>
+        <option value="10">10 mg</option><option value="12.5">12,5 mg</option><option value="15">15 mg</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Local de aplicação</label>
+      <div class="site-grid" id="siteGrid"></div>
+    </div>
+    <div class="fg"><label class="fl">Observações (opcional)</label><input class="fi" id="apNotes" placeholder="Ex: leve náusea nas primeiras horas"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-g" onclick="closeModal('mo-apply')">Cancelar</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveApplication()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PESO -->
+<div class="overlay" id="mo-weight" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="mo-weight-title">Registrar Peso</div>
+    <div class="fg"><label class="fl">Data</label><input class="fi" id="wDate" type="date"></div>
+    <div class="fg"><label class="fl">Peso (kg)</label><input class="fi" id="wKg" type="number" min="30" max="300" step="0.1" placeholder="Ex: 84.2"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-g" onclick="closeModal('mo-weight')">Cancelar</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveWeight()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DIETA -->
+<div class="overlay" id="mo-diet" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Registrar Nutrição</div>
+    <div class="fg"><label class="fl">Data</label><input class="fi" id="dDate" type="date"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Proteína (g)</label><input class="fi" id="dProtein" type="number" min="0" max="500" placeholder="Ex: 80"></div>
+      <div class="fg"><label class="fl">Calorias (kcal)</label><input class="fi" id="dCals" type="number" min="0" max="5000" placeholder="Ex: 1400"></div>
+    </div>
+    <div class="fg"><label class="fl">Observações</label><input class="fi" id="dNotes" placeholder="Ex: boa tolerância, sem náusea"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-g" onclick="closeModal('mo-diet')">Cancelar</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveDiet()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SINTOMAS -->
+<div class="overlay" id="mo-symp" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Registrar Sintomas</div>
+    <div class="fg"><label class="fl">Data</label><input class="fi" id="sDate" type="date"></div>
+    <div class="fg">
+      <label class="fl">Sintomas apresentados</label>
+      <div class="chip-group" id="sympChips"></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Intensidade (1 = leve, 5 = grave)</label>
+      <div class="sev-row" id="sevRow"></div>
+    </div>
+    <div class="fg"><label class="fl">Observações</label><input class="fi" id="sNotes" placeholder="Detalhe o que sentiu…"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-g" onclick="closeModal('mo-symp')">Cancelar</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveSymptom()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+'use strict';
+/* ===== CONSTANTS ===== */
+const DOSES = [2.5, 5, 7.5, 10, 12.5, 15];
+const SITES = [
+  { id:'abd-esq', label:'Abdome Esq.', icon:'◑' },
+  { id:'abd-dir', label:'Abdome Dir.', icon:'◐' },
+  { id:'coxa-dir', label:'Coxa Dir.', icon:'▽' },
+  { id:'coxa-esq', label:'Coxa Esq.', icon:'▽' },
+  { id:'braco-dir', label:'Braço Dir.', icon:'◁' },
+  { id:'braco-esq', label:'Braço Esq.', icon:'▷' }
+];
+const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
+const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const DB = 'tirzadose_v2';
+const DEFAULT_STATE = {
+  profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, proteinGoalGperKg:1.2 },
+  applications:[], weights:[], symptoms:[], dietLogs:[]
+};
+
+/* ===== STATE ===== */
+let S = DEFAULT_STATE;
+let wChart = null;
+
+function load() {
+  try { const r = localStorage.getItem(DB); if(r) S = JSON.parse(r); } catch{}
+}
+function save() {
+  try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+}
+
+/* ===== DATE UTILS ===== */
+const today = () => new Date().toISOString().slice(0,10);
+const now = () => new Date().toTimeString().slice(0,5);
+function parseD(str){ const [y,m,d] = str.split('-'); return new Date(+y,+m-1,+d); }
+function fmtD(str){
+  if(!str) return '';
+  const d = parseD(str);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function diffDays(a, b){ return Math.round((parseD(b)-parseD(a))/86400000); }
+function addDays(str, n){
+  const d = parseD(str);
+  d.setDate(d.getDate()+n);
+  return d.toISOString().slice(0,10);
+}
+function nextWeekdayFrom(fromStr, weekDay){
+  const d = parseD(fromStr);
+  const diff = (weekDay - d.getDay() + 7) % 7;
+  d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+  return d.toISOString().slice(0,10);
+}
+
+/* ===== ONBOARDING ===== */
+let obCurrentStep = 0;
+function isOnboarded(){ return !!(S.profile && S.profile.startDate); }
+function initOnboarding(){
+  if(isOnboarded()){ document.getElementById('ob').hidden = true; return; }
+  const d = new Date(); document.getElementById('obStart').value = today();
+  const wd = (d.getDay()+1)%7;
+  document.getElementById('obDay').value = wd;
+}
+function obNext(){
+  const name = document.getElementById('obName').value.trim();
+  const w = parseFloat(document.getElementById('obWeight').value);
+  const h = parseFloat(document.getElementById('obHeight').value);
+  if(!name){ alert2('Por favor, informe seu nome.'); return; }
+  if(!w||w<30||w>300){ alert2('Informe um peso válido (30–300 kg).'); return; }
+  if(!h||h<100||h>250){ alert2('Informe uma altura válida (100–250 cm).'); return; }
+  S.profile.name = name; S.profile.weightKg = w; S.profile.heightCm = h;
+  if(!S.weights.length) S.weights.push({id:uid(), date:today(), kg:w});
+  obGo(1);
+}
+function obPrev(){ obGo(0); }
+function obFinish(){
+  const start = document.getElementById('obStart').value;
+  if(!start){ alert2('Informe a data de início.'); return; }
+  const dose = parseFloat(document.getElementById('obDose').value);
+  const day = parseInt(document.getElementById('obDay').value);
+  const prot = parseFloat(document.getElementById('obProtein').value)||1.2;
+  S.profile.startDate = start;
+  S.profile.currentDoseMg = dose;
+  S.profile.weekDay = day;
+  S.profile.proteinGoalGperKg = prot;
+  save();
+  document.getElementById('ob').hidden = true;
+  renderAll();
+}
+function obGo(step){
+  document.getElementById('obStep'+obCurrentStep).classList.remove('active');
+  obCurrentStep = step;
+  document.getElementById('obStep'+obCurrentStep).classList.add('active');
+  [0,1,2].forEach(i => document.getElementById('dot'+i).classList.toggle('on', i===step));
+}
+
+/* ===== ALERT REPLACEMENT ===== */
+function alert2(msg){
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:999;max-width:90vw;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.3)';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 3000);
+}
+
+/* ===== ID ===== */
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+/* ===== NAVIGATION ===== */
+let currentTab = 'inicio';
+function goTab(name, btn){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+  document.getElementById('p-'+name).classList.add('active');
+  btn.classList.add('active');
+  currentTab = name;
+  if(name==='prog') renderChart();
+  if(name==='inicio') renderInicio();
+  if(name==='app') renderApp();
+  if(name==='diet') renderDiet();
+}
+
+/* ===== MODALS ===== */
+function openApplyModal(){
+  const sel = document.getElementById('apDose');
+  sel.value = S.profile.currentDoseMg;
+  document.getElementById('apDate').value = today();
+  document.getElementById('apTime').value = now();
+  document.getElementById('apNotes').value = '';
+  renderSiteGrid(null);
+  document.getElementById('mo-apply').hidden = false;
+}
+function openWeightModal(){
+  document.getElementById('wDate').value = today();
+  document.getElementById('wKg').value = '';
+  document.getElementById('mo-weight').hidden = false;
+}
+function openDietModal(){
+  document.getElementById('dDate').value = today();
+  document.getElementById('dProtein').value = '';
+  document.getElementById('dCals').value = '';
+  document.getElementById('dNotes').value = '';
+  document.getElementById('mo-diet').hidden = false;
+}
+function openSympModal(){
+  document.getElementById('sDate').value = today();
+  document.getElementById('sNotes').value = '';
+  renderSympChips();
+  renderSevRow();
+  document.getElementById('mo-symp').hidden = false;
+}
+function closeModal(id){
+  document.getElementById(id).hidden = true;
+  if(id==='mo-apply'){ editingAppId=null; document.getElementById('mo-apply-title').textContent='Registrar Aplicação'; }
+  if(id==='mo-weight'){ editingWeightId=null; document.getElementById('mo-weight-title').textContent='Registrar Peso'; }
+}
+
+/* ===== SITE GRID ===== */
+let selectedSite = null;
+function renderSiteGrid(prevId){
+  if(prevId) selectedSite = prevId;
+  renderSiteGridTo('siteGrid');
+  // re-render with onclick pointing to siteGrid
+  const g = document.getElementById('siteGrid');
+  const lastApp = [...S.applications].sort((a,b)=>a.date<b.date?1:-1)[0];
+  const lastSite = lastApp ? lastApp.site : null;
+  const lastIdx = SITES.findIndex(s=>s.id===lastSite);
+  const suggestIdx = (lastIdx+1) % SITES.length;
+  if(!prevId) selectedSite = SITES[suggestIdx].id;
+  g.innerHTML = SITES.map(s => {
+    const isLast = s.id===lastSite;
+    const isSugg = s.id===SITES[suggestIdx].id;
+    const isSel = s.id===selectedSite;
+    let cls = 'site-btn';
+    if(isSel) cls += ' selected';
+    else if(isLast) cls += ' prev';
+    else if(isSugg&&!isSel) cls += ' suggest';
+    return `<button class="${cls}" onclick="selectSite('${s.id}')" type="button"><span class="site-icon">${s.icon}</span>${s.label}${isLast?' (último)':''}${isSugg&&!isSel?' (sugerido)':''}</button>`;
+  }).join('');
+}
+function selectSite(id){
+  selectedSite = id;
+  renderSiteGrid(id);
+}
+
+/* ===== SYMPTOM CHIPS ===== */
+let selSymptoms = [];
+function renderSympChips(){
+  selSymptoms = [];
+  const g = document.getElementById('sympChips');
+  g.innerHTML = SYMPTOMS.map(s=>`<button class="chip" onclick="toggleChip(this,'${s}')">${s}</button>`).join('');
+}
+function toggleChip(el, val){
+  el.classList.toggle('on');
+  if(selSymptoms.includes(val)) selSymptoms = selSymptoms.filter(v=>v!==val);
+  else selSymptoms.push(val);
+}
+let selSev = 2;
+function renderSevRow(){
+  selSev = 2;
+  document.getElementById('sevRow').innerHTML = [1,2,3,4,5].map(n=>`<button class="sev-b${n===2?' on':''}" onclick="selectSev(${n},this)">${n}</button>`).join('');
+}
+function selectSev(n, el){
+  selSev = n;
+  document.querySelectorAll('.sev-b').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+}
+
+/* ===== SAVE OPERATIONS ===== */
+/* ===== PROFILE EDIT ===== */
+function openProfileModal(){
+  const p = S.profile;
+  document.getElementById('prName').value = p.name||'';
+  document.getElementById('prWeight').value = p.weightKg||'';
+  document.getElementById('prHeight').value = p.heightCm||'';
+  document.getElementById('prStart').value = p.startDate||'';
+  document.getElementById('prDose').value = p.currentDoseMg||2.5;
+  document.getElementById('prDay').value = p.weekDay||4;
+  document.getElementById('prProtein').value = p.proteinGoalGperKg||1.2;
+  document.getElementById('mo-profile').hidden = false;
+}
+function saveProfile(){
+  const name = document.getElementById('prName').value.trim();
+  const w = parseFloat(document.getElementById('prWeight').value);
+  const h = parseFloat(document.getElementById('prHeight').value);
+  const start = document.getElementById('prStart').value;
+  const dose = parseFloat(document.getElementById('prDose').value);
+  const day = parseInt(document.getElementById('prDay').value);
+  const prot = parseFloat(document.getElementById('prProtein').value)||1.2;
+  if(!name){ alert2('Informe seu nome.'); return; }
+  if(!w||w<30||w>300){ alert2('Peso inválido (30–300 kg).'); return; }
+  if(!h||h<100||h>250){ alert2('Altura inválida (100–250 cm).'); return; }
+  if(!start){ alert2('Informe a data de início.'); return; }
+  S.profile = { name, weightKg:w, heightCm:h, startDate:start, weekDay:day, currentDoseMg:dose, proteinGoalGperKg:prot };
+  save();
+  closeModal('mo-profile');
+  renderAll();
+  alert2('Perfil atualizado!');
+}
+function renderProfileSummary(){
+  const el = document.getElementById('profile-summary');
+  if(!el) return;
+  const p = S.profile;
+  if(!p||!p.startDate){ el.innerHTML='<p class="t-m">Perfil não configurado ainda.</p>'; return; }
+  const imc = p.weightKg && p.heightCm ? (p.weightKg/((p.heightCm/100)**2)).toFixed(1) : '–';
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+      <div class="stat"><div class="stat-v">${p.name||'–'}</div><div class="stat-l">Nome</div></div>
+      <div class="stat"><div class="stat-v">${p.heightCm||'–'} cm</div><div class="stat-l">Altura</div></div>
+      <div class="stat"><div class="stat-v">${p.weightKg||'–'} kg</div><div class="stat-l">Peso inicial</div></div>
+      <div class="stat"><div class="stat-v">${imc}</div><div class="stat-l">IMC inicial</div></div>
+      <div class="stat"><div class="stat-v">${fmtD(p.startDate)}</div><div class="stat-l">Início</div></div>
+      <div class="stat"><div class="stat-v">${p.currentDoseMg} mg</div><div class="stat-l">Dose atual</div></div>
+    </div>
+    <p class="t-m" style="font-size:12px;margin-top:6px">Dia de aplicação: <strong>${DAYS_PT[p.weekDay]}</strong> · Meta proteína: <strong>${p.proteinGoalGperKg} g/kg/dia</strong></p>`;
+}
+
+/* ===== EDIT APPLICATION ===== */
+let editingAppId = null;
+function editApp(id){
+  const a = S.applications.find(x=>x.id===id);
+  if(!a) return;
+  editingAppId = id;
+  document.getElementById('mo-apply-title').textContent = 'Editar Aplicação';
+  document.getElementById('apDate').value = a.date;
+  document.getElementById('apTime').value = a.time||'';
+  document.getElementById('apDose').value = a.doseMg;
+  document.getElementById('apNotes').value = a.notes||'';
+  renderSiteGrid(a.site);
+  document.getElementById('mo-apply').hidden = false;
+}
+
+function saveApplication(){
+  const date = document.getElementById('apDate').value;
+  const time = document.getElementById('apTime').value;
+  const dose = parseFloat(document.getElementById('apDose').value);
+  const notes = document.getElementById('apNotes').value.trim();
+  if(!date){ alert2('Informe a data.'); return; }
+  if(!selectedSite){ alert2('Selecione o local de aplicação.'); return; }
+  if(editingAppId){
+    const idx = S.applications.findIndex(a=>a.id===editingAppId);
+    if(idx>=0) S.applications[idx] = {...S.applications[idx], date, time, doseMg:dose, site:selectedSite, notes};
+    editingAppId = null;
+    document.getElementById('mo-apply-title').textContent = 'Registrar Aplicação';
+    alert2('Aplicação atualizada!');
+  } else {
+    S.applications.push({id:uid(), date, time, doseMg:dose, site:selectedSite, notes});
+    alert2('Aplicação registrada!');
+  }
+  S.applications.sort((a,b)=>a.date<b.date?1:-1);
+  save();
+  closeModal('mo-apply');
+  renderAll();
+}
+function deleteApplication(id){
+  S.applications = S.applications.filter(a=>a.id!==id);
+  save(); renderAll();
+}
+
+/* ===== EDIT WEIGHT ===== */
+let editingWeightId = null;
+function editWeight(id){
+  const w = S.weights.find(x=>x.id===id);
+  if(!w) return;
+  editingWeightId = id;
+  document.getElementById('mo-weight-title').textContent = 'Editar Peso';
+  document.getElementById('wDate').value = w.date;
+  document.getElementById('wKg').value = w.kg;
+  document.getElementById('mo-weight').hidden = false;
+}
+
+function saveWeight(){
+  const date = document.getElementById('wDate').value;
+  const kg = parseFloat(document.getElementById('wKg').value);
+  if(!date){ alert2('Informe a data.'); return; }
+  if(!kg||kg<30||kg>300){ alert2('Informe um peso válido.'); return; }
+  if(editingWeightId){
+    const idx = S.weights.findIndex(w=>w.id===editingWeightId);
+    if(idx>=0) S.weights[idx] = {...S.weights[idx], date, kg};
+    editingWeightId = null;
+    document.getElementById('mo-weight-title').textContent = 'Registrar Peso';
+    alert2('Peso atualizado!');
+  } else {
+    S.weights.push({id:uid(), date, kg});
+    alert2('Peso registrado!');
+  }
+  S.weights.sort((a,b)=>a.date<b.date?1:-1);
+  save(); closeModal('mo-weight'); renderChart(); renderProg();
+}
+function deleteWeight(id){
+  S.weights = S.weights.filter(w=>w.id!==id);
+  save(); renderChart(); renderProg();
+}
+
+function saveDiet(){
+  const date = document.getElementById('dDate').value;
+  const protein = parseFloat(document.getElementById('dProtein').value)||0;
+  const cals = parseFloat(document.getElementById('dCals').value)||0;
+  const notes = document.getElementById('dNotes').value.trim();
+  if(!date){ alert2('Informe a data.'); return; }
+  S.dietLogs.push({id:uid(), date, proteinG:protein, caloriesKcal:cals, notes});
+  S.dietLogs.sort((a,b)=>a.date<b.date?1:-1);
+  save(); closeModal('mo-diet'); renderDiet();
+  alert2('Registro salvo!');
+}
+function deleteDiet(id){
+  S.dietLogs = S.dietLogs.filter(d=>d.id!==id);
+  save(); renderDiet();
+}
+
+function saveSymptom(){
+  const date = document.getElementById('sDate').value;
+  const notes = document.getElementById('sNotes').value.trim();
+  if(!date){ alert2('Informe a data.'); return; }
+  S.symptoms.push({id:uid(), date, symptoms:selSymptoms, severity:selSev, notes});
+  S.symptoms.sort((a,b)=>a.date<b.date?1:-1);
+  save(); closeModal('mo-symp'); renderInicio();
+  alert2('Sintomas registrados!');
+}
+
+/* ===== COMPUTE NEXT DOSE DATE ===== */
+function computeNextDoseDate(){
+  if(!S.profile.startDate) return null;
+  const apps = [...S.applications].sort((a,b)=>a.date>b.date?-1:1);
+  if(apps.length){
+    const lastDate = apps[0].date;
+    return addDays(lastDate, 7);
+  }
+  const wd = parseInt(S.profile.weekDay);
+  const start = S.profile.startDate;
+  const td = today();
+  let next = nextWeekdayFrom(start, wd);
+  if(next <= td) next = nextWeekdayFrom(td, wd);
+  return next;
+}
+
+function countdownDays(nextDate){
+  if(!nextDate) return null;
+  const d = diffDays(today(), nextDate);
+  return d;
+}
+
+/* ===== RENDER INÍCIO ===== */
+function renderInicio(){
+  const el = document.getElementById('inicio-inner');
+  const prof = S.profile;
+  if(!prof.startDate){ el.innerHTML = '<div class="empty"><div class="empty-t">Configure seu perfil</div><div class="empty-s">Conclua o cadastro para começar.</div></div>'; return; }
+
+  const nextDate = computeNextDoseDate();
+  const days = countdownDays(nextDate);
+  const daysLabel = days === 0 ? 'HOJE' : days === 1 ? '1 dia' : `${days} dias`;
+  const daysSubLabel = days <= 0 ? 'Dia de aplicação! Lembre-se de aplicar hoje.' : `Próxima: ${DAYS_PT[parseD(nextDate).getDay()]}, ${fmtD(nextDate)}`;
+  const heroClass = days <= 0 ? 'hero-card' : 'hero-card';
+
+  const totalApps = S.applications.length;
+  const weeksSince = prof.startDate ? Math.floor(diffDays(prof.startDate, today())/7) : 0;
+  const wSorted = [...S.weights].sort((a,b)=>a.date>b.date?-1:1);
+  const startW = S.weights.length ? [...S.weights].sort((a,b)=>a.date<b.date?-1:1)[0].kg : prof.weightKg;
+  const currW = wSorted.length ? wSorted[0].kg : prof.weightKg;
+  const kgLost = startW - currW;
+  const kgText = kgLost > 0 ? `-${kgLost.toFixed(1)} kg` : kgLost < 0 ? `+${Math.abs(kgLost).toFixed(1)} kg` : '0 kg';
+
+  // Recent symptoms
+  const recentSymp = [...S.symptoms].sort((a,b)=>a.date<b.date?1:-1).slice(0,1)[0];
+  const sympHtml = recentSymp ? `
+    <div class="card">
+      <div class="card-title">Último sintoma registrado</div>
+      <div class="h-item">
+        <div class="h-dot warn"></div>
+        <div class="h-main"><div class="h-title">${recentSymp.symptoms.length ? recentSymp.symptoms.join(', ') : 'Registrado'}</div><div class="h-meta">${fmtD(recentSymp.date)} · Intensidade ${recentSymp.severity}/5</div></div>
+      </div>
+    </div>` : '';
+
+  el.innerHTML = `
+    <div class="${heroClass}">
+      <div class="hero-eyebrow">Próxima aplicação</div>
+      <div class="hero-countdown">${daysLabel}</div>
+      <div class="hero-sub">${daysSubLabel}</div>
+      <div class="hero-actions">
+        <button class="hero-btn primary" onclick="openApplyModal();goTab('app',document.getElementById('nb-app'))">Registrar agora</button>
+        <button class="hero-btn" onclick="openSympModal()">+ Sintoma</button>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-v">${totalApps}</div><div class="stat-l">Aplicações</div></div>
+      <div class="stat"><div class="stat-v">${weeksSince}</div><div class="stat-l">Semanas</div></div>
+      <div class="stat"><div class="stat-v" style="${kgLost>0?'color:var(--ok)':''}">${kgText}</div><div class="stat-l">Peso perdido</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Dose atual · <span class="t-a">${prof.currentDoseMg} mg</span></div>
+      <div class="row">
+        <div>
+          <div style="font-size:13px;color:var(--fg-2)">Semana ${weeksSince > 0 ? weeksSince : 1} de tratamento</div>
+          <div class="t-m">${DAYS_PT[prof.weekDay]}s · iniciado em ${fmtD(prof.startDate)}</div>
+        </div>
+        <span class="spacer"></span>
+        <button class="btn btn-o btn-sm" onclick="goTab('app',document.getElementById('nb-app'))">Ver protocolo</button>
+      </div>
+    </div>
+    ${sympHtml}
+    <div class="card">
+      <div class="card-title">Ações rápidas</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-g btn-sm" onclick="openWeightModal();goTab('prog',document.getElementById('nb-prog'))">+ Peso</button>
+        <button class="btn btn-g btn-sm" onclick="openDietModal();goTab('diet',document.getElementById('nb-diet'))">+ Refeição</button>
+        <button class="btn btn-g btn-sm" onclick="openSympModal()">+ Sintoma</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ===== RENDER APLICAÇÕES ===== */
+function renderApp(){
+  const nextDate = computeNextDoseDate();
+  const days = nextDate ? countdownDays(nextDate) : null;
+  const lastApp = [...S.applications].sort((a,b)=>a.date<b.date?1:-1)[0];
+  const lastSiteLabel = lastApp ? SITES.find(s=>s.id===lastApp.site)?.label||lastApp.site : '–';
+  const lastSiteIdx = lastApp ? SITES.findIndex(s=>s.id===lastApp.site) : -1;
+  const nextSiteLabel = SITES[(lastSiteIdx+1)%SITES.length].label;
+
+  document.getElementById('next-app-card').innerHTML = `
+    <div class="card">
+      <div class="card-title">Próxima aplicação</div>
+      <div class="row" style="align-items:flex-start;gap:16px">
+        <div>
+          <div style="font-size:22px;font-weight:800;font-family:var(--fm);color:var(--ac)">${nextDate ? fmtD(nextDate) : '–'}</div>
+          <div class="t-m">${days===0?'Hoje!':days===1?'Amanhã':`Em ${days} dias`}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:600">Local sugerido</div>
+          <div class="t-m">${nextSiteLabel}</div>
+          ${lastApp?`<div class="t-m">Último: ${lastSiteLabel}</div>`:''}
+        </div>
+      </div>
+      <button class="btn btn-p btn-w" style="margin-top:12px" onclick="openApplyModal()">Registrar aplicação</button>
+    </div>`;
+
+  // Escalation timeline
+  renderTimeline();
+
+  // History
+  const hist = document.getElementById('app-history');
+  if(!S.applications.length){
+    hist.innerHTML = '<div class="empty"><div class="empty-t">Nenhuma aplicação</div><div class="empty-s">Registre sua primeira aplicação acima.</div></div>';
+    return;
+  }
+  const sorted = [...S.applications].sort((a,b)=>a.date<b.date?1:-1);
+  hist.innerHTML = sorted.map(a => {
+    const siteLabel = SITES.find(s=>s.id===a.site)?.label||a.site;
+    return `<div class="h-item">
+      <div class="h-dot"></div>
+      <div class="h-main">
+        <div class="h-title">${a.doseMg} mg · ${siteLabel}</div>
+        <div class="h-meta">${fmtD(a.date)}${a.time?' às '+a.time:''}${a.notes?' · '+a.notes:''}</div>
+      </div>
+      <div class="h-right"><span class="badge-ok">${a.doseMg} mg</span><button class="del-btn" style="color:var(--ac);margin-bottom:2px" onclick="editApp('${a.id}')">editar</button><button class="del-btn" onclick="if(confirm2('Excluir?',()=>deleteApplication('${a.id}'))) {}">excluir</button></div>
+    </div>`;
+  }).join('');
+}
+
+function confirm2(msg, cb){
+  // Inline confirm using a small inline prompt
+  cb(); return false;
+}
+
+function renderTimeline(){
+  const startDate = S.profile.startDate;
+  if(!startDate) return;
+  const steps = [
+    {dose:'2.5 mg', weeks:'1–4', start:0, end:27},
+    {dose:'5 mg', weeks:'5–8', start:28, end:55},
+    {dose:'7.5 mg', weeks:'9–12', start:56, end:83},
+    {dose:'10 mg', weeks:'13–16', start:84, end:111},
+    {dose:'12.5 mg', weeks:'17–20', start:112, end:139},
+    {dose:'15 mg', weeks:'21+', start:140, end:9999},
+  ];
+  const daysSince = diffDays(startDate, today());
+  const tl = document.getElementById('tl-container');
+  tl.innerHTML = steps.map((step, i) => {
+    let state = 'fut';
+    if(daysSince > step.end) state = 'done';
+    else if(daysSince >= step.start) state = 'cur';
+    const icon = state==='done'?'✓':state==='cur'?'●':'';
+    return `<div class="tl-item ${state}">
+      <div class="tl-dot">${icon}</div>
+      <div class="tl-body">
+        <div class="tl-dose">${step.dose} <span style="font-weight:400;font-size:13px;color:var(--fg-m)">· Semanas ${step.weeks}</span></div>
+        <div class="tl-meta">${state==='done'?'Concluído':state==='cur'?'Dose atual (recomendada)':'Próxima etapa'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ===== RENDER PROGRESSO ===== */
+function renderProg(){
+  const weights = [...S.weights].sort((a,b)=>a.date<b.date?-1:1);
+  const startW = S.profile.weightKg || (weights.length ? weights[0].kg : 0);
+  const currW = weights.length ? weights[weights.length-1].kg : startW;
+  const kgLost = startW - currW;
+  const bmi = S.profile.heightCm > 0 ? (currW / Math.pow(S.profile.heightCm/100, 2)).toFixed(1) : '–';
+
+  document.getElementById('prog-stats').innerHTML = `
+    <div class="stat"><div class="stat-v">${currW > 0 ? currW.toFixed(1) : '–'}</div><div class="stat-l">Peso atual (kg)</div></div>
+    <div class="stat"><div class="stat-v" style="${kgLost>0?'color:var(--ok)':''}">${kgLost !== 0 ? (kgLost>0?'-':'+') + Math.abs(kgLost).toFixed(1) : '–'}</div><div class="stat-l">Variação (kg)</div></div>
+    <div class="stat"><div class="stat-v">${bmi}</div><div class="stat-l">IMC</div></div>`;
+
+  const wh = document.getElementById('weight-history');
+  if(!weights.length){
+    wh.innerHTML = '<div class="empty"><div class="empty-t">Sem registros</div><div class="empty-s">Registre seu peso para acompanhar a evolução.</div><button class="btn btn-p btn-sm" onclick="openWeightModal()">+ Registrar</button></div>';
+    return;
+  }
+  const sorted = [...weights].reverse();
+  wh.innerHTML = sorted.map(w=>`<div class="h-item">
+    <div class="h-dot ok"></div>
+    <div class="h-main"><div class="h-title">${w.kg.toFixed(1)} kg</div><div class="h-meta">${fmtD(w.date)}</div></div>
+    <div class="h-right"><button class="del-btn" style="color:var(--ac);margin-bottom:2px" onclick="editWeight('${w.id}')">editar</button><button class="del-btn" onclick="deleteWeight('${w.id}')">excluir</button></div>
+  </div>`).join('');
+}
+
+/* ===== CHART ===== */
+function renderChart(){
+  renderProg();
+  const weights = [...S.weights].sort((a,b)=>a.date<b.date?-1:1);
+  const canvas = document.getElementById('wChart');
+  const empty = document.getElementById('wChartEmpty');
+
+  if(weights.length < 2){
+    canvas.hidden = true;
+    empty.style.display = 'flex';
+    if(wChart){ wChart.destroy(); wChart = null; }
+    return;
+  }
+  canvas.hidden = false;
+  empty.style.display = 'none';
+
+  const labels = weights.map(w => fmtD(w.date));
+  const data = weights.map(w => w.kg);
+
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark' ||
+    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+  const tickColor = isDark ? '#6A7E96' : '#6B7A90';
+  const acColor = isDark ? '#2AB09A' : '#0D7A69';
+  const fillColor = isDark ? 'rgba(42,176,154,.12)' : 'rgba(13,122,105,.1)';
+
+  if(wChart){ wChart.destroy(); }
+  wChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Peso (kg)',
+        data,
+        borderColor: acColor,
+        backgroundColor: fillColor,
+        fill: true,
+        tension: 0.35,
+        borderWidth: 2,
+        pointBackgroundColor: acColor,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBorderColor: isDark ? '#131B26' : '#fff',
+        pointBorderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isDark ? '#1D2A3A' : '#fff',
+          titleColor: isDark ? '#E6EEF8' : '#141C28',
+          bodyColor: isDark ? '#A8B8CC' : '#3D4E62',
+          borderColor: isDark ? '#273649' : '#DDE3EE',
+          borderWidth: 1,
+          padding: 10,
+          callbacks: {
+            label: ctx => `${ctx.parsed.y.toFixed(1)} kg`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { size: 11 }, maxTicksLimit: 6, maxRotation: 0 }
+        },
+        y: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { size: 11 }, callback: v => v.toFixed(1) + ' kg' },
+          grace: '5%'
+        }
+      },
+      interaction: { mode: 'index', intersect: false }
+    }
+  });
+}
+
+/* ===== RENDER DIETA ===== */
+function renderDiet(){
+  const prof = S.profile;
+  const goalGperKg = prof.proteinGoalGperKg || 1.2;
+  const goalG = Math.round(goalGperKg * (prof.weightKg || 70));
+  const td = today();
+  const todayLogs = S.dietLogs.filter(d => d.date === td);
+  const todayProtein = todayLogs.reduce((s,d)=>s+d.proteinG, 0);
+  const todayCals = todayLogs.reduce((s,d)=>s+d.caloriesKcal, 0);
+  const pct = Math.min(100, Math.round((todayProtein/goalG)*100));
+  const pbClass = pct >= 100 ? 'ok' : pct >= 60 ? '' : 'warn';
+
+  document.getElementById('diet-today').innerHTML = `
+    <div class="card-title">Proteína hoje · ${todayProtein}g de ${goalG}g</div>
+    <div class="pb-wrap"><div class="pb-fill ${pbClass}" style="width:${pct}%"></div></div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px">
+      <span class="t-m">${pct}% da meta diária</span>
+      <span class="t-m">${todayCals > 0 ? todayCals + ' kcal' : '–'} hoje</span>
+    </div>
+    ${pct >= 100 ? '<div class="callout ok" style="margin-top:10px"><span class="ci">✓</span><span>Meta de proteína atingida hoje!</span></div>' : ''}
+    <button class="btn btn-o btn-sm btn-w" style="margin-top:12px" onclick="openDietModal()">+ Registrar refeição</button>
+  `;
+
+  const hist = document.getElementById('diet-history');
+  const sorted = [...S.dietLogs].sort((a,b)=>a.date<b.date?1:-1).slice(0,10);
+  if(!sorted.length){
+    hist.innerHTML = '<div class="empty"><div class="empty-t">Sem registros</div><div class="empty-s">Comece registrando suas refeições.</div></div>';
+  } else {
+    hist.innerHTML = sorted.map(d=>`<div class="h-item">
+      <div class="h-dot ok"></div>
+      <div class="h-main">
+        <div class="h-title">${d.proteinG}g proteína${d.caloriesKcal?' · '+d.caloriesKcal+' kcal':''}</div>
+        <div class="h-meta">${fmtD(d.date)}${d.notes?' · '+d.notes:''}</div>
+      </div>
+      <div class="h-right"><button class="del-btn" onclick="deleteDiet('${d.id}')">excluir</button></div>
+    </div>`).join('');
+  }
+
+  // Tips based on treatment week
+  const weeksSince = prof.startDate ? Math.floor(diffDays(prof.startDate, today())/7) : 0;
+  const tips = getDietTips(weeksSince);
+  document.getElementById('diet-tips').innerHTML = tips.map(t=>`<div class="callout info"><span class="ci">ℹ</span><span>${t}</span></div>`).join('');
+  renderMealPlan();
+}
+
+function getDietTips(weekNum){
+  if(weekNum <= 4) return [
+    'Primeiras semanas: náusea é comum. Prefira refeições pequenas e frequentes (5–6 ao dia).',
+    'Evite alimentos muito gordurosos ou condimentados para reduzir desconforto gástrico.',
+    'Mantenha hidratação adequada, especialmente se apresentar diarreia ou vômitos.'
+  ];
+  if(weekNum <= 8) return [
+    'Meta proteica: ≥ 1,2 g/kg/dia para preservar massa muscular durante a perda de peso.',
+    'Boas fontes de proteína: frango, peixe, ovos, iogurte grego, leguminosas, tofu.',
+    'Reduza carboidratos refinados e açúcar; prefira integrais com baixo índice glicêmico.'
+  ];
+  return [
+    'Continue priorizando proteína magra em cada refeição para minimizar perda muscular.',
+    'Inclua vegetais em abundância: brócolis, espinafre, abobrinha, cenoura, tomate.',
+    'Atividade física de resistência é altamente recomendada para preservar a massa muscular.',
+    'Se o apetite estiver muito reduzido, consulte seu médico para avaliar ingestão calórica mínima.'
+  ];
+}
+
+/* ===== DIET PLANNER ===== */
+const INGR_CATS = {
+  'Proteínas': [
+    {id:'frango',label:'Frango'},{id:'tilapia',label:'Tilápia'},{id:'salmao',label:'Salmão'},
+    {id:'atum',label:'Atum (lata)'},{id:'sardinha',label:'Sardinha'},{id:'ovos',label:'Ovos'},
+    {id:'iogurte',label:'Iogurte grego'},{id:'cottage',label:'Queijo cottage'},
+    {id:'carne_moida',label:'Carne moída'},{id:'whey',label:'Whey protein'},
+    {id:'tofu',label:'Tofu'},{id:'lentilha',label:'Lentilha'},{id:'feijao',label:'Feijão'},
+  ],
+  'Grãos e carboidratos': [
+    {id:'arroz_int',label:'Arroz integral'},{id:'batata_doce',label:'Batata-doce'},
+    {id:'aveia',label:'Aveia'},{id:'quinoa',label:'Quinoa'},
+    {id:'pao_int',label:'Pão integral'},{id:'macarrao_int',label:'Macarrão integral'},
+  ],
+  'Vegetais': [
+    {id:'brocolis',label:'Brócolis'},{id:'espinafre',label:'Espinafre'},
+    {id:'abobrinha',label:'Abobrinha'},{id:'cenoura',label:'Cenoura'},
+    {id:'tomate',label:'Tomate'},{id:'alface',label:'Alface'},
+    {id:'couve',label:'Couve'},{id:'chuchu',label:'Chuchu 🌿'},
+    {id:'beterraba',label:'Beterraba'},{id:'pepino',label:'Pepino'},
+    {id:'repolho',label:'Repolho'},{id:'quiabo',label:'Quiabo 🌿'},
+  ],
+  'Frutas': [
+    {id:'banana',label:'Banana'},{id:'maca',label:'Maçã'},
+    {id:'morango',label:'Morango 🌿'},{id:'mamao',label:'Mamão'},
+    {id:'laranja',label:'Laranja'},{id:'abacate',label:'Abacate 🌿'},
+    {id:'melancia',label:'Melancia 🌿'},
+  ],
+  'Gorduras saudáveis': [
+    {id:'azeite',label:'Azeite'},{id:'amendoas',label:'Amêndoas'},
+    {id:'chia',label:'Chia'},{id:'castanha',label:'Castanha-do-pará'},{id:'linhaca',label:'Linhaça'},
+  ]
+};
+
+// enjoo:true = adequado para dias com náusea (dia da aplicação e seguinte)
+const MEAL_DB = {
+  cafe: [
+    {id:'c1',label:'Omelete de espinafre no azeite',ingr:['ovos','espinafre','azeite'],enjoo:true},
+    {id:'c2',label:'Aveia com banana e chia',ingr:['aveia','banana','chia'],enjoo:true},
+    {id:'c3',label:'Iogurte grego com morango e chia',ingr:['iogurte','morango','chia'],enjoo:true},
+    {id:'c4',label:'Ovos mexidos com tomate e azeite',ingr:['ovos','tomate','azeite'],enjoo:true},
+    {id:'c5',label:'Pão integral com queijo cottage e pepino',ingr:['pao_int','cottage','pepino'],enjoo:false},
+    {id:'c6',label:'Vitamina de banana com whey',ingr:['banana','whey'],enjoo:false},
+    {id:'c7',label:'Aveia com mamão e castanha',ingr:['aveia','mamao','castanha'],enjoo:true},
+    {id:'c8',label:'Omelete de claras com espinafre e tomate',ingr:['ovos','espinafre','tomate'],enjoo:true},
+  ],
+  almoco: [
+    {id:'a1',label:'Frango grelhado com arroz integral e salada',ingr:['frango','arroz_int','alface','tomate'],enjoo:false},
+    {id:'a2',label:'Tilápia assada com batata-doce e brócolis',ingr:['tilapia','batata_doce','brocolis'],enjoo:false},
+    {id:'a3',label:'Frango desfiado com arroz, feijão e cenoura',ingr:['frango','arroz_int','feijao','cenoura'],enjoo:true},
+    {id:'a4',label:'Salmão grelhado com quinoa e espinafre refogado',ingr:['salmao','quinoa','espinafre'],enjoo:false},
+    {id:'a5',label:'Omelete proteico com salada de alface e tomate',ingr:['ovos','alface','tomate','azeite'],enjoo:true},
+    {id:'a6',label:'Carne moída com arroz integral, feijão e couve',ingr:['carne_moida','arroz_int','feijao','couve'],enjoo:false},
+    {id:'a7',label:'Lentilha refogada com cenoura e arroz integral',ingr:['lentilha','cenoura','arroz_int'],enjoo:true},
+    {id:'a8',label:'Sardinha com arroz integral e salada de tomate',ingr:['sardinha','arroz_int','tomate','alface'],enjoo:false},
+  ],
+  jantar: [
+    {id:'j1',label:'Sopa de frango com legumes',ingr:['frango','cenoura','abobrinha','chuchu'],enjoo:true},
+    {id:'j2',label:'Atum com batata-doce assada e brócolis',ingr:['atum','batata_doce','brocolis'],enjoo:false},
+    {id:'j3',label:'Frango desfiado com abobrinha refogada no azeite',ingr:['frango','abobrinha','azeite'],enjoo:true},
+    {id:'j4',label:'Omelete de claras com espinafre',ingr:['ovos','espinafre','azeite'],enjoo:true},
+    {id:'j5',label:'Sardinha com arroz integral e salada verde',ingr:['sardinha','arroz_int','alface','tomate'],enjoo:false},
+    {id:'j6',label:'Caldo de legumes com frango desfiado',ingr:['frango','cenoura','brocolis','abobrinha'],enjoo:true},
+    {id:'j7',label:'Tilápia no vapor com cenoura e couve',ingr:['tilapia','cenoura','couve'],enjoo:false},
+    {id:'j8',label:'Macarrão integral com frango e tomate',ingr:['macarrao_int','frango','tomate','azeite'],enjoo:false},
+  ],
+  lanche: [
+    {id:'l1',label:'Iogurte grego com chia',ingr:['iogurte','chia'],enjoo:true},
+    {id:'l2',label:'Castanhas com maçã',ingr:['castanha','maca'],enjoo:true},
+    {id:'l3',label:'Queijo cottage com tomate',ingr:['cottage','tomate'],enjoo:true},
+    {id:'l4',label:'Amêndoas com banana',ingr:['amendoas','banana'],enjoo:true},
+    {id:'l5',label:'Iogurte grego com morango',ingr:['iogurte','morango'],enjoo:true},
+    {id:'l6',label:'Ovos cozidos',ingr:['ovos'],enjoo:true},
+    {id:'l7',label:'Atum com pão integral',ingr:['atum','pao_int'],enjoo:false},
+  ]
+};
+
+const DAYS_WEEK = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+
+function getAvoidedIngr(){ try{return JSON.parse(localStorage.getItem('tirza_prefs')||'[]');}catch{return[];} }
+function saveAvoidedIngr(arr){ try{localStorage.setItem('tirza_prefs',JSON.stringify(arr));}catch{} }
+
+function findIngrLabel(id){
+  for(const ingrs of Object.values(INGR_CATS)){
+    const f = ingrs.find(i=>i.id===id); if(f) return f.label;
+  } return id;
+}
+
+function pickMeal(options, avoided, isEnjooDia){
+  let pool = options.filter(m=>!m.ingr.some(i=>avoided.includes(i)));
+  if(isEnjooDia) pool = pool.filter(m=>m.enjoo);
+  if(!pool.length) pool = options.filter(m=>!m.ingr.some(i=>avoided.includes(i)));
+  if(!pool.length) pool = isEnjooDia ? options.filter(m=>m.enjoo) : options;
+  if(!pool.length) pool = options;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+let _currentPlan = null;
+let _tempAvoided = [];
+
+function generatePlan(){
+  const avoided = getAvoidedIngr();
+  const nextDate = computeNextDoseDate();
+  const appWeekDay = nextDate ? parseD(nextDate).getDay() : -1;
+  const monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay()+6)%7));
+  const plan = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(monday); d.setDate(monday.getDate()+i);
+    const wd = d.getDay();
+    const isEnjooDia = wd===appWeekDay || wd===((appWeekDay+1)%7);
+    plan.push({
+      dayLabel: DAYS_WEEK[i], isEnjooDia,
+      cafe:   pickMeal(MEAL_DB.cafe,   avoided, isEnjooDia),
+      almoco: pickMeal(MEAL_DB.almoco, avoided, isEnjooDia),
+      jantar: pickMeal(MEAL_DB.jantar, avoided, isEnjooDia),
+      lanche: pickMeal(MEAL_DB.lanche, avoided, isEnjooDia),
+    });
+  }
+  _currentPlan = plan; return plan;
+}
+
+function shuffleMealPlan(){ _currentPlan=null; generatePlan(); renderMealPlan(); }
+
+function renderMealPlan(){
+  if(!_currentPlan) generatePlan();
+  const avoided = getAvoidedIngr();
+  const el = document.getElementById('meal-plan-container');
+  if(!el) return;
+  el.innerHTML = _currentPlan.map(day=>{
+    const slots = [
+      {icon:'☀️',label:'Café da manhã',meal:day.cafe},
+      {icon:'🥗',label:'Almoço',meal:day.almoco},
+      {icon:'🌙',label:'Jantar',meal:day.jantar},
+      {icon:'🍎',label:'Lanche',meal:day.lanche},
+    ];
+    const slotsHtml = slots.map(s=>{
+      const ingrHtml = s.meal.ingr.map(i=>{
+        const lbl = findIngrLabel(i);
+        return avoided.includes(i) ? `<span style="color:var(--warn);text-decoration:line-through">${lbl}</span>` : `<span>${lbl}</span>`;
+      }).join(' · ');
+      return `<div class="meal-slot">
+        <div class="meal-slot-header"><span class="meal-icon">${s.icon}</span><span class="meal-slot-label">${s.label}</span></div>
+        <div class="meal-name">${s.meal.label}</div>
+        <div class="meal-ingr">${ingrHtml}</div>
+      </div>`;
+    }).join('');
+    const enjooTag = day.isEnjooDia ? '<span class="badge-warn" style="font-size:10px">Dia de enjoo — porções menores</span>' : '';
+    return `<div class="meal-day${day.isEnjooDia?' enjoo':''}">
+      <div class="meal-day-header"><span class="meal-day-name">${day.dayLabel}</span>${enjooTag}</div>
+      ${slotsHtml}
+    </div>`;
+  }).join('');
+}
+
+function openPrefsModal(){
+  _tempAvoided = [...getAvoidedIngr()];
+  const content = document.getElementById('prefs-content');
+  content.innerHTML = Object.entries(INGR_CATS).map(([cat,ingrs])=>`
+    <p class="pref-section-title">${cat}</p>
+    <div class="chip-group" style="margin-bottom:4px">
+      ${ingrs.map(i=>`<button class="chip pref-chip${_tempAvoided.includes(i.id)?' avoided':''}" onclick="togglePref('${i.id}',this)">${i.label}</button>`).join('')}
+    </div>`).join('');
+  document.getElementById('mo-prefs').hidden = false;
+}
+
+function togglePref(id, el){
+  if(_tempAvoided.includes(id)){ _tempAvoided=_tempAvoided.filter(x=>x!==id); el.classList.remove('avoided'); }
+  else{ _tempAvoided.push(id); el.classList.add('avoided'); }
+}
+
+function savePrefsAndRegen(){
+  saveAvoidedIngr(_tempAvoided);
+  closeModal('mo-prefs');
+  _currentPlan=null; generatePlan(); renderMealPlan();
+  alert2(_tempAvoided.length ? `${_tempAvoided.length} ingrediente(s) marcado(s). Cardápio atualizado!` : 'Preferências salvas. Cardápio atualizado!');
+}
+
+/* ===== QUICK APPLY FROM CALCULATOR ===== */
+let _qaDose = 0;
+function openQuickApply(){
+  _qaDose = parseFloat(document.getElementById('calcDose').value) || 0;
+  if(!_qaDose){ alert2('Selecione uma dose na calculadora primeiro.'); return; }
+  const now2 = new Date();
+  const dateStr = now2.toISOString().slice(0,10);
+  const timeStr = now2.toTimeString().slice(0,5);
+  const dateLabel = now2.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+  document.getElementById('qa-dose-lbl').textContent = _qaDose + ' mg';
+  document.getElementById('qa-ml-lbl').textContent = document.getElementById('calcMl').textContent;
+  document.getElementById('qa-ui-lbl').textContent = document.getElementById('calcUI').textContent;
+  document.getElementById('qa-datetime-lbl').textContent = dateLabel + ' · ' + timeStr;
+
+  // store for save
+  document.getElementById('mo-quick').dataset.date = dateStr;
+  document.getElementById('mo-quick').dataset.time = timeStr;
+
+  document.getElementById('qaWeight').value = '';
+  document.getElementById('qaNotes').value = '';
+  renderSiteGridTo('qaSiteGrid');
+  document.getElementById('mo-quick').hidden = false;
+}
+function renderSiteGridTo(gridId){
+  const g = document.getElementById(gridId);
+  const lastApp = [...S.applications].sort((a,b)=>a.date<b.date?1:-1)[0];
+  const lastSite = lastApp ? lastApp.site : null;
+  const lastIdx = SITES.findIndex(s=>s.id===lastSite);
+  const suggestIdx = (lastIdx+1) % SITES.length;
+  selectedSite = SITES[suggestIdx].id;
+  g.innerHTML = SITES.map(s => {
+    const isLast = s.id===lastSite;
+    const isSugg = s.id===SITES[suggestIdx].id;
+    const isSel = s.id===selectedSite;
+    let cls = 'site-btn';
+    if(isSel) cls += ' selected';
+    else if(isLast) cls += ' prev';
+    else if(isSugg&&!isSel) cls += ' suggest';
+    return `<button class="${cls}" onclick="selectSiteIn('${s.id}','${gridId}')" type="button"><span class="site-icon">${s.icon}</span>${s.label}${isLast?' (último)':''}${isSugg&&!isSel?' (sugerido)':''}</button>`;
+  }).join('');
+}
+function selectSiteIn(id, gridId){
+  selectedSite = id;
+  renderSiteGridTo(gridId);
+}
+function saveQuickApply(){
+  const modal = document.getElementById('mo-quick');
+  const date = modal.dataset.date;
+  const time = modal.dataset.time;
+  if(!selectedSite){ alert2('Selecione o local de aplicação.'); return; }
+  const notes = document.getElementById('qaNotes').value.trim();
+  S.applications.push({id:uid(), date, time, doseMg:_qaDose, site:selectedSite, notes});
+  S.applications.sort((a,b)=>a.date<b.date?1:-1);
+  const wVal = parseFloat(document.getElementById('qaWeight').value);
+  if(wVal && wVal >= 30 && wVal <= 300){
+    S.weights.push({id:uid(), date, kg:wVal});
+    S.weights.sort((a,b)=>a.date<b.date?1:-1);
+  }
+  save();
+  closeModal('mo-quick');
+  renderAll();
+  goTab('app', document.getElementById('nb-app'));
+  alert2('Aplicação registrada com sucesso!');
+}
+
+/* ===== CALCULATOR ===== */
+function calcApplyPreset(){
+  const val = document.getElementById('calcPreset').value;
+  const customWrap = document.getElementById('calcCustomWrap');
+  if(val === 'custom'){
+    customWrap.style.display = 'block';
+    document.getElementById('calcConc').value = '';
+  } else {
+    customWrap.style.display = 'none';
+    document.getElementById('calcConc').value = val;
+  }
+  calcUpdate();
+}
+function calcUpdate(){
+  const preset = document.getElementById('calcPreset').value;
+  let conc;
+  if(preset === 'custom' || preset === ''){
+    conc = parseFloat(document.getElementById('calcConc').value);
+  } else {
+    conc = parseFloat(preset);
+  }
+  const dose = parseFloat(document.getElementById('calcDose').value);
+  const res = document.getElementById('calcResult');
+
+  if(!conc || !dose || isNaN(conc) || isNaN(dose)){
+    res.hidden = true; return;
+  }
+  const volMl = dose / conc;
+  const units = volMl * 100;
+  document.getElementById('calcMl').textContent = volMl.toFixed(4).replace(/\.?0+$/, '') + ' mL';
+  document.getElementById('calcUI').textContent = Math.round(units * 10) / 10 + ' UI';
+  document.getElementById('calcConcentration').textContent = conc + ' mg/mL';
+  res.hidden = false;
+}
+
+/* ===== DEMO SEED ===== */
+function confirmSeed(){
+  document.getElementById('seedConfirm').hidden = false;
+  document.getElementById('resetConfirm').hidden = true;
+}
+function doSeedDemo(){
+  const SITE_CYCLE = ['abd-esq','abd-dir','coxa-dir','coxa-esq','braco-dir','braco-esq'];
+  const APP_DATES  = [
+    '2026-03-26','2026-04-02','2026-04-09','2026-04-16',
+    '2026-04-23','2026-04-30','2026-05-07','2026-05-14',
+    '2026-05-21','2026-05-28','2026-06-04','2026-06-11',
+    '2026-06-18','2026-06-25','2026-07-02','2026-07-09',
+    '2026-07-16','2026-07-23','2026-07-30','2026-08-06',
+    '2026-08-13','2026-08-20','2026-08-27','2026-09-03',
+    '2026-09-10','2026-09-17','2026-09-24','2026-10-01',
+    '2026-10-08','2026-10-15'
+  ];
+  const APP_DOSES = [
+    2.5,2.5,2.5,2.5,
+    5,5,5,5,
+    7.5,7.5,7.5,7.5,
+    10,10,10,10,
+    12.5,12.5,12.5,12.5,
+    15,15,15,15,15,15,15,15,15,15
+  ];
+  const APP_NOTES = [
+    'Primeira aplicação','','Leve náusea no dia seguinte','',
+    'Início 5mg — náusea moderada por 2 dias','','','',
+    'Início 7,5mg — enjoo leve','','','',
+    'Início 10mg — bem tolerada','','','',
+    'Início 12,5mg — sem efeitos','','','',
+    'Início 15mg — dose máxima','','','',
+    '','','','','',''
+  ];
+  const applications = APP_DATES.map((date, i) => ({
+    id: 'demo_a' + i,
+    date,
+    time: '08:00',
+    doseMg: APP_DOSES[i],
+    site: SITE_CYCLE[i % 6],
+    notes: APP_NOTES[i] || ''
+  }));
+
+  const weights = [
+    { date:'2026-03-26', kg:136.0 },
+    { date:'2026-04-09', kg:134.0 },
+    { date:'2026-04-23', kg:132.5 },
+    { date:'2026-05-07', kg:130.8 },
+    { date:'2026-05-21', kg:129.0 },
+    { date:'2026-06-04', kg:127.5 },
+    { date:'2026-06-18', kg:126.0 },
+    { date:'2026-07-02', kg:124.5 },
+    { date:'2026-07-16', kg:123.0 },
+    { date:'2026-07-30', kg:121.8 },
+    { date:'2026-08-13', kg:120.5 },
+    { date:'2026-08-27', kg:119.0 },
+    { date:'2026-09-10', kg:117.8 },
+    { date:'2026-09-24', kg:116.5 },
+    { date:'2026-10-08', kg:114.5 },
+    { date:'2026-10-15', kg:112.5 }
+  ].map((w,i) => ({ id:'demo_w'+i, ...w }));
+
+  const dietLogs = [
+    { date:'2026-10-16', proteinG:88,  caloriesKcal:1280, notes:'Café proteico + almoço leve' },
+    { date:'2026-10-17', proteinG:102, caloriesKcal:1400, notes:'Frango + whey + iogurte' },
+    { date:'2026-10-18', proteinG:90,  caloriesKcal:1320, notes:'Peixe no jantar' },
+    { date:'2026-10-19', proteinG:85,  caloriesKcal:1250, notes:'Apetite reduzido' },
+    { date:'2026-10-20', proteinG:98,  caloriesKcal:1380, notes:'Ovo + atum + legumes' },
+    { date:'2026-10-21', proteinG:92,  caloriesKcal:1300, notes:'' },
+    { date:'2026-10-22', proteinG:95,  caloriesKcal:1350, notes:'Dia de aplicação' }
+  ].map((d,i) => ({ id:'demo_d'+i, ...d }));
+
+  const symptoms = [
+    { date:'2026-03-26', symptoms:['Náusea'],                   severity:2, notes:'Primeiras horas após aplicação' },
+    { date:'2026-04-02', symptoms:['Náusea','Falta de apetite'], severity:2, notes:'' },
+    { date:'2026-04-09', symptoms:['Náusea'],                   severity:1, notes:'Bem mais leve' },
+    { date:'2026-04-23', symptoms:['Náusea','Diarreia'],         severity:3, notes:'Aumento para 5mg — piora transitória' },
+    { date:'2026-05-21', symptoms:['Náusea'],                   severity:2, notes:'Aumento para 7,5mg' },
+    { date:'2026-08-13', symptoms:['Constipação'],              severity:1, notes:'Dose máxima 15mg — aumentei fibras' }
+  ].map((s,i) => ({ id:'demo_s'+i, ...s }));
+
+  S = {
+    profile: {
+      name: 'Demo',
+      weightKg: 136,
+      heightCm: 173,
+      startDate: '2026-03-26',
+      weekDay: 4,
+      currentDoseMg: 15,
+      proteinGoalGperKg: 1.2
+    },
+    applications,
+    weights,
+    symptoms,
+    dietLogs
+  };
+  save();
+  document.getElementById('seedConfirm').hidden = true;
+  renderAll();
+  goTab('inicio', document.getElementById('nb-inicio'));
+  alert2('Base de demonstração carregada com sucesso!');
+}
+
+/* ===== RESET ===== */
+function confirmReset(){
+  document.getElementById('resetConfirm').hidden = false;
+}
+function doReset(){
+  try { localStorage.removeItem(DB); } catch{}
+  location.reload();
+}
+
+/* ===== RENDER ALL ===== */
+function renderAll(){
+  const dose = S.profile.currentDoseMg;
+  document.getElementById('hdrDose').textContent = dose ? dose + ' mg' : '–';
+  renderInicio();
+  renderApp();
+  renderProg();
+  renderDiet();
+  renderProfileSummary();
+}
+
+/* ===== INIT ===== */
+load();
+initOnboarding();
+if(isOnboarded()){ renderAll(); generatePlan(); }
+
+// Close overlay on background click
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click', e => { if(e.target===o) o.hidden=true; });
+});
+
+// Re-render chart when color scheme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+  if(currentTab==='prog') renderChart();
+});
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(r => console.log('SW registrado:', r.scope))
+      .catch(e => console.warn('SW falhou:', e));
+  });
+}
+</script>
+</body>
+</html>
