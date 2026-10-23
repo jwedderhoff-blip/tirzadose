@@ -431,7 +431,7 @@ input, select, textarea { font-family: var(--f); }
         </select>
       </div>
       <div class="fg">
-        <label class="fl">Meta de proteína (g/kg/dia)</label>
+        <label class="fl" style="display:flex;align-items:center;gap:6px;">Meta de proteína (g/kg/dia)<button type="button" onclick="document.getElementById('mo-protein-ref').hidden=false" style="background:var(--ac-lt);border:none;color:var(--ac);border-radius:50%;width:20px;height:20px;font-size:12px;font-weight:700;cursor:pointer;line-height:1;flex-shrink:0;">?</button></label>
         <input class="fi" id="obProtein" type="number" min="0.5" max="3" step="0.1" value="1.2" placeholder="1.2">
         <p class="fh">Recomendado: 1,2 g/kg durante perda de peso ativa</p>
       </div>
@@ -481,18 +481,8 @@ input, select, textarea { font-family: var(--f); }
         <div class="sec-title">Protocolo de Escalonamento</div>
         <div class="card"><div class="tl" id="tl-container"></div></div>
         <div class="divider"></div>
-        <div class="sec-title">Histórico de Aplicações</div>
-        <div class="card" id="app-history">
-          <div class="empty"><div class="empty-t">Nenhuma aplicação registrada</div><div class="empty-s">Toque em "+ Registrar" para adicionar sua primeira aplicação.</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB: CALCULADORA -->
-    <div class="panel" id="p-calc">
-      <div class="inner">
+        <div class="sec-title">Calculadora de Dose</div>
         <div class="card">
-          <div class="card-title">Calculadora de Dose</div>
           <div class="callout warn"><span class="ci">⚠</span><span>Cálculo auxiliar. Valide sempre com seu médico ou farmacêutico.</span></div>
           <div class="fg">
             <label class="fl">Concentração oficial do frasco</label>
@@ -562,6 +552,11 @@ input, select, textarea { font-family: var(--f); }
             </table>
           </div>
           <p class="t-m" style="margin-top:8px">* Para canetas de dose única, a dose é pré-carregada: sem cálculo necessário.</p>
+        </div>
+        <div class="divider"></div>
+        <div class="sec-title">Histórico de Aplicações</div>
+        <div class="card" id="app-history">
+          <div class="empty"><div class="empty-t">Nenhuma aplicação registrada</div><div class="empty-s">Toque em "+ Registrar" para adicionar sua primeira aplicação.</div></div>
         </div>
       </div>
     </div>
@@ -814,10 +809,7 @@ input, select, textarea { font-family: var(--f); }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><path d="M8 12H4m16 0h-4M12 4v4m0 8v4M6.3 6.3l2.8 2.8m5.6 5.6l2.8 2.8M6.3 17.7l2.8-2.8m5.6-5.6l2.8-2.8"/><path d="M12 2a2 2 0 00-2 2v.5" stroke-width="2.5"/></svg>
       Aplicações
     </button>
-    <button class="nb" onclick="goTab('calc',this)" id="nb-calc">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h8M8 14h4M8 18h4"/></svg>
-      Calcular
-    </button>
+
     <button class="nb" onclick="goTab('prog',this)" id="nb-prog">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Progresso
@@ -831,6 +823,57 @@ input, select, textarea { font-family: var(--f); }
       Info
     </button>
   </nav>
+</div>
+
+<!-- MODAL: TABELA PROTEÍNA REFERÊNCIA -->
+<div class="overlay" id="mo-protein-ref" hidden onclick="if(event.target===this)this.hidden=true">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2 class="sheet-title">Índice proteico de referência</h2>
+    <p style="font-size:13px;color:var(--fg-m);margin-bottom:14px">Escolha o valor mais adequado ao seu perfil e objetivo. Consulte sempre seu nutricionista ou médico.</p>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:var(--ac-lt);color:var(--ac)">
+            <th style="text-align:left;padding:8px 10px;border-radius:8px 0 0 0">Perfil</th>
+            <th style="text-align:center;padding:8px 10px">g/kg/dia</th>
+            <th style="text-align:left;padding:8px 10px;border-radius:0 8px 0 0">Observação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 10px;font-weight:600">Sedentário em perda de peso</td>
+            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--ac-2);font-weight:700">1,0–1,2</td>
+            <td style="padding:9px 10px;color:var(--fg-m)">Mínimo para preservar massa muscular</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--bg-warm)">
+            <td style="padding:9px 10px;font-weight:600">Ativo em perda de peso <span style="font-size:11px;background:var(--ac-lt);color:var(--ac);padding:2px 6px;border-radius:4px;margin-left:4px">recomendado</span></td>
+            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--ac);font-weight:700">1,2–1,6</td>
+            <td style="padding:9px 10px;color:var(--fg-m)">Valor usado durante tratamento com GLP-1</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:9px 10px;font-weight:600">Idoso (acima de 65 anos)</td>
+            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--ac-2);font-weight:700">1,2–1,5</td>
+            <td style="padding:9px 10px;color:var(--fg-m)">Risco maior de sarcopenia</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);background:var(--bg-warm)">
+            <td style="padding:9px 10px;font-weight:600">Praticante de musculação</td>
+            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--ac-2);font-weight:700">1,6–2,0</td>
+            <td style="padding:9px 10px;color:var(--fg-m)">Hipertrofia ou manutenção de massa</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 10px;font-weight:600">Atleta de alto rendimento</td>
+            <td style="text-align:center;padding:9px 10px;font-family:var(--fm);color:var(--fg-m);font-weight:700">1,6–2,2</td>
+            <td style="padding:9px 10px;color:var(--fg-m)">Conforme orientação específica</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn" style="margin-top:14px"><span class="ci">⚠</span><span style="font-size:12px">Fonte de referência: diretrizes gerais de nutrição clínica (ESPEN). Os valores acima são orientações gerais — <strong>consulte seu nutricionista</strong> para ajuste individual.</span></div>
+    <div class="sheet-actions">
+      <button class="btn btn-g" onclick="document.getElementById('mo-protein-ref').hidden=true">Fechar</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL: EDITAR PERFIL -->
@@ -865,7 +908,7 @@ input, select, textarea { font-family: var(--f); }
       </select>
     </div>
     <div class="fg">
-      <label class="fl">Meta de proteína (g/kg/dia)</label>
+      <label class="fl" style="display:flex;align-items:center;gap:6px;">Meta de proteína (g/kg/dia)<button type="button" onclick="document.getElementById('mo-protein-ref').hidden=false" style="background:var(--ac-lt);border:none;color:var(--ac);border-radius:50%;width:20px;height:20px;font-size:12px;font-weight:700;cursor:pointer;line-height:1;flex-shrink:0;">?</button></label>
       <input class="fi" id="prProtein" type="number" min="0.5" max="3" step="0.1" placeholder="1.2">
       <p class="fh">Recomendado: 1,2–1,6 g/kg durante perda de peso ativa</p>
     </div>
