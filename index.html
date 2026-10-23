@@ -1483,7 +1483,11 @@ function renderApp(){
         <div class="h-title">${a.doseMg} mg · ${siteLabel}</div>
         <div class="h-meta">${fmtD(a.date)}${a.time?' às '+a.time:''}${a.notes?' · '+a.notes:''}</div>
       </div>
-      <div class="h-right"><span class="badge-ok">${a.doseMg} mg</span><button class="del-btn" style="color:var(--ac);margin-bottom:2px" onclick="editApp('${a.id}')">editar</button><button class="del-btn" onclick="if(confirm2('Excluir?',()=>deleteApplication('${a.id}'))) {}">excluir</button></div>
+      <div class="h-right" style="flex-direction:row;gap:4px;align-items:center">
+        <span class="badge-ok">${a.doseMg} mg</span>
+        <button title="Editar" onclick="editApp('${a.id}')" style="background:var(--ac-lt);border:1px solid color-mix(in srgb,var(--ac) 30%,transparent);color:var(--ac);border-radius:8px;padding:6px 10px;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px">✏️</button>
+        <button title="Excluir" onclick="if(confirm2('Excluir esta aplicação?',()=>deleteApplication('${a.id}'))) {}" style="background:var(--danger-lt);border:1px solid color-mix(in srgb,var(--danger) 30%,transparent);color:var(--danger);border-radius:8px;padding:6px 10px;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px">🗑️</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1543,7 +1547,10 @@ function renderProg(){
   wh.innerHTML = sorted.map(w=>`<div class="h-item">
     <div class="h-dot ok"></div>
     <div class="h-main"><div class="h-title">${w.kg.toFixed(1)} kg</div><div class="h-meta">${fmtD(w.date)}</div></div>
-    <div class="h-right"><button class="del-btn" style="color:var(--ac);margin-bottom:2px" onclick="editWeight('${w.id}')">editar</button><button class="del-btn" onclick="deleteWeight('${w.id}')">excluir</button></div>
+    <div class="h-right" style="flex-direction:row;gap:4px;align-items:center">
+      <button title="Editar" onclick="editWeight('${w.id}')" style="background:var(--ac-lt);border:1px solid color-mix(in srgb,var(--ac) 30%,transparent);color:var(--ac);border-radius:8px;padding:6px 10px;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px">✏️</button>
+      <button title="Excluir" onclick="deleteWeight('${w.id}')" style="background:var(--danger-lt);border:1px solid color-mix(in srgb,var(--danger) 30%,transparent);color:var(--danger);border-radius:8px;padding:6px 10px;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px">🗑️</button>
+    </div>
   </div>`).join('');
 }
 
