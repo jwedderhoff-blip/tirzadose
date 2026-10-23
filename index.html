@@ -2338,101 +2338,236 @@ function generateShareCard() {
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // Background gradient
+  // ── Background ──
   const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, '#2D5A3D');
-  grad.addColorStop(0.6, '#4A7C59');
-  grad.addColorStop(1, '#3D6B4A');
+  grad.addColorStop(0, '#1E3D2A');
+  grad.addColorStop(0.55, '#2D5A3D');
+  grad.addColorStop(1, '#1E3D2A');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 
   // Decorative circles
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  ctx.beginPath(); ctx.arc(W * 0.85, H * 0.15, 220, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(W * 0.1, H * 0.85, 160, 0, Math.PI * 2); ctx.fill();
-
-  // App name
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.font = '500 40px system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('TirzaDose', W/2, 90);
-
-  // Separator line
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(W*0.3, 110); ctx.lineTo(W*0.7, 110); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  ctx.beginPath(); ctx.arc(W * 0.88, H * 0.12, 250, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(W * 0.08, H * 0.88, 180, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.03)';
+  ctx.beginPath(); ctx.arc(W * 0.5, H * 0.5, 350, 0, Math.PI * 2); ctx.fill();
 
   const p = S.profile;
-  const weights = (S.weights || []).slice().sort((a,b)=>a.date.localeCompare(b.date));
-  const startW = p.weightKg || null;
-  const curW = weights.length ? weights[weights.length-1].kg : startW;
-  const lost = (startW && curW) ? (startW - curW) : null;
-  const apps = S.applications || [];
-  const weeks = p.startDate ? Math.floor((new Date() - new Date(p.startDate)) / (7 * 86400000)) : 0;
+  const allWeights = (S.weights || []).slice().sort((a,b) => a.date.localeCompare(b.date));
+  const startW  = p.weightKg ? parseFloat(p.weightKg) : null;
+  const curW    = allWeights.length ? parseFloat(allWeights[allWeights.length-1].kg) : startW;
+  const lost    = (startW && curW) ? (startW - curW) : null;
+  const apps    = S.applications || [];
+  const weeks   = p.startDate ? Math.floor((new Date() - new Date(p.startDate)) / (7 * 86400000)) : 0;
 
-  // User name
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 72px Georgia, serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(p.name || 'Minha Jornada', W/2, 210);
-
-  // Subtitle
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.font = '400 38px system-ui, sans-serif';
-  ctx.fillText('Minha evolução com tirzepatida', W/2, 270);
-
-  // Stats boxes
-  const stats = [
-    { val: weeks + '', label: 'semanas' },
-    { val: apps.length + '', label: 'aplicações' },
-    { val: curW ? curW + ' kg' : '—', label: 'peso atual' },
-    { val: lost !== null ? (lost >= 0 ? '-' : '+') + Math.abs(lost).toFixed(1) + ' kg' : '—', label: 'evolução' }
-  ];
-
-  const boxW = 220, boxH = 200, gap = 30;
-  const totalW = stats.length * boxW + (stats.length - 1) * gap;
-  const startX = (W - totalW) / 2;
-  const boxY = 340;
-
-  stats.forEach((s, i) => {
-    const x = startX + i * (boxW + gap);
-    // Box background
-    ctx.fillStyle = 'rgba(255,255,255,0.14)';
-    ctx.beginPath();
-    ctx.roundRect(x, boxY, boxW, boxH, 20);
-    ctx.fill();
-    // Value
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 56px Georgia, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(s.val, x + boxW/2, boxY + 100);
-    // Label
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.font = '400 28px system-ui, sans-serif';
-    ctx.fillText(s.label, x + boxW/2, boxY + 148);
+  // Build chart data: start weight + all weight entries
+  let chartPoints = [];
+  if (startW && p.startDate) chartPoints.push({ date: p.startDate, kg: startW });
+  allWeights.forEach(w => {
+    if (!chartPoints.length || w.date !== p.startDate) chartPoints.push({ date: w.date, kg: parseFloat(w.kg) });
   });
+  // Deduplicate by date (keep last)
+  const seen = {};
+  chartPoints.forEach(pt => { seen[pt.date] = pt.kg; });
+  chartPoints = Object.keys(seen).sort().map(d => ({ date: d, kg: seen[d] }));
 
-  // Dose badge
-  if (p.currentDoseMg) {
-    ctx.fillStyle = 'rgba(255,255,255,0.18)';
-    ctx.beginPath(); ctx.roundRect(W/2 - 160, 590, 320, 80, 40); ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 36px system-ui, sans-serif';
+  // ── Header ──
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '500 36px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('TirzaDose', W/2, 72);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(W*0.35, 90); ctx.lineTo(W*0.65, 90); ctx.stroke();
+
+  // ── Name ──
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 66px Georgia, serif';
+  ctx.textAlign = 'center';
+  const nameText = p.name || 'Minha Jornada';
+  // Wrap long name
+  const maxNameW = W - 100;
+  if (ctx.measureText(nameText).width > maxNameW) {
+    ctx.font = 'bold 52px Georgia, serif';
+  }
+  ctx.fillText(nameText, W/2, 180);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = '400 32px system-ui, sans-serif';
+  ctx.fillText('Minha evolução com tirzepatida', W/2, 232);
+
+  // ── Weight comparison band ──
+  const bandY = 272, bandH = 148;
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath(); ctx.roundRect(60, bandY, W - 120, bandH, 20); ctx.fill();
+
+  // Peso inicial box
+  const bxW = (W - 120 - 60) / 2;
+  // Left: peso inicial
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.beginPath(); ctx.roundRect(76, bandY + 12, bxW, bandH - 24, 14); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '400 24px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('PESO INICIAL', 76 + bxW/2, bandY + 46);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 58px Georgia, serif';
+  ctx.fillText(startW ? startW.toFixed(1) + ' kg' : '—', 76 + bxW/2, bandY + 112);
+
+  // Right: peso atual
+  const rxStart = 76 + bxW + 60;
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.beginPath(); ctx.roundRect(rxStart, bandY + 12, bxW, bandH - 24, 14); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '400 24px system-ui, sans-serif';
+  ctx.fillText('PESO ATUAL', rxStart + bxW/2, bandY + 46);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 58px Georgia, serif';
+  ctx.fillText(curW ? curW.toFixed(1) + ' kg' : '—', rxStart + bxW/2, bandY + 112);
+
+  // Center arrow + loss
+  const cx = W / 2;
+  if (lost !== null) {
+    const lostColor = lost >= 0 ? '#7DE8A4' : '#F87171';
+    const lostText  = (lost >= 0 ? '−' : '+') + Math.abs(lost).toFixed(1) + ' kg';
+    // Arrow circle
+    ctx.fillStyle = lost >= 0 ? 'rgba(74,200,120,0.22)' : 'rgba(248,113,113,0.22)';
+    ctx.beginPath(); ctx.arc(cx, bandY + bandH/2, 36, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = lostColor;
+    ctx.font = 'bold 22px system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Dose atual: ' + p.currentDoseMg + ' mg', W/2, 640);
+    ctx.fillText(lostText, cx, bandY + bandH/2 + 8);
+  } else {
+    // Simple arrow
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '400 40px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('→', cx, bandY + bandH/2 + 14);
   }
 
-  // Date
-  const dateStr = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.font = '400 30px system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(dateStr, W/2, H - 60);
+  // ── Weight Chart ──
+  const chartX = 80, chartY = 450, chartW = W - 160, chartH = 310;
 
-  // Watermark
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.font = '400 24px system-ui, sans-serif';
-  ctx.fillText('tirzadose.app', W/2, H - 25);
+  // Chart background
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.roundRect(chartX - 20, chartY - 30, chartW + 40, chartH + 60, 20); ctx.fill();
+
+  if (chartPoints.length >= 2) {
+    const kgs = chartPoints.map(p => p.kg);
+    const minKg = Math.min(...kgs);
+    const maxKg = Math.max(...kgs);
+    const rangeKg = maxKg - minKg || 1;
+    const padKg = rangeKg * 0.18;
+    const yMin = minKg - padKg, yMax = maxKg + padKg;
+
+    const toX = i => chartX + (i / (chartPoints.length - 1)) * chartW;
+    const toY = kg => chartY + chartH - ((kg - yMin) / (yMax - yMin)) * chartH;
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    for (let g = 0; g <= 4; g++) {
+      const gy = chartY + (g / 4) * chartH;
+      ctx.beginPath(); ctx.moveTo(chartX, gy); ctx.lineTo(chartX + chartW, gy); ctx.stroke();
+    }
+
+    // Filled area under curve
+    const areaGrad = ctx.createLinearGradient(0, chartY, 0, chartY + chartH);
+    areaGrad.addColorStop(0, 'rgba(125,232,164,0.35)');
+    areaGrad.addColorStop(1, 'rgba(125,232,164,0.03)');
+    ctx.fillStyle = areaGrad;
+    ctx.beginPath();
+    ctx.moveTo(toX(0), chartY + chartH);
+    chartPoints.forEach((pt, i) => ctx.lineTo(toX(i), toY(pt.kg)));
+    ctx.lineTo(toX(chartPoints.length - 1), chartY + chartH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Line
+    ctx.strokeStyle = '#7DE8A4';
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    chartPoints.forEach((pt, i) => {
+      if (i === 0) ctx.moveTo(toX(i), toY(pt.kg));
+      else ctx.lineTo(toX(i), toY(pt.kg));
+    });
+    ctx.stroke();
+
+    // Points
+    chartPoints.forEach((pt, i) => {
+      const px = toX(i), py = toY(pt.kg);
+      const isEdge = i === 0 || i === chartPoints.length - 1;
+      ctx.fillStyle = isEdge ? '#7DE8A4' : 'rgba(125,232,164,0.7)';
+      ctx.beginPath(); ctx.arc(px, py, isEdge ? 10 : 6, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#1E3D2A';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+
+    // Labels for first and last points
+    [[0, 'start'], [chartPoints.length - 1, 'end']].forEach(([i, side]) => {
+      const pt = chartPoints[i];
+      const px = toX(i), py = toY(pt.kg);
+      const label = pt.kg.toFixed(1) + ' kg';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 26px system-ui, sans-serif';
+      ctx.textAlign = side === 'start' ? 'left' : 'right';
+      const lx = side === 'start' ? px + 2 : px - 2;
+      ctx.fillText(label, lx, py - 18);
+      // date label below point (short format)
+      const d = new Date(pt.date + 'T12:00:00');
+      const dateLabel = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = '400 22px system-ui, sans-serif';
+      ctx.fillText(dateLabel, lx, chartY + chartH + 30);
+    });
+
+  } else if (chartPoints.length === 1) {
+    // Single point — just label
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '400 28px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Registre mais pesagens para ver o gráfico', W/2, chartY + chartH/2);
+  } else {
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '400 28px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Sem dados de peso registrados', W/2, chartY + chartH/2);
+  }
+
+  // ── Bottom stats bar: semanas · aplicações · dose ──
+  const statsY = 830;
+  const sBars = [
+    { val: weeks + '', label: 'semanas' },
+    { val: apps.length + '', label: 'aplicações' },
+    { val: p.currentDoseMg ? p.currentDoseMg + ' mg' : '—', label: 'dose atual' }
+  ];
+  const sbW = (W - 120 - 40) / 3;
+  sBars.forEach((s, i) => {
+    const sx = 60 + i * (sbW + 20);
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.beginPath(); ctx.roundRect(sx, statsY, sbW, 120, 16); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 48px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(s.val, sx + sbW/2, statsY + 70);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.font = '400 24px system-ui, sans-serif';
+    ctx.fillText(s.label, sx + sbW/2, statsY + 104);
+  });
+
+  // ── Date & watermark ──
+  const dateStr = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '400 26px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(dateStr, W/2, H - 44);
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.font = '400 22px system-ui, sans-serif';
+  ctx.fillText('tirzadose.app', W/2, H - 14);
 
   // Convert to blob for sharing
   canvas.toBlob(blob => {
