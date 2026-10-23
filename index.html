@@ -383,7 +383,7 @@ input, select, textarea { font-family: var(--f); }
 <!-- ONBOARDING -->
 <div class="ob-overlay" id="ob">
   <div class="ob-inner">
-    <div class="ob-hero-img">🥗</div>
+    <div class="ob-hero-img"><img src="img-dieta.png" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:60px;box-shadow:0 4px 20px rgba(74,124,89,.25)"></div>
     <div class="ob-logo">Tirza<em>Dose</em></div>
     <p class="ob-tagline">Controle inteligente para o seu tratamento</p>
     <div class="ob-dots">
@@ -471,6 +471,14 @@ input, select, textarea { font-family: var(--f); }
 
     <!-- TAB: APLICAÇÕES -->
     <div class="panel" id="p-app">
+      <div style="position:relative;overflow:hidden;min-height:130px;">
+        <img src="img-aplicacoes.png" alt="Aplicação do tratamento" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.75),rgba(61,110,74,.5))"></div>
+        <div style="position:relative;padding:20px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));">
+          <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Controle Semanal</div>
+          <div style="color:#fff;font-family:var(--fd);font-size:24px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Suas<br><em>Aplicações</em></div>
+        </div>
+      </div>
       <div class="inner">
         <div class="sec-title">
           Próxima Aplicação
@@ -563,6 +571,14 @@ input, select, textarea { font-family: var(--f); }
 
     <!-- TAB: PROGRESSO -->
     <div class="panel" id="p-prog">
+      <div style="position:relative;overflow:hidden;min-height:130px;">
+        <img src="img-progresso.png" alt="Acompanhamento de progresso" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.75),rgba(61,110,74,.5))"></div>
+        <div style="position:relative;padding:20px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));">
+          <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Evolução do Tratamento</div>
+          <div style="color:#fff;font-family:var(--fd);font-size:24px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu<br><em>Progresso</em></div>
+        </div>
+      </div>
       <div class="inner">
         <div class="sec-title">Evolução do Peso
           <button class="btn btn-p btn-sm" onclick="openWeightModal()">+ Peso</button>
@@ -582,12 +598,13 @@ input, select, textarea { font-family: var(--f); }
 
     <!-- TAB: DIETA -->
     <div class="panel" id="p-diet">
-      <div style="background:linear-gradient(135deg,#3D6E4A,#5A8F5E 60%,#7AAD70);padding:20px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));">
-        <div style="max-width:640px;margin:0 auto;">
-          <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Alimentação &amp; Tratamento</div>
-          <div style="color:#fff;font-family:var(--fd);font-size:26px;line-height:1.2;margin-bottom:4px;">Seu Plano<br><em style="opacity:.9">Alimentar</em></div>
-          <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:6px;">Cardápio semanal personalizado para tirzepatida</div>
-          <div style="display:flex;gap:12px;margin-top:12px;font-size:22px;">🥦 🍳 🐟 🥑 🍠</div>
+      <div style="position:relative;overflow:hidden;min-height:160px;">
+        <img src="img-dieta.png" alt="Alimentação saudável" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,60,35,.72),rgba(61,110,74,.55))"></div>
+        <div style="position:relative;padding:22px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:640px;margin:0 auto;">
+          <div style="color:rgba(255,255,255,.8);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Alimentação &amp; Tratamento</div>
+          <div style="color:#fff;font-family:var(--fd);font-size:28px;line-height:1.2;margin-bottom:4px;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu Plano<br><em style="opacity:.95">Alimentar</em></div>
+          <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.3)">Cardápio semanal personalizado para tirzepatida</div>
         </div>
       </div>
       <div class="inner">
@@ -614,6 +631,14 @@ input, select, textarea { font-family: var(--f); }
 
     <!-- TAB: INFO -->
     <div class="panel" id="p-info">
+      <div style="position:relative;overflow:hidden;min-height:130px;">
+        <img src="img-exercicio.png" alt="Caminhada e exercícios" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.72),rgba(61,110,74,.45))"></div>
+        <div style="position:relative;padding:20px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));">
+          <div style="color:rgba(255,255,255,.75);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Informações &amp; Guia</div>
+          <div style="color:#fff;font-family:var(--fd);font-size:24px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Sobre o<br><em>Tratamento</em></div>
+        </div>
+      </div>
       <div class="inner">
         <div class="card">
           <div class="card-title">Protocolo de Doses</div>
@@ -795,6 +820,7 @@ input, select, textarea { font-family: var(--f); }
           </div>
         </div>
       </div>
+    </div>
     </div>
 
   </main>
