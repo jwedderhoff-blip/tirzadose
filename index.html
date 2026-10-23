@@ -380,6 +380,17 @@ input, select, textarea { font-family: var(--f); }
 .pref-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); margin: 14px 0 8px; }
 </style>
 
+<!-- INSTALL BANNER -->
+<div id="install-banner" hidden style="position:fixed;bottom:80px;left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:9000;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.18);padding:14px 16px;display:flex;align-items:center;gap:12px;border:1.5px solid rgba(74,124,89,.25)">
+  <img src="icon-192.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0" alt="">
+  <div style="flex:1;min-width:0">
+    <div style="font-size:14px;font-weight:700;color:#1a1a1a">Instalar TirzaDose</div>
+    <div style="font-size:12px;color:#666;margin-top:2px">Adicionar à tela inicial</div>
+  </div>
+  <button onclick="triggerInstall()" style="background:#4A7C59;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0">Instalar</button>
+  <button onclick="dismissInstall()" style="background:none;border:none;color:#999;font-size:20px;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1">×</button>
+</div>
+
 <!-- ONBOARDING -->
 <div class="ob-overlay" id="ob">
   <div class="ob-inner">
@@ -2453,6 +2464,40 @@ function fallbackDownload() {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
+
+/* ===== PWA INSTALL PROMPT ===== */
+let deferredInstall = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  if (!localStorage.getItem('installDismissed')) {
+    setTimeout(() => {
+      const banner = document.getElementById('install-banner');
+      if (banner && deferredInstall) banner.hidden = false;
+    }, 3000);
+  }
+});
+
+async function triggerInstall() {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  const { outcome } = await deferredInstall.userChoice;
+  deferredInstall = null;
+  document.getElementById('install-banner').hidden = true;
+  if (outcome === 'accepted') showToast('App instalado! 🎉');
+}
+
+function dismissInstall() {
+  document.getElementById('install-banner').hidden = true;
+  try { localStorage.setItem('installDismissed', '1'); } catch(e) {}
+}
+
+window.addEventListener('appinstalled', () => {
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.hidden = true;
+  deferredInstall = null;
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   updateNotifUI();
