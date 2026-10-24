@@ -854,7 +854,10 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
                 <div id="sync-status" style="font-size:13px;color:var(--fg-m)">Sincronizando…</div>
               </div>
             </div>
-            <button class="btn btn-g btn-sm btn-w" onclick="authSignOut(this)">Sair da conta</button>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-p btn-sm" style="flex:1" id="btn-force-sync" onclick="forceRefreshFromCloud(this)">↓ Atualizar dados</button>
+              <button class="btn btn-g btn-sm" style="flex:1" onclick="authSignOut(this)">Sair da conta</button>
+            </div>
           </div>
         </div>
 
@@ -1370,6 +1373,38 @@ async function loadFromCloud() {
   } catch(e) {
     // Em caso de falha de rede, tenta subir dados locais
     try { await syncToCloud(); } catch(_) {}
+  }
+}
+
+async function forceRefreshFromCloud(btn) {
+  if (!sbUser) { showToast('Faça login para sincronizar.'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Atualizando…'; }
+  _setSyncStatus('↓ Buscando dados da nuvem…', '');
+  try {
+    const { data, error } = await sb.from('user_data')
+      .select('data')
+      .eq('user_id', sbUser.id)
+      .maybeSingle();
+    if (error) throw error;
+    const cloudData = data?.data;
+    const isValid = cloudData && cloudData.profile !== undefined && cloudData.applications !== undefined;
+    if (isValid) {
+      const { _deviceId: _d, ...cloudState } = cloudData;
+      S = { ...DEFAULT_STATE, ...cloudState };
+      try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+      renderAll();
+      generatePlan();
+      _setSyncStatus('✓ Sincronizado', 'ok');
+      showToast('Dados atualizados da nuvem!');
+    } else {
+      _setSyncStatus('✓ Sem dados novos', 'ok');
+      showToast('Nenhum dado novo na nuvem.');
+    }
+  } catch(e) {
+    _setSyncStatus('⚠ Falha ao buscar dados', 'warn');
+    showToast('Falha ao conectar. Tente novamente.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↓ Atualizar dados'; }
   }
 }
 
