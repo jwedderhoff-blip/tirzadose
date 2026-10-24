@@ -774,7 +774,13 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         </div>
         <div class="stat-row" id="prog-stats"></div>
         <div class="card">
-          <div class="card-title">Histórico de peso (kg)</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="card-title" style="margin-bottom:0">Histórico de peso (kg)</div>
+            <button onclick="openChartFullscreen()" title="Expandir gráfico"
+              style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:5px 10px;font-size:16px;cursor:pointer;line-height:1;display:flex;align-items:center;gap:4px">
+              <span style="font-size:13px">⤢</span>
+            </button>
+          </div>
           <div class="chart-wrap">
             <canvas id="wChart" aria-label="Gráfico de peso ao longo do tempo"></canvas>
             <div class="chart-empty" id="wChartEmpty">Registre seu peso para visualizar o gráfico</div>
@@ -1226,6 +1232,19 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
   </div>
 </div>
 
+<!-- MODAL: GRÁFICO FULLSCREEN -->
+<div id="mo-chart-fs" hidden style="position:fixed;inset:0;z-index:3000;background:var(--bg);display:flex;flex-direction:column;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--border)">
+    <div style="font-size:16px;font-weight:700;color:var(--fg)">Evolução do Peso</div>
+    <button onclick="closeChartFullscreen()" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:6px 14px;font-size:14px;cursor:pointer;font-family:var(--f)">Fechar ✕</button>
+  </div>
+  <div id="chart-fs-filter" style="display:flex;gap:6px;padding:10px max(16px,env(safe-area-inset-left,0px));overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0"></div>
+  <div style="flex:1;min-height:0;padding:0 max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-bottom:12px;position:relative">
+    <canvas id="wChartFs" style="width:100%;height:100%"></canvas>
+  </div>
+  <div id="chart-fs-info" style="padding:8px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:12px;color:var(--fg-m);text-align:center;flex-shrink:0"></div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.min.js"></script>
 <script>
@@ -1438,6 +1457,8 @@ function _setSyncStatus(msg, type) {
 /* ===== STATE ===== */
 let S = DEFAULT_STATE;
 let wChart = null;
+let wChartFs = null;
+let _fsRange = null; // null = all time, or number of weeks
 
 function load() {
   try { const r = localStorage.getItem(DB); if(r) S = JSON.parse(r); } catch{}
@@ -2424,176 +2445,182 @@ function saveProgDetail() {
 }
 
 /* ===== CHART ===== */
+function _chartColors() {
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark' ||
+    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  return {
+    isDark,
+    gridColor:   isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)',
+    tickColor:   isDark ? '#8899AA' : '#6B7A90',
+    weightColor: isDark ? '#6DBF82' : '#3D7A56',
+    fillColor:   isDark ? 'rgba(109,191,130,.1)' : 'rgba(61,122,86,.09)',
+    appColor:    isDark ? '#E08040' : '#C96A2B',
+    bgCard:      isDark ? '#201D18' : '#fff',
+    fgCard:      isDark ? '#EDE8DF' : '#1A180E',
+    fgM:         isDark ? '#A0B090' : '#5A6A5A',
+    bdCard:      isDark ? '#2C2820' : '#E4DDD2'
+  };
+}
+
+function _buildChartConfig(weights, apps, c, maxTicksLimit) {
+  const allDates = [...new Set([...weights.map(w=>w.date), ...apps.map(a=>a.date)])].sort();
+  const weightMap = {}; weights.forEach(w => { weightMap[w.date] = +w.kg; });
+  const appMap = {}; apps.forEach(a => { if(!appMap[a.date]) appMap[a.date]=[]; appMap[a.date].push(+a.doseMg); });
+  const kgVals = weights.map(w=>+w.kg);
+  const minKg  = Math.min(...kgVals);
+  const maxKg  = Math.max(...kgVals);
+  const range  = maxKg - minKg || 5;
+  const appBand = minKg - range * 0.28;
+  const labels     = allDates.map(d => fmtD(d));
+  const weightData = allDates.map(d => weightMap[d] !== undefined ? weightMap[d] : null);
+  const appPoints  = [];
+  allDates.forEach((d,i) => { if(appMap[d]) appPoints.push({ x: labels[i], y: appBand, doses: appMap[d] }); });
+
+  return {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Peso (kg)', type:'line', data:weightData, borderColor:c.weightColor,
+          backgroundColor:c.fillColor, fill:true, tension:0.35, borderWidth:2.5,
+          pointBackgroundColor:c.weightColor, pointRadius:5, pointHoverRadius:7,
+          pointBorderColor:c.isDark?'#161410':'#fff', pointBorderWidth:2,
+          spanGaps:true, order:2, yAxisID:'y' },
+        { label:'Aplicação', type:'scatter', data:appPoints,
+          backgroundColor:c.appColor, borderColor:c.isDark?'#161410':'#fff',
+          borderWidth:2, pointStyle:'triangle', pointRadius:9, pointHoverRadius:11,
+          order:1, yAxisID:'y' }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: {
+          display:true, position:'top', align:'start',
+          labels: { color:c.tickColor, font:{size:13}, usePointStyle:true, pointStyleWidth:14, padding:18,
+            generateLabels() { return [
+              { text:'Peso', fillStyle:c.weightColor, strokeStyle:c.weightColor, lineWidth:2.5, pointStyle:'line', fontColor:c.tickColor },
+              { text:'Aplicação', fillStyle:c.appColor, strokeStyle:c.appColor, lineWidth:0, pointStyle:'triangle', fontColor:c.tickColor }
+            ]; }
+          }
+        },
+        tooltip: {
+          backgroundColor:c.bgCard, titleColor:c.fgCard, bodyColor:c.fgM,
+          borderColor:c.bdCard, borderWidth:1, padding:12, mode:'index', intersect:false,
+          callbacks: {
+            title(items){ return items[0]?.label||''; },
+            label(ctx){
+              if(ctx.datasetIndex===0) return ctx.parsed.y!=null ? `⚖️  ${ctx.parsed.y.toFixed(1)} kg` : null;
+              if(ctx.datasetIndex===1) return `💉  ${ctx.raw.doses.map(d=>d+' mg').join(' + ')}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid:{color:c.gridColor}, ticks:{color:c.tickColor, font:{size:12}, maxTicksLimit:maxTicksLimit||7, maxRotation:30} },
+        y: {
+          grid:{color:c.gridColor},
+          min: appBand - range*0.04,
+          ticks: { color:c.tickColor, font:{size:12},
+            callback(v){ return v < minKg - range*0.05 ? '' : v.toFixed(1)+' kg'; }
+          },
+          grace:'3%'
+        }
+      },
+      interaction:{ mode:'index', intersect:false }
+    }
+  };
+}
+
+function _setFsFilterButtons(activeWeeks) {
+  const opts = [
+    { label:'4 sem', weeks:4 },
+    { label:'8 sem', weeks:8 },
+    { label:'3 meses', weeks:13 },
+    { label:'6 meses', weeks:26 },
+    { label:'Tudo', weeks:null }
+  ];
+  document.getElementById('chart-fs-filter').innerHTML = opts.map(o =>
+    `<button onclick="_setFsRange(${o.weeks===null?'null':o.weeks})" style="
+      padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:var(--f);
+      border:1.5px solid ${(o.weeks===activeWeeks)?'var(--ac)':'var(--border)'};
+      background:${(o.weeks===activeWeeks)?'var(--ac)':'none'};
+      color:${(o.weeks===activeWeeks)?'#fff':'var(--fg-m)'}">
+      ${o.label}
+    </button>`
+  ).join('');
+}
+
+function _setFsRange(weeks) {
+  _fsRange = weeks;
+  _renderFsChart();
+}
+
+function _renderFsChart() {
+  const allWeights = [...S.weights].sort((a,b)=>a.date<b.date?-1:1);
+  const allApps    = [...S.applications].sort((a,b)=>a.date<b.date?-1:1);
+  let weights = allWeights;
+  let apps    = allApps;
+
+  if (_fsRange !== null) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - _fsRange * 7);
+    const cutStr = cutoff.toISOString().slice(0,10);
+    weights = allWeights.filter(w => w.date >= cutStr);
+    apps    = allApps.filter(a => a.date >= cutStr);
+  }
+
+  _setFsFilterButtons(_fsRange);
+
+  const canvas = document.getElementById('wChartFs');
+  const c = _chartColors();
+  const maxTicks = window.innerWidth < 500 ? 5 : 10;
+
+  if (wChartFs) { wChartFs.destroy(); wChartFs = null; }
+
+  if (weights.length < 2) {
+    canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+    document.getElementById('chart-fs-info').textContent = 'Sem dados suficientes para o período selecionado.';
+    return;
+  }
+
+  const startW = weights[0].kg;
+  const endW   = weights[weights.length-1].kg;
+  const lost   = (startW - endW).toFixed(1);
+  document.getElementById('chart-fs-info').textContent =
+    `${weights.length} pesagens · variação: ${lost > 0 ? '-' : '+'}${Math.abs(lost)} kg no período`;
+
+  wChartFs = new Chart(canvas, _buildChartConfig(weights, apps, c, maxTicks));
+}
+
+function openChartFullscreen() {
+  _fsRange = null;
+  const mo = document.getElementById('mo-chart-fs');
+  mo.hidden = false;
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(() => _renderFsChart());
+}
+
+function closeChartFullscreen() {
+  if (wChartFs) { wChartFs.destroy(); wChartFs = null; }
+  document.getElementById('mo-chart-fs').hidden = true;
+  document.body.style.overflow = '';
+}
+
 function renderChart(){
-  renderProg(); // renderProg already calls renderProgTable
+  renderProg();
   const weights = [...S.weights].sort((a,b)=>a.date<b.date?-1:1);
   const apps    = [...S.applications].sort((a,b)=>a.date<b.date?-1:1);
   const canvas  = document.getElementById('wChart');
   const empty   = document.getElementById('wChartEmpty');
-
   if(weights.length < 2){
     canvas.hidden = true; empty.style.display = 'flex';
     if(wChart){ wChart.destroy(); wChart = null; }
     return;
   }
   canvas.hidden = false; empty.style.display = 'none';
-
-  // Unified date axis: merge weight dates + application dates, sorted
-  const allDates = [...new Set([
-    ...weights.map(w=>w.date),
-    ...apps.map(a=>a.date)
-  ])].sort();
-
-  // Quick-lookup maps
-  const weightMap = {};
-  weights.forEach(w => { weightMap[w.date] = +w.kg; });
-
-  const appMap = {};
-  apps.forEach(a => {
-    if(!appMap[a.date]) appMap[a.date] = [];
-    appMap[a.date].push(+a.doseMg);
-  });
-
-  // Weight range — used to position application markers below the line
-  const kgVals = weights.map(w=>+w.kg);
-  const minKg  = Math.min(...kgVals);
-  const maxKg  = Math.max(...kgVals);
-  const range  = maxKg - minKg || 5;
-  const appBand = minKg - range * 0.28; // band 28% below min weight
-
-  // Build label array and per-dataset data
-  const labels     = allDates.map(d => fmtD(d));
-  const weightData = allDates.map(d => weightMap[d] !== undefined ? weightMap[d] : null);
-
-  // Scatter points for applications — y fixed at appBand
-  const appPoints = [];
-  allDates.forEach((d, i) => {
-    if(appMap[d]) appPoints.push({ x: labels[i], y: appBand, doses: appMap[d] });
-  });
-
-  const isDark = document.documentElement.getAttribute('data-theme')==='dark' ||
-    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-  const gridColor   = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
-  const tickColor   = isDark ? '#8899AA' : '#6B7A90';
-  const weightColor = isDark ? '#6DBF82' : '#3D7A56';
-  const fillColor   = isDark ? 'rgba(109,191,130,.1)' : 'rgba(61,122,86,.09)';
-  const appColor    = isDark ? '#E08040' : '#C96A2B';
-  const bgCard      = isDark ? '#201D18' : '#fff';
-  const fgCard      = isDark ? '#EDE8DF' : '#1A180E';
-  const fgM         = isDark ? '#A0B090' : '#5A6A5A';
-  const bdCard      = isDark ? '#2C2820' : '#E4DDD2';
-
   if(wChart){ wChart.destroy(); }
-  wChart = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Peso (kg)',
-          type: 'line',
-          data: weightData,
-          borderColor: weightColor,
-          backgroundColor: fillColor,
-          fill: true,
-          tension: 0.35,
-          borderWidth: 2.5,
-          pointBackgroundColor: weightColor,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          pointBorderColor: isDark ? '#161410' : '#fff',
-          pointBorderWidth: 2,
-          spanGaps: true,
-          order: 2,
-          yAxisID: 'y'
-        },
-        {
-          label: 'Aplicação',
-          type: 'scatter',
-          data: appPoints,
-          backgroundColor: appColor,
-          borderColor: isDark ? '#161410' : '#fff',
-          borderWidth: 2,
-          pointStyle: 'triangle',
-          pointRadius: 9,
-          pointHoverRadius: 11,
-          order: 1,
-          yAxisID: 'y'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          align: 'start',
-          labels: {
-            color: tickColor,
-            font: { size: 13 },
-            usePointStyle: true,
-            pointStyleWidth: 14,
-            padding: 18,
-            generateLabels() {
-              return [
-                { text: 'Peso', fillStyle: weightColor, strokeStyle: weightColor,
-                  lineWidth: 2.5, pointStyle: 'line', fontColor: tickColor },
-                { text: 'Aplicação', fillStyle: appColor, strokeStyle: appColor,
-                  lineWidth: 0, pointStyle: 'triangle', fontColor: tickColor }
-              ];
-            }
-          }
-        },
-        tooltip: {
-          backgroundColor: bgCard,
-          titleColor: fgCard,
-          bodyColor: fgM,
-          borderColor: bdCard,
-          borderWidth: 1,
-          padding: 12,
-          mode: 'index',
-          intersect: false,
-          callbacks: {
-            title(items) {
-              return items[0]?.label || '';
-            },
-            label(ctx) {
-              if(ctx.datasetIndex === 0) {
-                return ctx.parsed.y != null ? `⚖️  ${ctx.parsed.y.toFixed(1)} kg` : null;
-              }
-              if(ctx.datasetIndex === 1) {
-                return `💉  ${ctx.raw.doses.map(d=>d+' mg').join(' + ')}`;
-              }
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: { color: gridColor },
-          ticks: { color: tickColor, font: { size: 12 }, maxTicksLimit: 7, maxRotation: 30 }
-        },
-        y: {
-          grid: { color: gridColor },
-          min: appBand - range * 0.04,
-          ticks: {
-            color: tickColor,
-            font: { size: 12 },
-            callback(v) {
-              // Hide ticks in the application band area
-              if(v < minKg - range * 0.05) return '';
-              return v.toFixed(1) + ' kg';
-            }
-          },
-          grace: '3%'
-        }
-      },
-      interaction: { mode: 'index', intersect: false }
-    }
-  });
+  wChart = new Chart(canvas, _buildChartConfig(weights, apps, _chartColors(), 7));
 }
 
 /* ===== RENDER DIETA ===== */
