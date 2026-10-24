@@ -3475,10 +3475,10 @@ function renderPerfilTab() {
   if (!sh) return;
 
   const weights = (S.weights || []).slice().sort((a,b)=>a.date.localeCompare(b.date));
-  // Use first recorded weight as baseline; fallback to profile's initial weight
-  const baseW = weights.length ? parseFloat(weights[0].kg) : (p.weightKg || null);
-  const curW  = weights.length ? parseFloat(weights[weights.length-1].kg) : (p.weightKg || null);
-  const lost  = (baseW && curW && baseW !== curW) ? (baseW - curW) : null;
+  // baseW = "Peso inicial" declared in profile; curW = latest recorded weight
+  const baseW = p.weightKg ? parseFloat(p.weightKg) : null;
+  const curW  = weights.length ? parseFloat(weights[weights.length-1].kg) : baseW;
+  const lost  = (baseW && curW) ? (baseW - curW) : null;
   const apps  = S.applications || [];
   const weeks = p.startDate ? Math.floor((new Date() - new Date(p.startDate)) / (7 * 86400000)) : 0;
 
