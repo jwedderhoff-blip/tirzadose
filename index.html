@@ -1215,12 +1215,13 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 
 <!-- MODAL: DETALHE PESO × APLICAÇÃO -->
 <div class="overlay" id="mo-prog-detail" hidden>
-  <div class="sheet" style="max-height:85vh;overflow-y:auto">
+  <div class="sheet" style="max-height:90vh;overflow-y:auto">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="mo-prog-detail-title">Detalhes</div>
     <div id="mo-prog-detail-body" style="padding-bottom:8px"></div>
     <div class="sheet-actions">
-      <button class="btn btn-p" style="flex:1" onclick="closeModal('mo-prog-detail')">Fechar</button>
+      <button class="btn btn-g" onclick="closeModal('mo-prog-detail')">Fechar</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveProgDetail()">Salvar alterações</button>
     </div>
   </div>
 </div>
@@ -2270,99 +2271,156 @@ function renderProgTable() {
     </div>`;
 }
 
+function pdSelectSite(btn) {
+  const grid = document.getElementById(btn.dataset.grid);
+  grid.querySelectorAll('.pd-site-btn').forEach(b => {
+    const sel = b === btn;
+    b.dataset.selected = sel ? '1' : '0';
+    b.style.border = sel ? '1.5px solid var(--ac)' : '1.5px solid var(--border)';
+    b.style.background = sel ? 'rgba(45,90,61,.15)' : 'var(--bg-card)';
+    b.style.color = sel ? 'var(--ac)' : 'var(--fg-m)';
+    b.style.fontWeight = sel ? '700' : '400';
+  });
+}
+
 function openProgDetail(date) {
-  const w  = S.weights.find(x => x.date === date);
-  const aa = S.applications.filter(a => a.date === date).sort((a,b)=>a.doseMg-b.doseMg);
-  const symp = S.symptoms.filter(s => s.date === date);
+  const w      = S.weights.find(x => x.date === date);
+  const aa     = S.applications.filter(a => a.date === date).sort((a,b)=>a.doseMg-b.doseMg);
+  const symp   = S.symptoms.filter(s => s.date === date);
   const dietDay = S.dietLogs.filter(d => d.date === date);
   const weekday = DAYS_PT[parseD(date).getDay()];
-
-  // Weight delta
-  const prevW = S.weights.filter(x=>x.date<date).sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const prevW  = S.weights.filter(x=>x.date<date).sort((a,b)=>b.date.localeCompare(a.date))[0];
   const delta  = w && prevW ? (w.kg - prevW.kg) : null;
   const bmi    = w && S.profile.heightCm > 0 ? (w.kg / Math.pow(S.profile.heightCm/100,2)).toFixed(1) : null;
-
-  // Treatment week
   const weekNum = S.profile.startDate ? Math.ceil(diffDays(S.profile.startDate, date)/7) + 1 : null;
 
+  const sep = `<div style="height:1px;background:var(--border);margin:16px 0"></div>`;
   let html = `<div style="padding:0 16px">`;
 
-  // Header badge
+  // Header
   html += `<div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
     ${weekNum ? `<span style="background:var(--ac);color:#fff;border-radius:10px;padding:4px 12px;font-size:13px;font-weight:700">Semana ${weekNum}</span>` : ''}
     <span style="color:var(--fg-m);font-size:13px">${weekday}, ${fmtD(date)}</span>
   </div>`;
 
-  // Peso
-  if (w) {
-    html += `<div style="margin-bottom:12px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)">⚖ Pesagem</div>
-        <button onclick="closeModal('mo-prog-detail');editWeight('${w.id}')" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:var(--f)">Editar</button>
-      </div>
-      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
-        <span style="font-size:28px;font-weight:700;color:var(--fg);font-family:var(--fd)">${w.kg.toFixed(1)} kg</span>
-        ${delta !== null ? `<span style="font-size:14px;font-weight:600;color:${delta<=0?'var(--ok)':'var(--warn)'}">${delta<=0?'':'+'}${delta.toFixed(1)} kg</span>` : ''}
-        ${bmi ? `<span style="font-size:13px;color:var(--fg-m)">IMC ${bmi}</span>` : ''}
-      </div>
-      ${prevW ? `<div style="font-size:12px;color:var(--fg-m);margin-top:3px">Anterior: ${prevW.kg.toFixed(1)} kg em ${fmtD(prevW.date)}</div>` : ''}
-    </div>`;
-  } else {
-    html += `<div style="margin-bottom:12px;padding:10px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:8px;color:var(--fg-m);font-size:13px;display:flex;align-items:center;justify-content:space-between">
-      <span>⚖ Sem pesagem neste dia</span>
-      <button onclick="closeModal('mo-prog-detail');openWeightModal('${date}')" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:var(--f)">+ Peso</button>
+  // ── PESO ──
+  html += `<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:10px">⚖ Pesagem</div>`;
+  html += `<input type="hidden" id="pd-weight-id" value="${w ? w.id : ''}">`;
+  html += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+    <input id="pd-kg" type="number" min="30" max="300" step="0.1" value="${w ? w.kg : ''}" placeholder="Sem registro"
+      style="flex:1;padding:12px;font-size:22px;font-weight:700;font-family:var(--fd);border:1.5px solid var(--border);border-radius:10px;background:var(--bg-card);color:var(--fg);text-align:center;outline:none;-moz-appearance:textfield">
+    <span style="font-size:16px;color:var(--fg-m);font-weight:600;flex-shrink:0">kg</span>
+  </div>`;
+  if (delta !== null) {
+    html += `<div style="font-size:12px;color:var(--fg-m);margin-bottom:4px">
+      vs anterior ${prevW.kg.toFixed(1)} kg
+      <span style="color:${delta<=0?'var(--ok)':'var(--warn)'};font-weight:600">&nbsp;${delta<=0?'':'+'}${delta.toFixed(1)} kg</span>
+      ${bmi ? `· IMC ${bmi}` : ''}
     </div>`;
   }
+  if (!w) html += `<div style="font-size:12px;color:var(--fg-m);margin-bottom:4px">Deixe em branco para não registrar</div>`;
 
-  // Aplicações
+  // ── APLICAÇÕES ──
   if (aa.length) {
-    html += `<div style="margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:6px">💉 Aplicação</div>
-      ${aa.map(a => `
-        <div style="background:var(--bg-2,rgba(45,90,61,.06));border-radius:10px;padding:12px;margin-bottom:6px">
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:22px;font-weight:700;color:var(--ac)">${a.doseMg} mg</span>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:600;color:var(--fg)">Local: ${a.site || '–'}</div>
-              ${a.notes ? `<div style="font-size:12px;color:var(--fg-m);margin-top:2px">${a.notes}</div>` : ''}
-            </div>
-            <button onclick="closeModal('mo-prog-detail');editApp('${a.id}')" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:var(--f);flex-shrink:0">Editar</button>
-          </div>
-        </div>`).join('')}
-    </div>`;
-  } else {
-    html += `<div style="margin-bottom:12px;padding:10px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:8px;color:var(--fg-m);font-size:13px">💉 Sem aplicação neste dia</div>`;
+    aa.forEach((a, i) => {
+      html += sep;
+      html += `<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:10px">💉 Aplicação</div>`;
+      html += `<input type="hidden" class="pd-app-id" value="${a.id}">`;
+      html += `<div class="fg" style="margin-bottom:10px">
+        <label class="fl">Dose</label>
+        <select class="fs pd-app-dose">
+          ${[2.5,5,7.5,10,12.5,15].map(d=>`<option value="${d}"${a.doseMg==d?' selected':''}>${d} mg</option>`).join('')}
+        </select>
+      </div>`;
+      html += `<div class="fg" style="margin-bottom:10px">
+        <label class="fl">Local de aplicação</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px" id="pd-site-${i}">
+          ${SITES.map(s=>`<button type="button" class="pd-site-btn"
+            data-grid="pd-site-${i}" data-site="${s.id}"
+            onclick="pdSelectSite(this)"
+            data-selected="${s.id===a.site?'1':'0'}"
+            style="padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;text-align:center;
+              border:1.5px solid ${s.id===a.site?'var(--ac)':'var(--border)'};
+              background:${s.id===a.site?'rgba(45,90,61,.15)':'var(--bg-card)'};
+              color:${s.id===a.site?'var(--ac)':'var(--fg-m)'};
+              font-weight:${s.id===a.site?'700':'400'}">
+            ${s.icon}<br><span style="font-size:10px">${s.label}</span>
+          </button>`).join('')}
+        </div>
+      </div>`;
+      html += `<div class="fg">
+        <label class="fl">Observações</label>
+        <input class="fi pd-app-notes" type="text" value="${a.notes||''}" placeholder="Opcional">
+      </div>`;
+    });
   }
 
-  // Sintomas
+  // ── SINTOMAS (leitura) ──
   if (symp.length) {
-    html += `<div style="margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:6px">🩺 Sintomas</div>
-      ${symp.map(s=>`<div style="background:rgba(230,126,34,.08);border-radius:10px;padding:10px;margin-bottom:4px">
-        <div style="font-size:13px;font-weight:600;color:var(--fg)">${s.symptoms.join(', ') || 'Registrado'}</div>
-        <div style="font-size:12px;color:var(--fg-m);margin-top:2px">Intensidade ${s.severity}/5${s.notes ? ' · '+s.notes : ''}</div>
-      </div>`).join('')}
-    </div>`;
+    html += sep;
+    html += `<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:8px">🩺 Sintomas</div>`;
+    html += symp.map(s=>`<div style="background:rgba(230,126,34,.08);border-radius:10px;padding:10px;margin-bottom:4px">
+      <div style="font-size:13px;font-weight:600;color:var(--fg)">${s.symptoms.join(', ') || 'Registrado'}</div>
+      <div style="font-size:12px;color:var(--fg-m);margin-top:2px">Intensidade ${s.severity}/5${s.notes?' · '+s.notes:''}</div>
+    </div>`).join('');
   }
 
-  // Dieta
+  // ── DIETA (leitura) ──
   if (dietDay.length) {
+    html += sep;
     const totProt = dietDay.reduce((s,d)=>s+d.proteinG,0);
     const totCal  = dietDay.reduce((s,d)=>s+d.caloriesKcal,0);
-    html += `<div style="margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:6px">🥗 Alimentação</div>
+    html += `<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:8px">🥗 Alimentação</div>
       <div style="background:var(--bg-2,rgba(0,0,0,.04));border-radius:10px;padding:10px">
         <div style="font-size:13px;font-weight:600;color:var(--fg)">Proteína: ${totProt}g · ${totCal} kcal</div>
         ${dietDay.map(d=>`<div style="font-size:12px;color:var(--fg-m);margin-top:3px">${d.description||'Refeição registrada'}</div>`).join('')}
-      </div>
-    </div>`;
+      </div>`;
   }
 
   html += `</div>`;
 
+  const mo = document.getElementById('mo-prog-detail');
+  mo.dataset.date = date;
   document.getElementById('mo-prog-detail-title').textContent = weekday + ', ' + fmtD(date);
   document.getElementById('mo-prog-detail-body').innerHTML = html;
-  document.getElementById('mo-prog-detail').hidden = false;
+  mo.hidden = false;
+}
+
+function saveProgDetail() {
+  const date = document.getElementById('mo-prog-detail').dataset.date;
+  if (!date) return;
+
+  // Save weight
+  const kgVal = parseFloat(document.getElementById('pd-kg').value);
+  const wId   = document.getElementById('pd-weight-id').value;
+  if (kgVal && kgVal >= 30 && kgVal <= 300) {
+    if (wId) {
+      const idx = S.weights.findIndex(w => w.id === wId);
+      if (idx >= 0) S.weights[idx].kg = kgVal;
+    } else {
+      S.weights.push({ id: uid(), date, kg: kgVal });
+    }
+    S.weights.sort((a,b) => b.date.localeCompare(a.date));
+  }
+
+  // Save each application
+  const appIds   = [...document.querySelectorAll('.pd-app-id')].map(el => el.value);
+  const appDoses = [...document.querySelectorAll('.pd-app-dose')].map(el => parseFloat(el.value));
+  const appNotes = [...document.querySelectorAll('.pd-app-notes')].map(el => el.value.trim());
+  appIds.forEach((id, i) => {
+    const gridEl = document.getElementById(`pd-site-${i}`);
+    const selBtn = gridEl ? gridEl.querySelector('[data-selected="1"]') : null;
+    const site   = selBtn ? selBtn.dataset.site : null;
+    const idx    = S.applications.findIndex(a => a.id === id);
+    if (idx >= 0) {
+      S.applications[idx] = { ...S.applications[idx], doseMg: appDoses[i], notes: appNotes[i], ...(site ? { site } : {}) };
+    }
+  });
+
+  save();
+  closeModal('mo-prog-detail');
+  renderAll();
+  showToast('Alterações salvas!');
 }
 
 /* ===== CHART ===== */
