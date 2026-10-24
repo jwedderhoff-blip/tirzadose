@@ -1852,15 +1852,107 @@ function renderInicio(){
       </div>
     </div>
     ${sympHtml}
+    ${_buildBestTimeCard(days, prof)}
+    ${_buildMealNowCard(weeksSince)}
     <div class="card">
       <div class="card-title">Ações rápidas</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-g btn-sm" onclick="openWeightModal();goTab('prog',document.getElementById('nb-prog'))">+ Peso</button>
-
         <button class="btn btn-g btn-sm" onclick="openSympModal()">+ Sintoma</button>
       </div>
     </div>
   `;
+}
+
+function _buildBestTimeCard(daysUntil, prof) {
+  const dayName = DAYS_PT[prof.weekDay] || 'sexta';
+  const tips = [
+    'Aplique sempre no mesmo horário para manter níveis estáveis.',
+    'Prefira manhã ou início da tarde, com estômago levemente preenchido.',
+    'Evite aplicar imediatamente após refeição muito gordurosa.',
+    'Rodízio de locais: abdômen, coxa e braço alternando a cada semana.'
+  ];
+  const tip = tips[Math.floor(Date.now() / 86400000) % tips.length];
+
+  let statusColor = 'var(--ac)';
+  let statusIcon = '📅';
+  let statusLabel = '';
+  if (daysUntil <= 0) {
+    statusColor = 'var(--warn)'; statusIcon = '💉'; statusLabel = 'HOJE — dia de aplicação!';
+  } else if (daysUntil === 1) {
+    statusColor = '#e67e22'; statusIcon = '⏰'; statusLabel = 'Amanhã é dia de aplicação';
+  } else {
+    statusLabel = `Próxima ${dayName}: em ${daysUntil} dia${daysUntil > 1 ? 's' : ''}`;
+  }
+  return `
+    <div class="card">
+      <div class="card-title">${statusIcon} Melhor horário · ${prof.currentDoseMg} mg</div>
+      <div style="font-size:14px;font-weight:600;color:${statusColor};margin-bottom:6px">${statusLabel}</div>
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <span style="font-size:18px">🕗</span>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--fg)">Manhã (7h–10h) ou início da tarde (12h–14h)</div>
+          <div class="t-m" style="margin-top:3px">Com refeição leve · reduz náusea e desconforto</div>
+        </div>
+      </div>
+      <div class="callout info" style="margin-top:10px;padding:8px 10px"><span class="ci" style="font-size:13px">💡</span><span style="font-size:13px">${tip}</span></div>
+    </div>`;
+}
+
+function _buildMealNowCard(weeksSince) {
+  const h = new Date().getHours();
+  let meal, icon, tips;
+  if (h >= 5 && h < 10) {
+    meal = 'Café da manhã'; icon = 'icon-cafe.png';
+    tips = [
+      'Ovos mexidos com pão integral · proteína para começar o dia',
+      'Iogurte grego com granola e frutas · leve e nutritivo',
+      'Tapioca com queijo branco e tomate · baixo carboidrato refinado',
+      weeksSince <= 4 ? 'Primeiras semanas: café leve, sem gordura excessiva para evitar náusea' : 'Vitamina de banana com pasta de amendoim · rica em proteína e fibras'
+    ];
+  } else if (h >= 10 && h < 14) {
+    meal = 'Almoço'; icon = 'icon-almoco.png';
+    tips = [
+      'Frango grelhado com arroz integral e legumes refogados',
+      'Peixe assado com purê de batata-doce e salada verde',
+      'Filé de tilápia com quinoa e brócolis · rico em proteína',
+      'Evite frituras e molhos cremosos · a tirzepatida reduz apetite, mas não tolerância à gordura'
+    ];
+  } else if (h >= 14 && h < 18) {
+    meal = 'Lanche da tarde'; icon = 'icon-lanche.png';
+    tips = [
+      'Castanhas e 1 fruta pequena · gordurinhas boas e fibras',
+      'Iogurte grego natural · proteína sem açúcar adicionado',
+      'Pão integral com pasta de grão-de-bico · saciante e nutritivo',
+      'Lanche pequeno: o medicamento reduz a fome, não pule esta refeição'
+    ];
+  } else {
+    meal = 'Jantar'; icon = 'icon-jantar.png';
+    tips = [
+      'Sopa de legumes com frango desfiado · leve e proteico',
+      'Omelete de claras com espinafre e tomate · baixo carboidrato',
+      'Peixe grelhado com salada de folhas · jantar leve e nutritivo',
+      'Jante levemente: tirzepatida reduz esvaziamento gástrico à noite'
+    ];
+  }
+  const tip = tips[Math.floor(Date.now() / 3600000) % tips.length];
+  const period = h >= 5 && h < 10 ? 'manhã' : h >= 10 && h < 14 ? 'almoço' : h >= 14 && h < 18 ? 'tarde' : 'noite';
+  return `
+    <div class="card">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px">
+        <img src="${icon}" alt="${meal}" style="width:22px;height:22px;object-fit:contain;border-radius:4px">
+        Refeição agora · ${meal}
+      </div>
+      <div style="font-size:14px;color:var(--fg);margin-bottom:6px">Boa ${period}! Sugestão para esta refeição:</div>
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <span style="font-size:18px">🥗</span>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--fg)">${tip}</div>
+          <div class="t-m" style="margin-top:3px">Meta de proteína: ${Math.round(1.2 * (S.profile.weightKg || 70))}g/dia</div>
+        </div>
+      </div>
+      <button class="btn btn-g btn-sm" style="margin-top:10px;width:100%" onclick="goTab('diet',document.getElementById('nb-diet'))">Ver plano alimentar completo →</button>
+    </div>`;
 }
 
 /* ===== RENDER APLICAÇÕES ===== */
@@ -2758,6 +2850,9 @@ function authSignOut(btn) {
 
 /* ===== INIT ===== */
 load();
+// Render immediately from localStorage so the home tab shows instantly (no blank screen)
+// onAuthStateChange will re-render after cloud sync completes
+if (isOnboarded()) { renderAll(); generatePlan(); }
 
 // Garante sync ao fechar/recarregar a página — salva mesmo que o timer de 1.5s não tenha disparado
 window.addEventListener('pagehide', () => { syncToCloudBeacon(); });
