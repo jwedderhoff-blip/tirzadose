@@ -1234,14 +1234,16 @@ async function syncToCloud() {
   _syncing = true;
   _setSyncStatus('↑ Salvando…', '');
   try {
-    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000));
-    await Promise.race([
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 30000));
+    const result = await Promise.race([
       sb.from('user_data').upsert(
         { user_id: sbUser.id, data: { ...S, _deviceId } },
         { onConflict: 'user_id' }
       ),
       timeout
     ]);
+    // Supabase resolve (não rejeita) em erros de API — verificar explicitamente
+    if (result && result.error) throw result.error;
     _setSyncStatus('✓ Sincronizado', 'ok');
   } catch(e) {
     _setSyncStatus('⚠ Falha na sincronização', 'warn');
@@ -1278,18 +1280,25 @@ function syncToCloudBeacon() {
 async function loadFromCloud() {
   if (!sbUser) return;
   try {
-    const { data } = await sb.from('user_data')
+    const { data, error } = await sb.from('user_data')
       .select('data')
       .eq('user_id', sbUser.id)
-      .single();
-    if (data && data.data && Object.keys(data.data).length) {
-      const { _deviceId: _d, ...cloudState } = data.data;
+      .maybeSingle();
+    // Valida que o dado do cloud é um estado TirzaDose real (tem profile e applications)
+    const cloudData = data?.data;
+    const isValidCloudData = cloudData && cloudData.profile !== undefined && cloudData.applications !== undefined;
+    if (isValidCloudData) {
+      const { _deviceId: _d, ...cloudState } = cloudData;
       S = { ...DEFAULT_STATE, ...cloudState };
       try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
     } else {
+      // Nenhum dado válido na nuvem — faz upload dos dados locais
       await syncToCloud();
     }
-  } catch(e) {}
+  } catch(e) {
+    // Em caso de falha de rede, tenta subir dados locais
+    try { await syncToCloud(); } catch(_) {}
+  }
 }
 
 function subscribeToRealtime() {
