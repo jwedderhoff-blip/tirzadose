@@ -2341,38 +2341,23 @@ function openProgDetail(date) {
   }
   if (!w) html += `<div style="font-size:12px;color:var(--fg-m);margin-bottom:4px">Deixe em branco para não registrar</div>`;
 
-  // ── APLICAÇÕES ──
+  // ── APLICAÇÕES (somente leitura) ──
   if (aa.length) {
-    aa.forEach((a, i) => {
+    aa.forEach((a) => {
+      const siteObj = SITES.find(s => s.id === a.site);
       html += sep;
       html += `<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:10px">💉 Aplicação</div>`;
-      html += `<input type="hidden" class="pd-app-id" value="${a.id}">`;
-      html += `<div class="fg" style="margin-bottom:10px">
-        <label class="fl">Dose</label>
-        <select class="fs pd-app-dose">
-          ${[2.5,5,7.5,10,12.5,15].map(d=>`<option value="${d}"${a.doseMg==d?' selected':''}>${d} mg</option>`).join('')}
-        </select>
-      </div>`;
-      html += `<div class="fg" style="margin-bottom:10px">
-        <label class="fl">Local de aplicação</label>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px" id="pd-site-${i}">
-          ${SITES.map(s=>`<button type="button" class="pd-site-btn"
-            data-grid="pd-site-${i}" data-site="${s.id}"
-            onclick="pdSelectSite(this)"
-            data-selected="${s.id===a.site?'1':'0'}"
-            style="padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;text-align:center;
-              border:1.5px solid ${s.id===a.site?'var(--ac)':'var(--border)'};
-              background:${s.id===a.site?'rgba(45,90,61,.15)':'var(--bg-card)'};
-              color:${s.id===a.site?'var(--ac)':'var(--fg-m)'};
-              font-weight:${s.id===a.site?'700':'400'}">
-            ${s.icon}<br><span style="font-size:10px">${s.label}</span>
-          </button>`).join('')}
+      html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <div style="flex:1;min-width:100px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:10px;padding:10px 14px">
+          <div style="font-size:11px;color:var(--fg-m);margin-bottom:2px">Dose</div>
+          <div style="font-size:16px;font-weight:700;color:var(--fg)">${a.doseMg} mg</div>
         </div>
+        ${siteObj ? `<div style="flex:1;min-width:100px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:10px;padding:10px 14px">
+          <div style="font-size:11px;color:var(--fg-m);margin-bottom:2px">Local</div>
+          <div style="font-size:16px;font-weight:700;color:var(--fg)">${siteObj.icon} ${siteObj.label}</div>
+        </div>` : ''}
       </div>`;
-      html += `<div class="fg">
-        <label class="fl">Observações</label>
-        <input class="fi pd-app-notes" type="text" value="${a.notes||''}" placeholder="Opcional">
-      </div>`;
+      if (a.notes) html += `<div style="font-size:12px;color:var(--fg-m);padding:0 2px">${a.notes}</div>`;
     });
   }
 
@@ -2411,7 +2396,6 @@ function saveProgDetail() {
   const date = document.getElementById('mo-prog-detail').dataset.date;
   if (!date) return;
 
-  // Save weight
   const kgVal = parseFloat(document.getElementById('pd-kg').value);
   const wId   = document.getElementById('pd-weight-id').value;
   if (kgVal && kgVal >= 30 && kgVal <= 300) {
@@ -2424,24 +2408,10 @@ function saveProgDetail() {
     S.weights.sort((a,b) => b.date.localeCompare(a.date));
   }
 
-  // Save each application
-  const appIds   = [...document.querySelectorAll('.pd-app-id')].map(el => el.value);
-  const appDoses = [...document.querySelectorAll('.pd-app-dose')].map(el => parseFloat(el.value));
-  const appNotes = [...document.querySelectorAll('.pd-app-notes')].map(el => el.value.trim());
-  appIds.forEach((id, i) => {
-    const gridEl = document.getElementById(`pd-site-${i}`);
-    const selBtn = gridEl ? gridEl.querySelector('[data-selected="1"]') : null;
-    const site   = selBtn ? selBtn.dataset.site : null;
-    const idx    = S.applications.findIndex(a => a.id === id);
-    if (idx >= 0) {
-      S.applications[idx] = { ...S.applications[idx], doseMg: appDoses[i], notes: appNotes[i], ...(site ? { site } : {}) };
-    }
-  });
-
   save();
   closeModal('mo-prog-detail');
   renderAll();
-  showToast('Alterações salvas!');
+  showToast('Peso salvo!');
 }
 
 /* ===== CHART ===== */
