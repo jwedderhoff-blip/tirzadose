@@ -2736,66 +2736,48 @@ load();
 window.addEventListener('pagehide', () => { syncToCloudBeacon(); });
 window.addEventListener('beforeunload', () => { syncToCloudBeacon(); });
 
-// Show auth gate for new users (not onboarded, no skip flag, no existing session)
-// Existing users with local data go straight to the app
 const _skipAuth = (() => { try { return localStorage.getItem('tirza_skip_auth'); } catch{ return null; } })();
-if (!isOnboarded() && !_skipAuth) {
-  // Temporarily show gate; will hide if session is found below
-  showAuthGate();
-} else {
+
+async function _onSessionEstablished(session) {
+  sbUser = session.user;
+  _renderAuthCard();
+  hideAuthGate();
+  _setSyncStatus('Carregando dados da nuvem…', '');
+  await loadFromCloud();
+  const _gName = sbUser?.user_metadata?.full_name || sbUser?.user_metadata?.name;
+  if (_gName) {
+    S.profile.name = _gName;
+    const nameInput = document.getElementById('obName');
+    if (nameInput) nameInput.value = _gName;
+  }
   initOnboarding();
-  if (isOnboarded()) { renderAll(); generatePlan(); }
+  if (isOnboarded()) { save(); renderAll(); generatePlan(); }
+  subscribeToRealtime();
+  _setSyncStatus('✓ Sincronizado', 'ok');
 }
 
-// Supabase auth listener — fires on login/logout and on page load if session exists
+// Single source of truth for auth state — driven entirely by onAuthStateChange
 sb.auth.onAuthStateChange(async (event, session) => {
   sbUser = session?.user || null;
   _renderAuthCard();
-  if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-    if (!session) return; // INITIAL_SESSION with no session = unauthenticated load
-    hideAuthGate();
-    _setSyncStatus('Carregando dados da nuvem…', '');
-    await loadFromCloud();
-    // Always sync name from Google — user can override in profile editor
-    const _gName = sbUser?.user_metadata?.full_name || sbUser?.user_metadata?.name;
-    if (_gName) {
-      S.profile.name = _gName;
-      const nameInput = document.getElementById('obName');
-      if (nameInput) nameInput.value = _gName;
+  if (event === 'INITIAL_SESSION') {
+    if (session) {
+      await _onSessionEstablished(session);
+    } else {
+      // No session on load: show gate or run app offline
+      if (!isOnboarded() && !_skipAuth) {
+        showAuthGate();
+      } else {
+        initOnboarding();
+        if (isOnboarded()) { renderAll(); generatePlan(); }
+      }
     }
-    initOnboarding();
-    if (isOnboarded()) {
-      save(); renderAll(); generatePlan();
-    }
-    subscribeToRealtime();
-    _setSyncStatus('✓ Sincronizado', 'ok');
+  } else if (event === 'SIGNED_IN') {
+    await _onSessionEstablished(session);
   } else if (event === 'TOKEN_REFRESHED') {
     if (!_realtimeChannel) subscribeToRealtime();
   } else if (event === 'SIGNED_OUT') {
     if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
-  }
-});
-
-// Restore existing session on load (async, non-blocking)
-sb.auth.getSession().then(async ({ data: { session } }) => {
-  if (session) {
-    sbUser = session.user;
-    hideAuthGate();
-    _renderAuthCard();
-    _setSyncStatus('Carregando dados da nuvem…', '');
-    await loadFromCloud();
-    const _gName2 = sbUser?.user_metadata?.full_name || sbUser?.user_metadata?.name;
-    if (_gName2) {
-      S.profile.name = _gName2;
-      const nameInput2 = document.getElementById('obName');
-      if (nameInput2) nameInput2.value = _gName2;
-    }
-    initOnboarding();
-    if (isOnboarded()) { save(); renderAll(); generatePlan(); }
-    subscribeToRealtime();
-    _setSyncStatus('✓ Sincronizado', 'ok');
-  } else if (!isOnboarded() && !_skipAuth) {
-    showAuthGate();
   }
 });
 
