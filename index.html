@@ -479,22 +479,28 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
       <div class="ob-dot on" id="dot0"></div>
       <div class="ob-dot" id="dot1"></div>
       <div class="ob-dot" id="dot2"></div>
+      <div class="ob-dot" id="dot3"></div>
     </div>
-    <!-- Step 0 -->
+    <!-- Step 0: LOGIN -->
     <div class="ob-step active" id="obStep0">
-      <div class="ob-step-title">Bem-vindo(a) ao TirzaDose</div>
-      <p class="ob-step-sub">Vamos configurar seu perfil em 2 passos rápidos para personalizar o acompanhamento.</p>
+      <div class="ob-step-title">Entre na sua conta</div>
+      <p class="ob-step-sub">Sincronize seus dados em todos os dispositivos. Digite seu e-mail para receber um link de acesso.</p>
+      <div class="fg"><input class="fi" id="ob-email" type="email" placeholder="seu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')obSendMagicLink()"></div>
+      <div id="ob-gate-error" style="color:#ffb3b3;font-size:13px;min-height:18px;margin-bottom:2px"></div>
+      <button id="ob-magic-btn" class="btn btn-p btn-w" onclick="obSendMagicLink()">✉️ Enviar link de acesso</button>
+      <div style="text-align:center;margin-top:18px">
+        <button onclick="obLoginSkip()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:13px;cursor:pointer;font-family:var(--f);padding:6px;text-decoration:underline">Usar sem conta (dados só neste dispositivo)</button>
+      </div>
+    </div>
+    <!-- Step 1: PERFIL -->
+    <div class="ob-step" id="obStep1">
+      <div class="ob-step-title">Seu perfil</div>
+      <p class="ob-step-sub">Configure seu acompanhamento para personalizar os dados.</p>
       <div class="fg"><label class="fl">Seu nome</label><input class="fi" id="obName" placeholder="Como posso te chamar?"></div>
       <div class="frow">
         <div class="fg"><label class="fl">Peso atual (kg)</label><input class="fi" id="obWeight" type="number" min="30" max="300" step="0.1" placeholder="Ex: 85.5"></div>
         <div class="fg"><label class="fl">Altura (cm)</label><input class="fi" id="obHeight" type="number" min="100" max="250" placeholder="Ex: 168"></div>
       </div>
-      <button class="btn btn-p btn-w" onclick="obNext()">Próximo</button>
-    </div>
-    <!-- Step 1 -->
-    <div class="ob-step" id="obStep1">
-      <div class="ob-step-title">Configurar acompanhamento</div>
-      <p class="ob-step-sub">Informe quando iniciou e qual sua dose atual.</p>
       <div class="fg"><label class="fl">Data de início do acompanhamento</label><input class="fi" id="obStart" type="date"></div>
       <div class="fg">
         <label class="fl">Dose atual (mg)</label>
@@ -520,15 +526,32 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         </select>
       </div>
       <div class="callout warn"><span class="ci">⚠</span><span>Este app é auxiliar. Sempre siga as orientações do seu médico.</span></div>
-      <div class="row">
-        <button class="btn btn-g" onclick="obPrev()">Voltar</button>
-        <button class="btn btn-p" style="flex:1" onclick="obFinish()">Começar</button>
+      <button class="btn btn-p btn-w" onclick="obNextProfile()">Próximo →</button>
+    </div>
+    <!-- Step 2: DIETA -->
+    <div class="ob-step" id="obStep2">
+      <div class="ob-step-title">Preferências de dieta</div>
+      <p class="ob-step-sub">Marque os ingredientes que prefere <strong>evitar</strong> — o cardápio semanal será adaptado para você.</p>
+      <div id="ob-diet-chips" style="max-height:38vh;overflow-y:auto;margin-bottom:8px"></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn btn-g" onclick="obGo(1)">Voltar</button>
+        <button class="btn btn-p" style="flex:1" onclick="obNextDiet()">Próximo →</button>
       </div>
     </div>
-    <!-- Step 2 -->
-    <div class="ob-step" id="obStep2">
-      <div class="ob-step-title">Tudo pronto!</div>
-      <p class="ob-step-sub">Seu perfil foi configurado. Vamos começar o acompanhamento.</p>
+    <!-- Step 3: NOTIFICAÇÕES -->
+    <div class="ob-step" id="obStep3">
+      <div class="ob-step-title">Ativar lembretes</div>
+      <p class="ob-step-sub">Receba lembretes no dia da aplicação e dicas de hidratação durante o tratamento.</p>
+      <div style="text-align:center;margin:16px 0">
+        <div style="font-size:52px;margin-bottom:8px">🔔</div>
+        <div style="color:rgba(255,255,255,.82);font-size:14px;line-height:1.7">Lembrete no dia da aplicação semanal<br>Hidratação a cada 2h durante o dia</div>
+      </div>
+      <div id="ob-notif-feedback" style="min-height:20px;margin-bottom:8px"></div>
+      <button id="ob-notif-btn" class="btn btn-p btn-w" onclick="obEnableNotif()">🔔 Ativar notificações</button>
+      <div class="row" style="margin-top:10px">
+        <button class="btn btn-g" onclick="obGo(2)">Voltar</button>
+        <button class="btn btn-g" style="flex:1" onclick="obFinish()">Agora não → Começar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1341,45 +1364,112 @@ function nextWeekdayFrom(fromStr, weekDay){
 
 /* ===== ONBOARDING ===== */
 let obCurrentStep = 0;
+let _obTempAvoided = [];
 function isOnboarded(){ return !!(S.profile && S.profile.startDate); }
 function initOnboarding(){
   const ob = document.getElementById('ob');
   if(isOnboarded()){ if(ob) ob.hidden = true; return; }
   if(ob) ob.hidden = false;
-  obGo(0);
-  const d = new Date(); document.getElementById('obStart').value = today();
+  const startStep = sbUser ? 1 : 0;
+  obGo(startStep);
+  const d = new Date();
+  document.getElementById('obStart').value = today();
   const wd = (d.getDay()+1)%7;
   document.getElementById('obDay').value = wd;
 }
-function obNext(){
+async function obSendMagicLink(){
+  const email = document.getElementById('ob-email').value.trim();
+  const errEl = document.getElementById('ob-gate-error');
+  if(!email){ errEl.textContent='Digite seu e-mail.'; return; }
+  errEl.textContent='';
+  const btn = document.getElementById('ob-magic-btn');
+  if(btn){ btn.textContent='Enviando…'; btn.disabled=true; }
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options:{ emailRedirectTo: window.location.origin + window.location.pathname }
+  });
+  if(btn) btn.disabled=false;
+  if(error){
+    errEl.textContent = error.message;
+    if(btn) btn.textContent='✉️ Enviar link de acesso';
+  } else {
+    errEl.textContent='';
+    if(btn){ btn.textContent='✓ Link enviado! Verifique seu e-mail.'; btn.style.background='#2d7a4f'; }
+  }
+}
+function obLoginSkip(){
+  try{ localStorage.setItem('tirza_skip_auth','1'); }catch{}
+  obGo(1);
+}
+function obNextProfile(){
   const name = document.getElementById('obName').value.trim();
   const w = parseFloat(document.getElementById('obWeight').value);
   const h = parseFloat(document.getElementById('obHeight').value);
+  const start = document.getElementById('obStart').value;
   if(!name){ alert2('Por favor, informe seu nome.'); return; }
   if(!w||w<30||w>300){ alert2('Informe um peso válido (30–300 kg).'); return; }
   if(!h||h<100||h>250){ alert2('Informe uma altura válida (100–250 cm).'); return; }
-  S.profile.name = name; S.profile.weightKg = w; S.profile.heightCm = h;
-  if(!S.weights.length) S.weights.push({id:uid(), date:today(), kg:w});
-  obGo(1);
-}
-function obPrev(){ obGo(0); }
-function obFinish(){
-  const start = document.getElementById('obStart').value;
   if(!start){ alert2('Informe a data de início.'); return; }
   const dose = parseFloat(document.getElementById('obDose').value);
   const day = parseInt(document.getElementById('obDay').value);
-  S.profile.startDate = start;
-  S.profile.currentDoseMg = dose;
-  S.profile.weekDay = day;
+  S.profile.name = name; S.profile.weightKg = w; S.profile.heightCm = h;
+  S.profile.startDate = start; S.profile.currentDoseMg = dose; S.profile.weekDay = day;
+  if(!S.weights.length) S.weights.push({id:uid(), date:today(), kg:w});
+  obGo(2);
+}
+function obNextDiet(){
+  saveAvoidedIngr(_obTempAvoided);
+  _currentPlan = null;
+  obGo(3);
+}
+async function obEnableNotif(){
+  const btn = document.getElementById('ob-notif-btn');
+  const fb = document.getElementById('ob-notif-feedback');
+  if(!('Notification' in window)){
+    if(fb) fb.innerHTML='<div class="callout warn"><span class="ci">⚠</span><span>Navegador não suporta notificações.</span></div>';
+    return;
+  }
+  if(btn){ btn.textContent='Aguardando…'; btn.disabled=true; }
+  const perm = await Notification.requestPermission();
+  if(btn) btn.disabled=false;
+  if(perm==='granted'){
+    if(fb) fb.innerHTML='<div class="callout" style="background:var(--ok-lt);border-color:var(--ok)"><span class="ci" style="color:var(--ok)">✓</span><span style="color:var(--ok)">Notificações ativadas!</span></div>';
+    if(btn) btn.hidden=true;
+    updateNotifUI();
+  } else {
+    if(fb) fb.innerHTML='<div class="callout warn"><span class="ci">⚠</span><span>Notificações bloqueadas. Ative depois em Perfil → Notificações.</span></div>';
+    if(btn){ btn.textContent='🔔 Ativar notificações'; }
+  }
+}
+function obFinish(){
   save();
   document.getElementById('ob').hidden = true;
-  renderAll();
+  renderAll(); generatePlan();
 }
+function obPrev(){ obGo(Math.max(0, obCurrentStep-1)); }
 function obGo(step){
-  document.getElementById('obStep'+obCurrentStep).classList.remove('active');
+  const prev = document.getElementById('obStep'+obCurrentStep);
+  if(prev) prev.classList.remove('active');
   obCurrentStep = step;
-  document.getElementById('obStep'+obCurrentStep).classList.add('active');
-  [0,1,2].forEach(i => document.getElementById('dot'+i).classList.toggle('on', i===step));
+  const next = document.getElementById('obStep'+step);
+  if(next) next.classList.add('active');
+  [0,1,2,3].forEach(i => { const d=document.getElementById('dot'+i); if(d) d.classList.toggle('on', i===step); });
+  if(step===2) _obRenderDietChips();
+  if(step===3){ const fb=document.getElementById('ob-notif-feedback'); if(fb) fb.innerHTML=''; const btn=document.getElementById('ob-notif-btn'); if(btn){btn.hidden=false;btn.style.background='';btn.disabled=false;btn.textContent='🔔 Ativar notificações';} }
+}
+function _obRenderDietChips(){
+  _obTempAvoided = [...getAvoidedIngr()];
+  const el = document.getElementById('ob-diet-chips');
+  if(!el||typeof INGR_CATS==='undefined') return;
+  el.innerHTML = Object.entries(INGR_CATS).map(([cat,ingrs])=>`
+    <p class="pref-section-title">${cat}</p>
+    <div class="chip-group" style="margin-bottom:4px">
+      ${ingrs.map(i=>`<button class="chip pref-chip${_obTempAvoided.includes(i.id)?' avoided':''}" onclick="_obTogglePref('${i.id}',this)">${i.label}</button>`).join('')}
+    </div>`).join('');
+}
+function _obTogglePref(id, el){
+  if(_obTempAvoided.includes(id)){ _obTempAvoided=_obTempAvoided.filter(x=>x!==id); el.classList.remove('avoided'); }
+  else{ _obTempAvoided.push(id); el.classList.add('avoided'); }
 }
 
 /* ===== ALERT REPLACEMENT ===== */
@@ -2719,7 +2809,13 @@ async function _onSessionEstablished(session) {
     const nameInput = document.getElementById('obName');
     if (nameInput) nameInput.value = _gName;
   }
-  initOnboarding();
+  // If user was on the login step of onboarding, advance to profile step
+  const _ob = document.getElementById('ob');
+  if (_ob && !_ob.hidden && obCurrentStep === 0) {
+    obGo(1);
+  } else {
+    initOnboarding();
+  }
   if (isOnboarded()) { save(); renderAll(); generatePlan(); }
   subscribeToRealtime();
   _setSyncStatus('✓ Sincronizado', 'ok');
@@ -2735,7 +2831,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     } else {
       // No session on load: show gate or run app offline
       if (!isOnboarded() && !_skipAuth) {
-        showAuthGate();
+        initOnboarding(); // shows ob at step 0 (login) for new users
       } else {
         initOnboarding();
         if (isOnboarded()) { renderAll(); generatePlan(); }
