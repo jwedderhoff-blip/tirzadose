@@ -780,8 +780,6 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
             <div class="chart-empty" id="wChartEmpty">Registre seu peso para visualizar o gráfico</div>
           </div>
         </div>
-        <div class="sec-title">Histórico</div>
-        <div class="card" id="weight-history"></div>
         <div class="sec-title" style="margin-top:16px">
           Peso × Aplicações
           <span class="t-m" style="font-size:12px;font-weight:400">Toque para detalhes</span>
@@ -1603,8 +1601,10 @@ function openApplyModal(){
   renderSiteGrid(null);
   document.getElementById('mo-apply').hidden = false;
 }
-function openWeightModal(){
-  document.getElementById('wDate').value = today();
+function openWeightModal(date){
+  editingWeightId = null;
+  document.getElementById('mo-weight-title') && (document.getElementById('mo-weight-title').textContent = 'Registrar Peso');
+  document.getElementById('wDate').value = date || today();
   document.getElementById('wKg').value = '';
   document.getElementById('mo-weight').hidden = false;
 }
@@ -2187,19 +2187,6 @@ function renderProg(){
     <div class="stat"><div class="stat-v" style="${kgLost>0?'color:var(--ok)':''}">${kgLost !== 0 ? (kgLost>0?'-':'+') + Math.abs(kgLost).toFixed(1) : '–'}</div><div class="stat-l">Variação (kg)</div></div>
     <div class="stat"><div class="stat-v">${bmi}</div><div class="stat-l">IMC</div></div>`;
 
-  const wh = document.getElementById('weight-history');
-  if(!weights.length){
-    wh.innerHTML = '<div class="empty"><div class="empty-t">Sem registros</div><div class="empty-s">Registre seu peso para acompanhar a evolução.</div><button class="btn btn-p btn-sm" onclick="openWeightModal()">+ Registrar</button></div>';
-    return;
-  }
-  const sorted = [...weights].reverse();
-  wh.innerHTML = sorted.map(w=>`<div class="h-item">
-    <div class="h-dot ok"></div>
-    <div class="h-main"><div class="h-title">${w.kg.toFixed(1)} kg</div><div class="h-meta">${fmtD(w.date)}</div></div>
-    <div class="h-right" style="flex-direction:row;gap:4px;align-items:center">
-      <button onclick="openWeightMenu('${w.id}',this)" style="background:var(--bg-card);border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:6px 10px;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;font-weight:700">⋮</button>
-    </div>
-  </div>`).join('');
   renderProgTable();
 }
 
@@ -2308,9 +2295,11 @@ function openProgDetail(date) {
 
   // Peso
   if (w) {
-    const deltaText = delta !== null ? ` · ${delta<=0?'':'+'}${delta.toFixed(1)} kg vs anterior` : '';
     html += `<div style="margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:6px">⚖ Pesagem</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)">⚖ Pesagem</div>
+        <button onclick="closeModal('mo-prog-detail');editWeight('${w.id}')" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:var(--f)">Editar</button>
+      </div>
       <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
         <span style="font-size:28px;font-weight:700;color:var(--fg);font-family:var(--fd)">${w.kg.toFixed(1)} kg</span>
         ${delta !== null ? `<span style="font-size:14px;font-weight:600;color:${delta<=0?'var(--ok)':'var(--warn)'}">${delta<=0?'':'+'}${delta.toFixed(1)} kg</span>` : ''}
@@ -2319,7 +2308,10 @@ function openProgDetail(date) {
       ${prevW ? `<div style="font-size:12px;color:var(--fg-m);margin-top:3px">Anterior: ${prevW.kg.toFixed(1)} kg em ${fmtD(prevW.date)}</div>` : ''}
     </div>`;
   } else {
-    html += `<div style="margin-bottom:12px;padding:10px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:8px;color:var(--fg-m);font-size:13px">⚖ Sem pesagem registrada neste dia</div>`;
+    html += `<div style="margin-bottom:12px;padding:10px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:8px;color:var(--fg-m);font-size:13px;display:flex;align-items:center;justify-content:space-between">
+      <span>⚖ Sem pesagem neste dia</span>
+      <button onclick="closeModal('mo-prog-detail');openWeightModal('${date}')" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:var(--f)">+ Peso</button>
+    </div>`;
   }
 
   // Aplicações
@@ -2330,10 +2322,11 @@ function openProgDetail(date) {
         <div style="background:var(--bg-2,rgba(45,90,61,.06));border-radius:10px;padding:12px;margin-bottom:6px">
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:22px;font-weight:700;color:var(--ac)">${a.doseMg} mg</span>
-            <div>
+            <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:600;color:var(--fg)">Local: ${a.site || '–'}</div>
               ${a.notes ? `<div style="font-size:12px;color:var(--fg-m);margin-top:2px">${a.notes}</div>` : ''}
             </div>
+            <button onclick="closeModal('mo-prog-detail');editApp('${a.id}')" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:var(--f);flex-shrink:0">Editar</button>
           </div>
         </div>`).join('')}
     </div>`;
