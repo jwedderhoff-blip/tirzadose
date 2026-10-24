@@ -503,6 +503,17 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
       <p class="ob-step-sub">Configure seu acompanhamento para personalizar os dados.</p>
       <div class="fg"><label class="fl">Seu nome</label><input class="fi" id="obName" placeholder="Como posso te chamar?"></div>
       <div class="frow">
+        <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="obBirth" type="date"></div>
+        <div class="fg">
+          <label class="fl">Sexo biológico</label>
+          <select class="fs" id="obSex">
+            <option value="">Selecione</option>
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
         <div class="fg"><label class="fl">Peso atual (kg)</label><input class="fi" id="obWeight" type="number" min="30" max="300" step="0.1" placeholder="Ex: 85.5"></div>
         <div class="fg"><label class="fl">Altura (cm)</label><input class="fi" id="obHeight" type="number" min="100" max="250" placeholder="Ex: 168"></div>
       </div>
@@ -1026,6 +1037,17 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     <div class="sheet-title">Editar meus dados</div>
     <div class="fg"><label class="fl">Seu nome</label><input class="fi" id="prName" placeholder="Como posso te chamar?"></div>
     <div class="frow">
+      <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="prBirth" type="date"></div>
+      <div class="fg">
+        <label class="fl">Sexo biológico</label>
+        <select class="fs" id="prSex">
+          <option value="">Selecione</option>
+          <option value="M">Masculino</option>
+          <option value="F">Feminino</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow">
       <div class="fg"><label class="fl">Peso inicial (kg)</label><input class="fi" id="prWeight" type="number" min="30" max="300" step="0.1" placeholder="Ex: 95.0"></div>
       <div class="fg"><label class="fl">Altura (cm)</label><input class="fi" id="prHeight" type="number" min="100" max="250" placeholder="Ex: 170"></div>
     </div>
@@ -1220,7 +1242,7 @@ const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal'
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
-  profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5 },
+  profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
   applications:[], weights:[], symptoms:[], dietLogs:[]
 };
 
@@ -1434,16 +1456,21 @@ function obLoginSkip(){
 }
 function obNextProfile(){
   const name = document.getElementById('obName').value.trim();
+  const birth = document.getElementById('obBirth').value;
+  const sex = document.getElementById('obSex').value;
   const w = parseFloat(document.getElementById('obWeight').value);
   const h = parseFloat(document.getElementById('obHeight').value);
   const start = document.getElementById('obStart').value;
   if(!name){ alert2('Por favor, informe seu nome.'); return; }
+  if(!birth){ alert2('Informe sua data de nascimento.'); return; }
+  if(!sex){ alert2('Selecione o sexo biológico.'); return; }
   if(!w||w<30||w>300){ alert2('Informe um peso válido (30–300 kg).'); return; }
   if(!h||h<100||h>250){ alert2('Informe uma altura válida (100–250 cm).'); return; }
   if(!start){ alert2('Informe a data de início.'); return; }
   const dose = parseFloat(document.getElementById('obDose').value);
   const day = parseInt(document.getElementById('obDay').value);
-  S.profile.name = name; S.profile.weightKg = w; S.profile.heightCm = h;
+  S.profile.name = name; S.profile.birthDate = birth; S.profile.sex = sex;
+  S.profile.weightKg = w; S.profile.heightCm = h;
   S.profile.startDate = start; S.profile.currentDoseMg = dose; S.profile.weekDay = day;
   if(!S.weights.length) S.weights.push({id:uid(), date:today(), kg:w});
   obGo(2);
@@ -1633,6 +1660,8 @@ function selectSev(n, el){
 function openProfileModal(){
   const p = S.profile;
   document.getElementById('prName').value = p.name||'';
+  document.getElementById('prBirth').value = p.birthDate||'';
+  document.getElementById('prSex').value = p.sex||'';
   document.getElementById('prWeight').value = p.weightKg||'';
   document.getElementById('prHeight').value = p.heightCm||'';
   document.getElementById('prStart').value = p.startDate||'';
@@ -1642,6 +1671,8 @@ function openProfileModal(){
 }
 function saveProfile(){
   const name = document.getElementById('prName').value.trim();
+  const birth = document.getElementById('prBirth').value;
+  const sex = document.getElementById('prSex').value;
   const w = parseFloat(document.getElementById('prWeight').value);
   const h = parseFloat(document.getElementById('prHeight').value);
   const start = document.getElementById('prStart').value;
@@ -1651,21 +1682,42 @@ function saveProfile(){
   if(!w||w<30||w>300){ alert2('Peso inválido (30–300 kg).'); return; }
   if(!h||h<100||h>250){ alert2('Altura inválida (100–250 cm).'); return; }
   if(!start){ alert2('Informe a data de início.'); return; }
-  S.profile = { ...S.profile, name, weightKg:w, heightCm:h, startDate:start, weekDay:day, currentDoseMg:dose };
+  S.profile = { ...S.profile, name, birthDate:birth, sex, weightKg:w, heightCm:h, startDate:start, weekDay:day, currentDoseMg:dose };
   save();
   closeModal('mo-profile');
   renderAll();
   alert2('Perfil atualizado!');
 }
+function calcAge(birthDate) {
+  if (!birthDate) return null;
+  const b = new Date(birthDate);
+  const now = new Date();
+  let age = now.getFullYear() - b.getFullYear();
+  const m = now.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
+  return age >= 0 ? age : null;
+}
+
+function proteinGoalPerKg(age, sex) {
+  // Older adults and women need adjusted protein targets on tirzepatide
+  if (age !== null && age >= 70) return 1.6;
+  if (age !== null && age >= 60) return 1.4;
+  return 1.2;
+}
+
 function renderProfileSummary(){
   const el = document.getElementById('profile-summary');
   if(!el) return;
   const p = S.profile;
   if(!p||!p.startDate){ el.innerHTML='<p class="t-m">Perfil não configurado ainda.</p>'; return; }
   const imc = p.weightKg && p.heightCm ? (p.weightKg/((p.heightCm/100)**2)).toFixed(1) : '–';
+  const age = calcAge(p.birthDate);
+  const sexLabel = p.sex === 'M' ? 'Masculino' : p.sex === 'F' ? 'Feminino' : '–';
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
       <div class="stat"><div class="stat-v">${p.name||'–'}</div><div class="stat-l">Nome</div></div>
+      <div class="stat"><div class="stat-v">${age !== null ? age + ' anos' : '–'}</div><div class="stat-l">Idade</div></div>
+      <div class="stat"><div class="stat-v">${sexLabel}</div><div class="stat-l">Sexo</div></div>
       <div class="stat"><div class="stat-v">${p.heightCm||'–'} cm</div><div class="stat-l">Altura</div></div>
       <div class="stat"><div class="stat-v">${p.weightKg||'–'} kg</div><div class="stat-l">Peso inicial</div></div>
       <div class="stat"><div class="stat-v">${imc}</div><div class="stat-l">IMC inicial</div></div>
@@ -1991,7 +2043,7 @@ function _buildMealNowCard(weeksSince) {
         <span style="font-size:18px">🥗</span>
         <div>
           <div style="font-size:14px;font-weight:600;color:var(--fg)">${tip}</div>
-          <div class="t-m" style="margin-top:3px">Meta de proteína: ${Math.round(1.2 * (S.profile.weightKg || 70))}g/dia</div>
+          <div class="t-m" style="margin-top:3px">Meta de proteína: ${Math.round(proteinGoalPerKg(calcAge(S.profile.birthDate), S.profile.sex) * (S.profile.weightKg || 70))}g/dia</div>
         </div>
       </div>
       <button class="btn btn-g btn-sm" style="margin-top:10px;width:100%" onclick="goTab('diet',document.getElementById('nb-diet'))">Ver plano alimentar completo →</button>
@@ -2461,7 +2513,8 @@ function renderChart(){
 /* ===== RENDER DIETA ===== */
 function renderDiet(){
   const prof = S.profile;
-  const goalGperKg = 1.2;
+  const age = calcAge(prof.birthDate);
+  const goalGperKg = proteinGoalPerKg(age, prof.sex);
   const goalG = Math.round(goalGperKg * (prof.weightKg || 70));
   const td = today();
   const todayLogs = S.dietLogs.filter(d => d.date === td);
@@ -2488,22 +2541,43 @@ function renderDiet(){
 }
 
 function getDietTips(weekNum){
-  if(weekNum <= 4) return [
-    'Primeiras semanas: náusea é comum. Prefira refeições pequenas e frequentes (5–6 ao dia).',
-    'Evite alimentos muito gordurosos ou condimentados para reduzir desconforto gástrico.',
-    'Mantenha hidratação adequada, especialmente se apresentar diarreia ou vômitos.'
-  ];
-  if(weekNum <= 8) return [
-    'Meta proteica: ≥ 1,2 g/kg/dia para preservar massa muscular durante a perda de peso.',
-    'Boas fontes de proteína: frango, peixe, ovos, iogurte grego, leguminosas, tofu.',
-    'Reduza carboidratos refinados e açúcar; prefira integrais com baixo índice glicêmico.'
-  ];
-  return [
-    'Continue priorizando proteína magra em cada refeição para minimizar perda muscular.',
-    'Inclua vegetais em abundância: brócolis, espinafre, abobrinha, cenoura, tomate.',
-    'Atividade física de resistência é altamente recomendada para preservar a massa muscular.',
-    'Se o apetite estiver muito reduzido, consulte seu médico para avaliar ingestão calórica mínima.'
-  ];
+  const age = calcAge(S.profile.birthDate);
+  const sex = S.profile.sex;
+  const goalPerKg = proteinGoalPerKg(age, sex);
+
+  // Age-specific extra tips (appended where relevant)
+  const ageTip = age !== null && age >= 60
+    ? `Com ${age} anos, a recomendação proteica é elevada para ≥ ${goalPerKg} g/kg/dia para prevenir sarcopenia.`
+    : null;
+  const sexTip = sex === 'F' && age !== null && age >= 45
+    ? 'Mulheres pós-menopausa têm maior risco de perda óssea — inclua cálcio (laticínios, couve, brócolis) e vitamina D.'
+    : null;
+
+  let tips;
+  if(weekNum <= 4){
+    tips = [
+      'Primeiras semanas: náusea é comum. Prefira refeições pequenas e frequentes (5–6 ao dia).',
+      'Evite alimentos muito gordurosos ou condimentados para reduzir desconforto gástrico.',
+      'Mantenha hidratação adequada, especialmente se apresentar diarreia ou vômitos.'
+    ];
+  } else if(weekNum <= 8){
+    tips = [
+      `Meta proteica: ≥ ${goalPerKg} g/kg/dia para preservar massa muscular durante a perda de peso.`,
+      'Boas fontes de proteína: frango, peixe, ovos, iogurte grego, leguminosas, tofu.',
+      'Reduza carboidratos refinados e açúcar; prefira integrais com baixo índice glicêmico.'
+    ];
+  } else {
+    tips = [
+      `Continue priorizando proteína magra (meta: ${goalPerKg} g/kg/dia) em cada refeição para minimizar perda muscular.`,
+      'Inclua vegetais em abundância: brócolis, espinafre, abobrinha, cenoura, tomate.',
+      'Atividade física de resistência é altamente recomendada para preservar a massa muscular.',
+      'Se o apetite estiver muito reduzido, consulte seu médico para avaliar ingestão calórica mínima.'
+    ];
+  }
+
+  if (ageTip) tips.unshift(ageTip);
+  if (sexTip) tips.push(sexTip);
+  return tips;
 }
 
 /* ===== DIET PLANNER ===== */
@@ -3304,7 +3378,10 @@ function renderPerfilTab() {
   if (sub) {
     if (p.startDate && p.weekDay) {
       const weeks = Math.floor((new Date() - new Date(p.startDate)) / (7 * 86400000));
-      sub.textContent = `${weeks} semana${weeks !== 1 ? 's' : ''} de acompanhamento · ${p.currentDoseMg || '?'} mg`;
+      const age = calcAge(p.birthDate);
+      const agePart = age !== null ? ` · ${age} anos` : '';
+      const sexPart = p.sex === 'M' ? ' · ♂' : p.sex === 'F' ? ' · ♀' : '';
+      sub.textContent = `${weeks} semana${weeks !== 1 ? 's' : ''} de acompanhamento · ${p.currentDoseMg || '?'} mg${agePart}${sexPart}`;
     } else {
       sub.textContent = 'Configure seu acompanhamento';
     }
