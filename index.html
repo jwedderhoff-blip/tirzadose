@@ -1213,7 +1213,9 @@ const DEFAULT_STATE = {
 
 const SB_URL = 'https://xsbglvtdwzzbqjdhcikd.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzYmdsdnRkd3p6YnFqZGhjaWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3MzE5MTksImV4cCI6MjEwODMwNzkxOX0.wPvpPpj2VQXVnyVzePcXdulm81iPSBZHMGdg8VLWp4A';
-const sb = supabase.createClient(SB_URL, SB_KEY);
+const sb = supabase.createClient(SB_URL, SB_KEY, {
+  auth: { flowType: 'implicit' }
+});
 let sbUser = null;
 let _syncTimer = null;
 let _syncing = false;
