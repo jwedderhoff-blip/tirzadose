@@ -596,7 +596,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 </div>
 
 <!-- PASSWORD RESET MODAL -->
-<div class="overlay" id="mo-pw-reset" hidden>
+<div class="overlay" id="mo-pw-reset" hidden style="z-index:3500">
   <div class="modal">
     <div class="card-title">🔑 Redefinir senha</div>
     <p class="t-m" style="margin-bottom:12px">Digite sua nova senha abaixo.</p>
@@ -2775,7 +2775,14 @@ async function doPwReset() {
   const { error } = await sb.auth.updateUser({ password: pw });
   if(btn){ btn.disabled=false; btn.textContent='Salvar nova senha'; }
   if (error) { if(errEl) errEl.textContent=error.message; }
-  else { closeModal('mo-pw-reset'); showToast('Senha alterada com sucesso!'); }
+  else {
+    closeModal('mo-pw-reset');
+    showToast('Senha alterada com sucesso!');
+    // Initialize app properly after password reset
+    const { data: { session: _s } } = await sb.auth.getSession();
+    if (_s) await _onSessionEstablished(_s);
+    else initOnboarding();
+  }
 }
 
 /* ===== AUTH FUNCTIONS ===== */
@@ -2886,24 +2893,32 @@ async function _onSessionEstablished(session) {
   _setSyncStatus('✓ Sincronizado', 'ok');
 }
 
+// Detect password-recovery redirect at page load (before any auth event fires)
+const _RECOVERY_MODE = (() => {
+  try {
+    const h = new URLSearchParams(window.location.hash.slice(1));
+    const q = new URLSearchParams(window.location.search);
+    return h.get('type') === 'recovery' || q.get('type') === 'recovery';
+  } catch { return false; }
+})();
+
 // Single source of truth for auth state — driven entirely by onAuthStateChange
 sb.auth.onAuthStateChange(async (event, session) => {
   sbUser = session?.user || null;
   _renderAuthCard();
-  // Detect recovery redirect regardless of which event Supabase fires
-  const _isRecoveryRedirect = () => {
-    try { return new URLSearchParams(window.location.hash.slice(1)).get('type') === 'recovery'; } catch { return false; }
-  };
   if (event === 'INITIAL_SESSION') {
     if (session) {
-      if (_isRecoveryRedirect()) {
+      if (_RECOVERY_MODE) {
         document.getElementById('mo-pw-reset').hidden = false;
       } else {
         await _onSessionEstablished(session);
       }
     } else {
       // No session on load: show gate or run app offline
-      if (!isOnboarded() && !_skipAuth) {
+      // In recovery mode, skip onboarding — RECOVERY/SIGNED_IN event will show modal
+      if (_RECOVERY_MODE) {
+        /* wait for modal via RECOVERY or SIGNED_IN event */
+      } else if (!isOnboarded() && !_skipAuth) {
         initOnboarding(); // shows ob at step 0 (login) for new users
       } else {
         initOnboarding();
@@ -2911,7 +2926,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
       }
     }
   } else if (event === 'SIGNED_IN') {
-    if (_isRecoveryRedirect()) {
+    if (_RECOVERY_MODE) {
       document.getElementById('mo-pw-reset').hidden = false;
     } else {
       await _onSessionEstablished(session);
