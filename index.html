@@ -2890,9 +2890,17 @@ async function _onSessionEstablished(session) {
 sb.auth.onAuthStateChange(async (event, session) => {
   sbUser = session?.user || null;
   _renderAuthCard();
+  // Detect recovery redirect regardless of which event Supabase fires
+  const _isRecoveryRedirect = () => {
+    try { return new URLSearchParams(window.location.hash.slice(1)).get('type') === 'recovery'; } catch { return false; }
+  };
   if (event === 'INITIAL_SESSION') {
     if (session) {
-      await _onSessionEstablished(session);
+      if (_isRecoveryRedirect()) {
+        document.getElementById('mo-pw-reset').hidden = false;
+      } else {
+        await _onSessionEstablished(session);
+      }
     } else {
       // No session on load: show gate or run app offline
       if (!isOnboarded() && !_skipAuth) {
@@ -2903,7 +2911,11 @@ sb.auth.onAuthStateChange(async (event, session) => {
       }
     }
   } else if (event === 'SIGNED_IN') {
-    await _onSessionEstablished(session);
+    if (_isRecoveryRedirect()) {
+      document.getElementById('mo-pw-reset').hidden = false;
+    } else {
+      await _onSessionEstablished(session);
+    }
   } else if (event === 'TOKEN_REFRESHED') {
     if (!_realtimeChannel) subscribeToRealtime();
   } else if (event === 'RECOVERY') {
