@@ -2585,7 +2585,7 @@ function _gateError(msg) {
 async function authGateGoogle() {
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: window.location.origin + window.location.pathname }
   });
 }
 async function authGateSignIn() {
@@ -2682,7 +2682,7 @@ function _showAuthError(msg) {
 async function authSignInGoogle() {
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: window.location.origin + window.location.pathname }
   });
 }
 
@@ -2809,7 +2809,9 @@ if ('serviceWorker' in navigator) {
   // Quando o SW atualiza, recarrega a página para o usuário pegar o JS novo
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data && e.data.type === 'SW_UPDATED') {
-      window.location.reload();
+      if (!location.hash.includes('access_token')) {
+        window.location.reload();
+      }
     }
   });
 }
