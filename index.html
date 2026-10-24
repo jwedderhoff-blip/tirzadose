@@ -1225,7 +1225,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="mo-prog-detail-title">Detalhes</div>
     <div id="mo-prog-detail-body" style="padding-bottom:8px"></div>
-    <div class="sheet-actions">
+    <div id="mo-prog-detail-actions" class="sheet-actions">
       <button class="btn btn-g" onclick="closeModal('mo-prog-detail')">Fechar</button>
       <button class="btn btn-p" style="flex:1" onclick="saveProgDetail()">Salvar alterações</button>
     </div>
@@ -2304,6 +2304,30 @@ function pdSelectSite(btn) {
   });
 }
 
+function deleteWeightFromDetail(id) {
+  S.weights = S.weights.filter(w => w.id !== id);
+  save(); renderAll();
+  const date = document.getElementById('mo-prog-detail').dataset.date;
+  // If this date still appears in the table (has application), refresh modal; else close
+  const stillHasData = S.applications.some(a => a.date === date);
+  if (stillHasData) openProgDetail(date);
+  else closeModal('mo-prog-detail');
+  showToast('Peso excluído.');
+}
+
+function deleteAppFromDetail(id) {
+  const app = S.applications.find(a => a.id === id);
+  if (!app) return;
+  const date = app.date;
+  S.applications = S.applications.filter(a => a.id !== id);
+  save(); renderAll();
+  // If this date still has a weight or another app, refresh; else close
+  const stillHasData = S.weights.some(w => w.date === date) || S.applications.some(a => a.date === date);
+  if (stillHasData) openProgDetail(date);
+  else closeModal('mo-prog-detail');
+  showToast('Aplicação excluída.');
+}
+
 function openProgDetail(date) {
   const w      = S.weights.find(x => x.date === date);
   const aa     = S.applications.filter(a => a.date === date).sort((a,b)=>a.doseMg-b.doseMg);
@@ -2325,7 +2349,12 @@ function openProgDetail(date) {
   </div>`;
 
   // ── PESO ──
-  html += `<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:10px">⚖ Pesagem</div>`;
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)">⚖ Pesagem</div>
+    ${w ? `<button onclick="deleteWeightFromDetail('${w.id}')"
+      style="background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--f)">
+      🗑 Excluir peso</button>` : ''}
+  </div>`;
   html += `<input type="hidden" id="pd-weight-id" value="${w ? w.id : ''}">`;
   html += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
     <input id="pd-kg" type="number" min="30" max="300" step="0.1" value="${w ? w.kg : ''}" placeholder="Sem registro"
@@ -2341,12 +2370,17 @@ function openProgDetail(date) {
   }
   if (!w) html += `<div style="font-size:12px;color:var(--fg-m);margin-bottom:4px">Deixe em branco para não registrar</div>`;
 
-  // ── APLICAÇÕES (somente leitura) ──
+  // ── APLICAÇÕES (somente leitura, com opção de excluir) ──
   if (aa.length) {
     aa.forEach((a) => {
       const siteObj = SITES.find(s => s.id === a.site);
       html += sep;
-      html += `<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:10px">💉 Aplicação</div>`;
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)">💉 Aplicação</div>
+        <button onclick="deleteAppFromDetail('${a.id}')"
+          style="background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--f)">
+          🗑 Excluir</button>
+      </div>`;
       html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
         <div style="flex:1;min-width:100px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:10px;padding:10px 14px">
           <div style="font-size:11px;color:var(--fg-m);margin-bottom:2px">Dose</div>
@@ -2357,7 +2391,7 @@ function openProgDetail(date) {
           <div style="font-size:16px;font-weight:700;color:var(--fg)">${siteObj.icon} ${siteObj.label}</div>
         </div>` : ''}
       </div>`;
-      if (a.notes) html += `<div style="font-size:12px;color:var(--fg-m);padding:0 2px">${a.notes}</div>`;
+      if (a.notes) html += `<div style="font-size:12px;color:var(--fg-m);padding:0 2px;margin-bottom:4px">${a.notes}</div>`;
     });
   }
 
