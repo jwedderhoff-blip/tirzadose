@@ -771,6 +771,13 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         </div>
         <div class="sec-title">Histórico</div>
         <div class="card" id="weight-history"></div>
+        <div class="sec-title" style="margin-top:16px">
+          Peso × Aplicações
+          <span class="t-m" style="font-size:12px;font-weight:400">Toque para detalhes</span>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden" id="prog-table-wrap">
+          <div id="prog-table-inner"></div>
+        </div>
       </div>
     </div>
 
@@ -1179,6 +1186,18 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     <div class="sheet-actions">
       <button class="btn btn-g" onclick="closeModal('mo-symp')">Cancelar</button>
       <button class="btn btn-p" style="flex:1" onclick="saveSymptom()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: DETALHE PESO × APLICAÇÃO -->
+<div class="overlay" id="mo-prog-detail" hidden>
+  <div class="sheet" style="max-height:85vh;overflow-y:auto">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="mo-prog-detail-title">Detalhes</div>
+    <div id="mo-prog-detail-body" style="padding-bottom:8px"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-p" style="flex:1" onclick="closeModal('mo-prog-detail')">Fechar</button>
     </div>
   </div>
 </div>
@@ -2070,11 +2089,181 @@ function renderProg(){
       <button onclick="openWeightMenu('${w.id}',this)" style="background:var(--bg-card);border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:6px 10px;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;font-weight:700">⋮</button>
     </div>
   </div>`).join('');
+  renderProgTable();
+}
+
+/* ===== TABELA PESO × APLICAÇÕES ===== */
+function renderProgTable() {
+  const wrap = document.getElementById('prog-table-inner');
+  if (!wrap) return;
+
+  const weights = [...S.weights].sort((a,b)=>a.date<b.date?-1:1);
+  const apps    = [...S.applications].sort((a,b)=>a.date<b.date?-1:1);
+
+  if (!weights.length && !apps.length) {
+    wrap.innerHTML = '<div class="empty" style="padding:20px"><div class="empty-t">Sem dados</div><div class="empty-s">Registre pesagens e aplicações para ver a tabela.</div></div>';
+    return;
+  }
+
+  // Build unified date list
+  const allDates = [...new Set([...weights.map(w=>w.date), ...apps.map(a=>a.date)])].sort().reverse();
+  const weightMap = {};
+  weights.forEach((w,i) => {
+    if (!weightMap[w.date] || w.kg > 0) weightMap[w.date] = { ...w, idx: i };
+  });
+  const appMap = {};
+  apps.forEach(a => { if(!appMap[a.date]) appMap[a.date]=[]; appMap[a.date].push(a); });
+
+  // Peso variation: compare with nearest previous weight
+  const weightsSorted = [...weights];
+  function prevWeight(date) {
+    const before = weightsSorted.filter(w => w.date < date).sort((a,b)=>b.date.localeCompare(a.date));
+    return before[0] || null;
+  }
+
+  const bmiCalc = kg => S.profile.heightCm > 0 ? (kg / Math.pow(S.profile.heightCm/100,2)).toFixed(1) : null;
+
+  const rows = allDates.map(date => {
+    const w  = weightMap[date];
+    const aa = appMap[date] || [];
+    const prev = w ? prevWeight(date) : null;
+    const delta = w && prev ? (w.kg - prev.kg) : null;
+    return { date, w, aa, delta };
+  });
+
+  wrap.innerHTML = `
+    <div class="tw" style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:var(--bg-2,#f0f5f1);border-bottom:1.5px solid var(--border)">
+            <th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Data</th>
+            <th style="padding:8px 8px;text-align:right;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Peso</th>
+            <th style="padding:8px 8px;text-align:right;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Var.</th>
+            <th style="padding:8px 10px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Dose</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r,i) => {
+            const weekday = DAYS_PT[parseD(r.date).getDay()].slice(0,3);
+            const doseLabel = r.aa.length ? r.aa.map(a=>a.doseMg+'mg').join('+') : '–';
+            const deltaHtml = r.delta !== null
+              ? `<span style="color:${r.delta<=0?'var(--ok)':'var(--warn)'};font-weight:600">${r.delta<=0?'':'+'}${r.delta.toFixed(1)}</span>`
+              : '<span style="color:var(--fg-m)">–</span>';
+            const hasApp = r.aa.length > 0;
+            const bg = i % 2 === 0 ? '' : 'background:var(--bg-2,rgba(0,0,0,.025))';
+            return `<tr style="cursor:pointer;${bg}" onclick="openProgDetail('${r.date}')"
+              onmouseenter="this.style.background='var(--ac-lt,#e8f3ec)'"
+              onmouseleave="this.style.background='${i%2===0?'':'var(--bg-2,rgba(0,0,0,.025))'}'">
+              <td style="padding:9px 10px">
+                <div style="font-weight:600;color:var(--fg)">${fmtD(r.date)}</div>
+                <div style="font-size:11px;color:var(--fg-m)">${weekday}</div>
+              </td>
+              <td style="padding:9px 8px;text-align:right;font-weight:${r.w?'600':'400'};color:${r.w?'var(--fg)':'var(--fg-m)'}">
+                ${r.w ? r.w.kg.toFixed(1)+' kg' : '–'}
+              </td>
+              <td style="padding:9px 8px;text-align:right">${deltaHtml}</td>
+              <td style="padding:9px 10px;text-align:center">
+                ${hasApp ? `<span style="background:var(--ac);color:#fff;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:700">${doseLabel}</span>` : '<span style="color:var(--fg-m)">–</span>'}
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function openProgDetail(date) {
+  const w  = S.weights.find(x => x.date === date);
+  const aa = S.applications.filter(a => a.date === date).sort((a,b)=>a.doseMg-b.doseMg);
+  const symp = S.symptoms.filter(s => s.date === date);
+  const dietDay = S.dietLogs.filter(d => d.date === date);
+  const weekday = DAYS_PT[parseD(date).getDay()];
+
+  // Weight delta
+  const prevW = S.weights.filter(x=>x.date<date).sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const delta  = w && prevW ? (w.kg - prevW.kg) : null;
+  const bmi    = w && S.profile.heightCm > 0 ? (w.kg / Math.pow(S.profile.heightCm/100,2)).toFixed(1) : null;
+
+  // Treatment week
+  const weekNum = S.profile.startDate ? Math.ceil(diffDays(S.profile.startDate, date)/7) + 1 : null;
+
+  let html = `<div style="padding:0 16px">`;
+
+  // Header badge
+  html += `<div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+    ${weekNum ? `<span style="background:var(--ac);color:#fff;border-radius:10px;padding:4px 12px;font-size:13px;font-weight:700">Semana ${weekNum}</span>` : ''}
+    <span style="color:var(--fg-m);font-size:13px">${weekday}, ${fmtD(date)}</span>
+  </div>`;
+
+  // Peso
+  if (w) {
+    const deltaText = delta !== null ? ` · ${delta<=0?'':'+'}${delta.toFixed(1)} kg vs anterior` : '';
+    html += `<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:6px">⚖ Pesagem</div>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <span style="font-size:28px;font-weight:700;color:var(--fg);font-family:var(--fd)">${w.kg.toFixed(1)} kg</span>
+        ${delta !== null ? `<span style="font-size:14px;font-weight:600;color:${delta<=0?'var(--ok)':'var(--warn)'}">${delta<=0?'':'+'}${delta.toFixed(1)} kg</span>` : ''}
+        ${bmi ? `<span style="font-size:13px;color:var(--fg-m)">IMC ${bmi}</span>` : ''}
+      </div>
+      ${prevW ? `<div style="font-size:12px;color:var(--fg-m);margin-top:3px">Anterior: ${prevW.kg.toFixed(1)} kg em ${fmtD(prevW.date)}</div>` : ''}
+    </div>`;
+  } else {
+    html += `<div style="margin-bottom:12px;padding:10px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:8px;color:var(--fg-m);font-size:13px">⚖ Sem pesagem registrada neste dia</div>`;
+  }
+
+  // Aplicações
+  if (aa.length) {
+    html += `<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:6px">💉 Aplicação</div>
+      ${aa.map(a => `
+        <div style="background:var(--bg-2,rgba(45,90,61,.06));border-radius:10px;padding:12px;margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px;font-weight:700;color:var(--ac)">${a.doseMg} mg</span>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--fg)">Local: ${a.site || '–'}</div>
+              ${a.notes ? `<div style="font-size:12px;color:var(--fg-m);margin-top:2px">${a.notes}</div>` : ''}
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  } else {
+    html += `<div style="margin-bottom:12px;padding:10px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:8px;color:var(--fg-m);font-size:13px">💉 Sem aplicação neste dia</div>`;
+  }
+
+  // Sintomas
+  if (symp.length) {
+    html += `<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:6px">🩺 Sintomas</div>
+      ${symp.map(s=>`<div style="background:rgba(230,126,34,.08);border-radius:10px;padding:10px;margin-bottom:4px">
+        <div style="font-size:13px;font-weight:600;color:var(--fg)">${s.symptoms.join(', ') || 'Registrado'}</div>
+        <div style="font-size:12px;color:var(--fg-m);margin-top:2px">Intensidade ${s.severity}/5${s.notes ? ' · '+s.notes : ''}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // Dieta
+  if (dietDay.length) {
+    const totProt = dietDay.reduce((s,d)=>s+d.proteinG,0);
+    const totCal  = dietDay.reduce((s,d)=>s+d.caloriesKcal,0);
+    html += `<div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:6px">🥗 Alimentação</div>
+      <div style="background:var(--bg-2,rgba(0,0,0,.04));border-radius:10px;padding:10px">
+        <div style="font-size:13px;font-weight:600;color:var(--fg)">Proteína: ${totProt}g · ${totCal} kcal</div>
+        ${dietDay.map(d=>`<div style="font-size:12px;color:var(--fg-m);margin-top:3px">${d.description||'Refeição registrada'}</div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  html += `</div>`;
+
+  document.getElementById('mo-prog-detail-title').textContent = weekday + ', ' + fmtD(date);
+  document.getElementById('mo-prog-detail-body').innerHTML = html;
+  document.getElementById('mo-prog-detail').hidden = false;
 }
 
 /* ===== CHART ===== */
 function renderChart(){
-  renderProg();
+  renderProg(); // renderProg already calls renderProgTable
   const weights = [...S.weights].sort((a,b)=>a.date<b.date?-1:1);
   const apps    = [...S.applications].sort((a,b)=>a.date<b.date?-1:1);
   const canvas  = document.getElementById('wChart');
