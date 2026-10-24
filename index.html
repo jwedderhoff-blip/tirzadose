@@ -1201,6 +1201,16 @@ const DEFAULT_STATE = {
 };
 
 /* ===== SUPABASE ===== */
+// Fix malformed OAuth redirect URL (e.g. ##access_token= from double-hash bug)
+(function() {
+  const h = window.location.href;
+  if (h.includes('##') || h.split('#access_token=').length > 2) {
+    const parts = h.split('#access_token=');
+    const clean = parts[0].replace(/#$/, '') + '#access_token=' + parts[parts.length - 1];
+    history.replaceState(null, '', clean.replace(window.location.origin, ''));
+  }
+})();
+
 const SB_URL = 'https://xsbglvtdwzzbqjdhcikd.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzYmdsdnRkd3p6YnFqZGhjaWtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3MzE5MTksImV4cCI6MjEwODMwNzkxOX0.wPvpPpj2VQXVnyVzePcXdulm81iPSBZHMGdg8VLWp4A';
 const sb = supabase.createClient(SB_URL, SB_KEY);
@@ -2741,7 +2751,8 @@ if (!isOnboarded() && !_skipAuth) {
 sb.auth.onAuthStateChange(async (event, session) => {
   sbUser = session?.user || null;
   _renderAuthCard();
-  if (event === 'SIGNED_IN') {
+  if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+    if (!session) return; // INITIAL_SESSION with no session = unauthenticated load
     hideAuthGate();
     _setSyncStatus('Carregando dados da nuvem…', '');
     await loadFromCloud();
@@ -2809,7 +2820,7 @@ if ('serviceWorker' in navigator) {
   // Quando o SW atualiza, recarrega a página para o usuário pegar o JS novo
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data && e.data.type === 'SW_UPDATED') {
-      if (!location.hash.includes('access_token')) {
+      if (!location.hash.includes('access_token') && !location.search.includes('code=')) {
         window.location.reload();
       }
     }
