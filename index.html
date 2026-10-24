@@ -1243,40 +1243,64 @@ const sb = supabase.createClient(SB_URL, SB_KEY, {
 let sbUser = null;
 let _syncTimer = null;
 let _syncing = false;
+let _syncDirty = false;
+let _syncRetries = 0;
+let _syncRetryTimer = null;
 let _realtimeChannel = null;
 // Each tab/device gets a random ID so it can ignore its own realtime events
 const _deviceId = Math.random().toString(36).slice(2);
 
+const _SYNC_TIMEOUTS = [3000, 8000, 20000]; // retry delays ms
+
 function scheduleSyncToCloud() {
   if (!sbUser) return;
   clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(syncToCloud, 1500);
+  if (_syncing) { _syncDirty = true; return; }
+  _syncTimer = setTimeout(syncToCloud, 500);
 }
 
 async function syncToCloud() {
   if (!sbUser) return;
-  // Evita chamadas concorrentes: se já está salvando, apenas reagenda
-  if (_syncing) { scheduleSyncToCloud(); return; }
+  if (_syncing) { _syncDirty = true; return; }
+  clearTimeout(_syncRetryTimer);
   _syncing = true;
+  _syncDirty = false;
   _setSyncStatus('↑ Salvando…', '');
   try {
-    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 30000));
-    const result = await Promise.race([
-      sb.from('user_data').upsert(
-        { user_id: sbUser.id, data: { ...S, _deviceId } },
-        { onConflict: 'user_id' }
-      ),
-      timeout
-    ]);
-    // Supabase resolve (não rejeita) em erros de API — verificar explicitamente
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 8000);
+    const result = await sb.from('user_data').upsert(
+      { user_id: sbUser.id, data: { ...S, _deviceId } },
+      { onConflict: 'user_id' }
+    );
+    clearTimeout(t);
     if (result && result.error) throw result.error;
+    _syncRetries = 0;
     _setSyncStatus('✓ Sincronizado', 'ok');
+    // if data changed during this sync, sync again immediately
+    if (_syncDirty) { _syncDirty = false; scheduleSyncToCloud(); }
   } catch(e) {
-    _setSyncStatus('⚠ Falha na sincronização', 'warn');
-  } finally {
     _syncing = false;
+    if (_syncRetries < _SYNC_TIMEOUTS.length) {
+      const delay = _SYNC_TIMEOUTS[_syncRetries++];
+      _setSyncStatus(`⟳ Reconectando… (${_syncRetries}/${_SYNC_TIMEOUTS.length})`, 'warn');
+      _syncRetryTimer = setTimeout(syncToCloud, delay);
+    } else {
+      _syncRetries = 0;
+      _setSyncStatus('⚠ Falha — tentará ao reconectar', 'warn');
+    }
+    return;
   }
+  _syncing = false;
 }
+
+// Retry automatically when network comes back
+window.addEventListener('online', () => {
+  if (!sbUser) return;
+  _syncRetries = 0;
+  clearTimeout(_syncRetryTimer);
+  syncToCloud();
+});
 
 // Sync imediato usando fetch keepalive — funciona mesmo ao fechar a aba
 function syncToCloudBeacon() {
