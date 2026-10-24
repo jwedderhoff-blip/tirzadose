@@ -452,19 +452,23 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
   <button onclick="dismissInstall()" style="background:none;border:none;color:#999;font-size:22px;cursor:pointer;padding:8px 10px;flex-shrink:0;line-height:1;min-width:40px;min-height:40px">×</button>
 </div>
 
-<!-- AUTH GATE (shown before onboarding on first use) -->
+<!-- AUTH GATE (shown from demo mode "Entrar com sua conta") -->
 <div id="auth-gate" hidden>
   <div id="auth-gate-inner">
-    <div style="text-align:center;margin-bottom:32px">
+    <div style="text-align:center;margin-bottom:24px">
       <div style="font-size:48px;font-family:var(--fd);color:#fff;letter-spacing:-.01em;line-height:1">Tirza<em style="font-style:italic;color:#a8d5b5">Dose</em></div>
       <div style="color:rgba(255,255,255,.7);font-size:15px;margin-top:8px">Seu acompanhamento na nuvem</div>
     </div>
-    <div style="margin-bottom:10px"><input id="gate-email" type="email" placeholder="seu@email.com" autocomplete="email" style="width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:15px;font-family:var(--f);box-sizing:border-box;outline:none" onfocus="this.style.borderColor='rgba(255,255,255,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.2)'" onkeydown="if(event.key==='Enter')authGateMagicLink()"></div>
-    <div id="gate-error" style="color:#ffb3b3;font-size:14px;margin-bottom:8px;min-height:20px;text-align:center"></div>
-    <button id="gate-magic-btn" onclick="authGateMagicLink()" style="width:100%;padding:14px;border-radius:12px;border:none;background:rgba(255,255,255,.2);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--f);margin-bottom:20px;letter-spacing:.01em">✉️ Enviar link de acesso</button>
+    <div style="margin-bottom:8px"><input id="gate-email" type="email" placeholder="seu@email.com" autocomplete="email" style="width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:15px;font-family:var(--f);box-sizing:border-box;outline:none" onfocus="this.style.borderColor='rgba(255,255,255,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.2)'" onkeydown="if(event.key==='Enter')gateAuth()"></div>
+    <div style="margin-bottom:8px;position:relative"><input id="gate-password" type="password" placeholder="Senha" autocomplete="current-password" style="width:100%;padding:13px 44px 13px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:15px;font-family:var(--f);box-sizing:border-box;outline:none" onfocus="this.style.borderColor='rgba(255,255,255,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.2)'" onkeydown="if(event.key==='Enter')gateAuth()"><button type="button" onclick="obTogglePw('gate-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);font-size:18px;line-height:1;padding:4px">👁</button></div>
+    <div id="gate-confirm-row" style="display:none;margin-bottom:8px"><input id="gate-confirm-pw" type="password" placeholder="Confirmar senha" autocomplete="new-password" style="width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:15px;font-family:var(--f);box-sizing:border-box;outline:none" onfocus="this.style.borderColor='rgba(255,255,255,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.2)'"></div>
+    <div id="gate-error" style="color:#ffb3b3;font-size:14px;margin-bottom:8px;min-height:18px;text-align:center"></div>
+    <button id="gate-auth-btn" onclick="gateAuth()" style="width:100%;padding:14px;border-radius:12px;border:none;background:rgba(255,255,255,.2);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--f);margin-bottom:12px;letter-spacing:.01em">Entrar</button>
     <div style="text-align:center;display:flex;flex-direction:column;gap:4px">
-      <button onclick="hideAuthGate();enterDemoMode()" style="background:none;border:none;color:rgba(255,255,255,.7);font-size:14px;cursor:pointer;font-family:var(--f);padding:8px;font-weight:600">🔍 Ver demonstração</button>
-      <button onclick="authGateSkip()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:13px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Usar sem conta (dados só neste dispositivo)</button>
+      <button id="gate-toggle-signup-btn" onclick="gateToggleSignup()" style="background:none;border:none;color:rgba(255,255,255,.75);font-size:13px;cursor:pointer;font-family:var(--f);padding:4px">Não tem conta? <u>Criar conta</u></button>
+      <button onclick="gateForgotPw()" style="background:none;border:none;color:rgba(255,255,255,.45);font-size:12px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Esqueci minha senha</button>
+      <button onclick="hideAuthGate();enterDemoMode()" style="background:none;border:none;color:rgba(255,255,255,.65);font-size:14px;cursor:pointer;font-family:var(--f);padding:6px;font-weight:600">🔍 Ver demonstração</button>
+      <button onclick="authGateSkip()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:13px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Usar sem conta</button>
     </div>
   </div>
 </div>
@@ -484,12 +488,21 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     <!-- Step 0: LOGIN -->
     <div class="ob-step active" id="obStep0">
       <div class="ob-step-title">Entre na sua conta</div>
-      <p class="ob-step-sub">Sincronize seus dados em todos os dispositivos. Digite seu e-mail para receber um link de acesso.</p>
-      <div class="fg"><input class="fi" id="ob-email" type="email" placeholder="seu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')obSendMagicLink()"></div>
+      <p class="ob-step-sub">Sincronize seus dados em todos os dispositivos.</p>
+      <div class="fg"><input class="fi" id="ob-email" type="email" placeholder="seu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')obAuth()"></div>
+      <div class="fg" style="position:relative">
+        <input class="fi" id="ob-password" type="password" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')obAuth()" style="padding-right:44px">
+        <button type="button" onclick="obTogglePw('ob-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.45);font-size:18px;line-height:1;padding:4px">👁</button>
+      </div>
+      <div id="ob-confirm-row" style="display:none" class="fg">
+        <input class="fi" id="ob-confirm-pw" type="password" placeholder="Confirmar senha" autocomplete="new-password">
+      </div>
       <div id="ob-gate-error" style="color:#ffb3b3;font-size:13px;min-height:18px;margin-bottom:2px"></div>
-      <button id="ob-magic-btn" class="btn btn-p btn-w" onclick="obSendMagicLink()">✉️ Enviar link de acesso</button>
-      <div style="text-align:center;margin-top:18px">
-        <button onclick="obLoginSkip()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:13px;cursor:pointer;font-family:var(--f);padding:6px;text-decoration:underline">Usar sem conta (dados só neste dispositivo)</button>
+      <button id="ob-auth-btn" class="btn btn-p btn-w" onclick="obAuth()">Entrar</button>
+      <div style="text-align:center;margin-top:14px;display:flex;flex-direction:column;gap:6px">
+        <button id="ob-toggle-signup-btn" onclick="obToggleSignup()" style="background:none;border:none;color:rgba(255,255,255,.75);font-size:13px;cursor:pointer;font-family:var(--f);padding:4px">Não tem conta? <u>Criar conta</u></button>
+        <button onclick="obForgotPw()" style="background:none;border:none;color:rgba(255,255,255,.45);font-size:12px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Esqueci minha senha</button>
+        <button onclick="obLoginSkip()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Usar sem conta</button>
       </div>
     </div>
     <!-- Step 1: PERFIL -->
@@ -580,6 +593,24 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 <!-- PROFILE CONTEXT MENU -->
 <div id="prof-ctx-menu" hidden style="position:fixed;z-index:4000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);overflow:hidden;min-width:150px">
   <button onclick="profMenuEdit()" style="width:100%;background:none;border:none;padding:13px 16px;font-size:14px;font-family:var(--f);color:var(--fg);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">✏️ Editar perfil</button>
+</div>
+
+<!-- PASSWORD RESET MODAL -->
+<div class="overlay" id="mo-pw-reset" hidden>
+  <div class="modal">
+    <div class="card-title">🔑 Redefinir senha</div>
+    <p class="t-m" style="margin-bottom:12px">Digite sua nova senha abaixo.</p>
+    <div class="fg" style="position:relative">
+      <input class="fi" id="pw-reset-new" type="password" placeholder="Nova senha (mín. 6 caracteres)" autocomplete="new-password" style="padding-right:44px">
+      <button type="button" onclick="obTogglePw('pw-reset-new',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg-m);font-size:18px;line-height:1;padding:4px">👁</button>
+    </div>
+    <div class="fg">
+      <input class="fi" id="pw-reset-confirm" type="password" placeholder="Confirmar nova senha" autocomplete="new-password">
+    </div>
+    <div id="pw-reset-error" style="color:var(--danger);font-size:14px;margin-bottom:8px;min-height:18px"></div>
+    <button id="pw-reset-btn" class="btn btn-p btn-w" onclick="doPwReset()">Salvar nova senha</button>
+    <button class="btn btn-g btn-w" style="margin-top:8px" onclick="closeModal('mo-pw-reset')">Cancelar</button>
+  </div>
 </div>
 
 <!-- TOUR INVITE BALLOON -->
@@ -814,10 +845,21 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         <div class="card" id="auth-card">
           <div class="card-title">☁️ Conta &amp; Sync entre dispositivos</div>
           <div id="auth-signed-out">
-            <p class="t-m" style="margin-bottom:16px">Digite seu e-mail para receber um link de acesso e sincronizar seus dados em todos os dispositivos.</p>
-            <div class="fg"><input class="fi" id="auth-email" type="email" placeholder="seu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')authMagicLink()"></div>
-            <div id="auth-error" style="color:var(--danger);font-size:14px;margin-bottom:10px;display:none"></div>
-            <button id="auth-magic-btn" class="btn btn-p btn-w" onclick="authMagicLink()">✉️ Enviar link de acesso</button>
+            <p class="t-m" style="margin-bottom:12px">Entre com e-mail e senha para sincronizar seus dados em todos os dispositivos.</p>
+            <div class="fg"><input class="fi" id="auth-email" type="email" placeholder="seu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')cardAuth()"></div>
+            <div class="fg" style="position:relative">
+              <input class="fi" id="auth-password" type="password" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')cardAuth()" style="padding-right:44px">
+              <button type="button" onclick="obTogglePw('auth-password',this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg-m);font-size:18px;line-height:1;padding:4px">👁</button>
+            </div>
+            <div id="auth-confirm-row" style="display:none" class="fg">
+              <input class="fi" id="auth-confirm-pw" type="password" placeholder="Confirmar senha" autocomplete="new-password">
+            </div>
+            <div id="auth-error" style="color:var(--danger);font-size:14px;margin-bottom:6px;min-height:18px"></div>
+            <button id="auth-signin-btn" class="btn btn-p btn-w" onclick="cardAuth()">Entrar</button>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <button id="card-toggle-signup-btn" onclick="cardToggleSignup()" style="background:none;border:none;color:var(--ac);font-size:12px;cursor:pointer;font-family:var(--f);padding:4px;flex:1;text-align:left">Não tem conta? <u>Criar conta</u></button>
+              <button onclick="cardForgotPw()" style="background:none;border:none;color:var(--fg-m);font-size:12px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Esqueci a senha</button>
+            </div>
           </div>
           <div id="auth-signed-in" hidden>
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
@@ -1376,26 +1418,6 @@ function initOnboarding(){
   document.getElementById('obStart').value = today();
   const wd = (d.getDay()+1)%7;
   document.getElementById('obDay').value = wd;
-}
-async function obSendMagicLink(){
-  const email = document.getElementById('ob-email').value.trim();
-  const errEl = document.getElementById('ob-gate-error');
-  if(!email){ errEl.textContent='Digite seu e-mail.'; return; }
-  errEl.textContent='';
-  const btn = document.getElementById('ob-magic-btn');
-  if(btn){ btn.textContent='Enviando…'; btn.disabled=true; }
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options:{ emailRedirectTo: window.location.origin + window.location.pathname }
-  });
-  if(btn) btn.disabled=false;
-  if(error){
-    errEl.textContent = error.message;
-    if(btn) btn.textContent='✉️ Enviar link de acesso';
-  } else {
-    errEl.textContent='';
-    if(btn){ btn.textContent='✓ Link enviado! Verifique seu e-mail.'; btn.style.background='#2d7a4f'; }
-  }
 }
 function obLoginSkip(){
   try{ localStorage.setItem('tirza_skip_auth','1'); }catch{}
@@ -2664,33 +2686,96 @@ function showAuthGate() {
 function hideAuthGate() {
   document.getElementById('auth-gate').hidden = true;
 }
-function _gateError(msg) {
-  document.getElementById('gate-error').textContent = msg;
-}
-async function authGateMagicLink() {
-  const email = document.getElementById('gate-email').value.trim();
-  if (!email) { _gateError('Digite seu e-mail.'); return; }
-  _gateError('');
-  const btn = document.getElementById('gate-magic-btn');
-  if (btn) { btn.textContent = 'Enviando…'; btn.disabled = true; }
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin + window.location.pathname }
-  });
-  if (btn) { btn.disabled = false; }
-  if (error) {
-    _gateError(error.message);
-    if (btn) btn.textContent = '✉️ Enviar link de acesso';
-  } else {
-    _gateError('');
-    if (btn) btn.textContent = '✓ Link enviado! Verifique seu e-mail.';
-  }
-}
 function authGateSkip() {
   try { localStorage.setItem('tirza_skip_auth', '1'); } catch{}
   hideAuthGate();
   initOnboarding();
   if (isOnboarded()) { renderAll(); generatePlan(); }
+}
+
+/* ===== AUTH COM SENHA — helpers compartilhados ===== */
+const _pwSignupMode = { ob: false, gate: false, card: false };
+
+async function _pwAuth({ emailId, passId, confirmId, errId, btnId, surface }) {
+  const email = document.getElementById(emailId)?.value.trim();
+  const password = document.getElementById(passId)?.value;
+  const errEl = document.getElementById(errId);
+  const setErr = (msg, color) => { if(errEl){ errEl.textContent=msg; if(color) errEl.style.color=color; else errEl.style.color=''; } };
+  const btn = document.getElementById(btnId);
+  if (!email) { setErr('Digite seu e-mail.'); return; }
+  if (!password) { setErr('Digite sua senha.'); return; }
+  setErr('');
+  const isSignup = _pwSignupMode[surface];
+  if (btn) { btn.textContent = isSignup ? 'Criando conta…' : 'Entrando…'; btn.disabled = true; }
+  if (isSignup) {
+    const confirm = document.getElementById(confirmId)?.value;
+    if (password.length < 6) { setErr('Senha deve ter ao menos 6 caracteres.'); if(btn){btn.disabled=false;btn.textContent='Criar conta';} return; }
+    if (password !== confirm) { setErr('As senhas não coincidem.'); if(btn){btn.disabled=false;btn.textContent='Criar conta';} return; }
+    const { error } = await sb.auth.signUp({ email, password });
+    if (btn) { btn.disabled = false; }
+    if (error) { setErr(error.message); if(btn) btn.textContent='Criar conta'; }
+    else { setErr('✓ Conta criada! Verifique seu e-mail para confirmar.','#a8f0c0'); if(btn){btn.textContent='Criar conta';btn.style.background='#2d7a4f';} }
+  } else {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (btn) { btn.disabled = false; btn.textContent = 'Entrar'; }
+    if (error) { setErr('E-mail ou senha incorretos.'); }
+    // Sucesso: onAuthStateChange dispara → _onSessionEstablished cuida do resto
+  }
+}
+function _pwToggleSignup(surface, { confirmRowId, btnId, toggleBtnId, passId }) {
+  _pwSignupMode[surface] = !_pwSignupMode[surface];
+  const isSignup = _pwSignupMode[surface];
+  const row = document.getElementById(confirmRowId); if(row) row.style.display = isSignup ? '' : 'none';
+  const btn = document.getElementById(btnId); if(btn) btn.textContent = isSignup ? 'Criar conta' : 'Entrar';
+  const tog = document.getElementById(toggleBtnId); if(tog) tog.innerHTML = isSignup ? 'Já tem conta? <u>Entrar</u>' : 'Não tem conta? <u>Criar conta</u>';
+  const pw = document.getElementById(passId); if(pw) pw.setAttribute('autocomplete', isSignup ? 'new-password' : 'current-password');
+}
+async function _pwForgot(emailId, errId) {
+  const email = document.getElementById(emailId)?.value.trim();
+  const errEl = document.getElementById(errId);
+  if (!email) { if(errEl) errEl.textContent='Digite seu e-mail para redefinir a senha.'; return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  if (errEl) {
+    if (error) { errEl.textContent = error.message; errEl.style.color=''; }
+    else { errEl.textContent='✓ Link de redefinição enviado para seu e-mail!'; errEl.style.color='#a8f0c0'; }
+  }
+}
+function obTogglePw(inputId, btn) {
+  const inp = document.getElementById(inputId); if(!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  if(btn) btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+// Onboarding Step 0
+function obAuth() { _pwAuth({emailId:'ob-email',passId:'ob-password',confirmId:'ob-confirm-pw',errId:'ob-gate-error',btnId:'ob-auth-btn',surface:'ob'}); }
+function obToggleSignup() { _pwToggleSignup('ob',{confirmRowId:'ob-confirm-row',btnId:'ob-auth-btn',toggleBtnId:'ob-toggle-signup-btn',passId:'ob-password'}); document.getElementById('ob-gate-error').textContent=''; }
+function obForgotPw() { _pwForgot('ob-email','ob-gate-error'); }
+
+// Auth Gate (demo → entrar)
+function gateAuth() { _pwAuth({emailId:'gate-email',passId:'gate-password',confirmId:'gate-confirm-pw',errId:'gate-error',btnId:'gate-auth-btn',surface:'gate'}); }
+function gateToggleSignup() { _pwToggleSignup('gate',{confirmRowId:'gate-confirm-row',btnId:'gate-auth-btn',toggleBtnId:'gate-toggle-signup-btn',passId:'gate-password'}); document.getElementById('gate-error').textContent=''; }
+function gateForgotPw() { _pwForgot('gate-email','gate-error'); }
+
+// Conta & Sync card (Perfil)
+function cardAuth() { _pwAuth({emailId:'auth-email',passId:'auth-password',confirmId:'auth-confirm-pw',errId:'auth-error',btnId:'auth-signin-btn',surface:'card'}); }
+function cardToggleSignup() { _pwToggleSignup('card',{confirmRowId:'auth-confirm-row',btnId:'auth-signin-btn',toggleBtnId:'card-toggle-signup-btn',passId:'auth-password'}); document.getElementById('auth-error').textContent=''; }
+function cardForgotPw() { _pwForgot('auth-email','auth-error'); }
+
+// Redefinição de senha (evento RECOVERY)
+async function doPwReset() {
+  const pw = document.getElementById('pw-reset-new')?.value;
+  const conf = document.getElementById('pw-reset-confirm')?.value;
+  const errEl = document.getElementById('pw-reset-error');
+  const btn = document.getElementById('pw-reset-btn');
+  if (!pw || pw.length < 6) { if(errEl) errEl.textContent='Senha deve ter ao menos 6 caracteres.'; return; }
+  if (pw !== conf) { if(errEl) errEl.textContent='As senhas não coincidem.'; return; }
+  if(btn){ btn.textContent='Salvando…'; btn.disabled=true; }
+  const { error } = await sb.auth.updateUser({ password: pw });
+  if(btn){ btn.disabled=false; btn.textContent='Salvar nova senha'; }
+  if (error) { if(errEl) errEl.textContent=error.message; }
+  else { closeModal('mo-pw-reset'); showToast('Senha alterada com sucesso!'); }
 }
 
 /* ===== AUTH FUNCTIONS ===== */
@@ -2753,26 +2838,6 @@ function _showAuthError(msg) {
   const el = document.getElementById('auth-error');
   if (!el) return;
   el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
-}
-
-async function authMagicLink() {
-  const email = document.getElementById('auth-email')?.value.trim();
-  if (!email) { _showAuthError('Digite seu e-mail.'); return; }
-  _showAuthError('');
-  const btn = document.getElementById('auth-magic-btn');
-  if (btn) { btn.textContent = 'Enviando…'; btn.disabled = true; }
-  const { error } = await sb.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin + window.location.pathname }
-  });
-  if (btn) { btn.disabled = false; }
-  if (error) {
-    _showAuthError(error.message);
-    if (btn) btn.textContent = '✉️ Enviar link de acesso';
-  } else {
-    if (btn) { btn.textContent = '✓ Link enviado! Verifique seu e-mail.'; btn.style.background = '#2d7a4f'; }
-  }
 }
 
 function authSignOut(btn) {
@@ -2841,6 +2906,9 @@ sb.auth.onAuthStateChange(async (event, session) => {
     await _onSessionEstablished(session);
   } else if (event === 'TOKEN_REFRESHED') {
     if (!_realtimeChannel) subscribeToRealtime();
+  } else if (event === 'RECOVERY') {
+    // User clicked a password-reset link — show the set-new-password modal
+    document.getElementById('mo-pw-reset').hidden = false;
   } else if (event === 'SIGNED_OUT') {
     if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
   }
