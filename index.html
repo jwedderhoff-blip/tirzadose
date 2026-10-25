@@ -751,6 +751,15 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           <p class="t-m" style="margin-top:8px">* Para canetas de dose única, a dose é pré-carregada: sem cálculo necessário.</p>
         </div>
         <div class="divider"></div>
+        <div class="card" id="app-dose-chart-card" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="card-title" style="margin-bottom:0">Evolução da Dose</div>
+            <button onclick="openDoseChartFullscreen()" title="Expandir" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer;font-family:var(--f)">⤢</button>
+          </div>
+          <div style="position:relative;height:180px"><canvas id="doseChart"></canvas></div>
+          <div id="doseChartEmpty" style="display:none;height:180px;align-items:center;justify-content:center;color:var(--fg-m);font-size:13px">Sem aplicações registradas</div>
+        </div>
+        <div class="divider"></div>
         <div class="sec-title">Histórico de Aplicações</div>
         <div class="card" id="app-history">
           <div class="empty"><div class="empty-t">Nenhuma aplicação registrada</div><div class="empty-s">Toque em "+ Registrar" para adicionar sua primeira aplicação.</div></div>
@@ -1060,17 +1069,6 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     </div>
     <div class="fg"><label class="fl">Data de início do acompanhamento</label><input class="fi" id="prStart" type="date"></div>
     <div class="fg">
-      <label class="fl">Dose atual (mg)</label>
-      <select class="fs" id="prDose">
-        <option value="2.5">2,5 mg — Iniciação</option>
-        <option value="5">5 mg</option>
-        <option value="7.5">7,5 mg</option>
-        <option value="10">10 mg</option>
-        <option value="12.5">12,5 mg</option>
-        <option value="15">15 mg — Máxima</option>
-      </select>
-    </div>
-    <div class="fg">
       <label class="fl">Dia fixo de aplicação</label>
       <select class="fs" id="prDay">
         <option value="0">Domingo</option><option value="1">Segunda-feira</option>
@@ -1243,6 +1241,18 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     <canvas id="wChartFs" style="width:100%;height:100%"></canvas>
   </div>
   <div id="chart-fs-info" style="padding:8px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:12px;color:var(--fg-m);text-align:center;flex-shrink:0"></div>
+</div>
+
+<!-- MODAL: GRÁFICO DOSE FULLSCREEN -->
+<div id="mo-dose-chart-fs" hidden style="position:fixed;inset:0;z-index:3000;background:var(--bg);display:flex;flex-direction:column;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--border)">
+    <div style="font-size:16px;font-weight:700;color:var(--fg)">Evolução da Dose</div>
+    <button onclick="closeDoseChartFullscreen()" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:6px 14px;font-size:14px;cursor:pointer;font-family:var(--f)">Fechar ✕</button>
+  </div>
+  <div style="flex:1;min-height:0;padding:12px max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));position:relative">
+    <canvas id="doseChartFs" style="width:100%;height:100%"></canvas>
+  </div>
+  <div id="dose-chart-fs-info" style="padding:8px max(16px,env(safe-area-inset-left,0px));font-size:12px;color:var(--fg-m);text-align:center;flex-shrink:0"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -1631,7 +1641,7 @@ function goTab(name, btn){
 /* ===== MODALS ===== */
 function openApplyModal(){
   const sel = document.getElementById('apDose');
-  sel.value = S.profile.currentDoseMg;
+  sel.value = getLastDose() || 2.5;
   document.getElementById('apDate').value = today();
   document.getElementById('apTime').value = now();
   document.getElementById('apNotes').value = '';
@@ -1749,13 +1759,12 @@ function saveProfile(){
   const w = parseFloat(document.getElementById('prWeight').value);
   const h = parseFloat(document.getElementById('prHeight').value);
   const start = document.getElementById('prStart').value;
-  const dose = parseFloat(document.getElementById('prDose').value);
   const day = parseInt(document.getElementById('prDay').value);
   if(!name){ alert2('Informe seu nome.'); return; }
   if(!w||w<30||w>300){ alert2('Peso inválido (30–300 kg).'); return; }
   if(!h||h<100||h>250){ alert2('Altura inválida (100–250 cm).'); return; }
   if(!start){ alert2('Informe a data de início.'); return; }
-  S.profile = { ...S.profile, name, birthDate:birth, sex, weightKg:w, heightCm:h, startDate:start, weekDay:day, currentDoseMg:dose };
+  S.profile = { ...S.profile, name, birthDate:birth, sex, weightKg:w, heightCm:h, startDate:start, weekDay:day };
   save();
   closeModal('mo-profile');
   renderAll();
@@ -1795,7 +1804,7 @@ function renderProfileSummary(){
       <div class="stat"><div class="stat-v">${p.weightKg||'–'} kg</div><div class="stat-l">Peso inicial</div></div>
       <div class="stat"><div class="stat-v">${imc}</div><div class="stat-l">IMC inicial</div></div>
       <div class="stat"><div class="stat-v">${fmtD(p.startDate)}</div><div class="stat-l">Início</div></div>
-      <div class="stat"><div class="stat-v">${p.currentDoseMg} mg</div><div class="stat-l">Dose atual</div></div>
+      <div class="stat"><div class="stat-v">${getLastDose()||'–'} mg</div><div class="stat-l">Dose atual</div></div>
     </div>
     <p class="t-m" style="font-size:12px;margin-top:6px">Dia de aplicação: <strong>${DAYS_PT[p.weekDay]}</strong></p>`;
 }
@@ -2148,6 +2157,9 @@ function renderApp(){
       </div>
       <button class="btn btn-p btn-w" style="margin-top:12px" onclick="openApplyModal()">Registrar aplicação</button>
     </div>`;
+
+  // Dose evolution chart
+  renderDoseChart();
 
   // Escalation timeline
   renderTimeline();
@@ -2627,6 +2639,100 @@ function closeChartFullscreen() {
   document.body.style.overflow = '';
 }
 
+/* ===== DOSE CHART ===== */
+let doseChart = null;
+let doseChartFs = null;
+
+function _buildDoseChartConfig(apps, c) {
+  const sorted = [...apps].sort((a,b) => a.date.localeCompare(b.date));
+  const labels = sorted.map(a => fmtD(a.date));
+  const data   = sorted.map(a => a.doseMg);
+  return {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Dose (mg)',
+        data,
+        borderColor: c.appColor,
+        backgroundColor: c.appColor + '22',
+        fill: true,
+        tension: 0,
+        stepped: 'before',
+        borderWidth: 2.5,
+        pointBackgroundColor: c.appColor,
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointBorderColor: c.isDark ? '#161410' : '#fff',
+        pointBorderWidth: 2,
+        spanGaps: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: c.bgCard,
+          titleColor: c.fgCard,
+          bodyColor: c.fgM,
+          borderColor: c.bdCard,
+          borderWidth: 1,
+          padding: 12,
+          callbacks: {
+            label: ctx => `💉 ${ctx.parsed.y} mg`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: c.gridColor }, ticks: { color: c.tickColor, font: { size: 11 }, maxTicksLimit: 7, maxRotation: 30 } },
+        y: {
+          grid: { color: c.gridColor },
+          ticks: { color: c.tickColor, font: { size: 11 }, callback: v => v + ' mg' },
+          min: 0, max: 17,
+          afterBuildTicks(axis) { axis.ticks = [2.5,5,7.5,10,12.5,15].map(v=>({value:v})); }
+        }
+      }
+    }
+  };
+}
+
+function renderDoseChart() {
+  const apps   = S.applications || [];
+  const card   = document.getElementById('app-dose-chart-card');
+  const canvas = document.getElementById('doseChart');
+  const empty  = document.getElementById('doseChartEmpty');
+  if (!card) return;
+  if (apps.length < 1) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  if (apps.length < 2) { canvas.hidden = true; empty.style.display = 'flex'; if(doseChart){doseChart.destroy();doseChart=null;} return; }
+  canvas.hidden = false; empty.style.display = 'none';
+  if (doseChart) doseChart.destroy();
+  doseChart = new Chart(canvas, _buildDoseChartConfig(apps, _chartColors()));
+}
+
+function openDoseChartFullscreen() {
+  const apps = S.applications || [];
+  if (apps.length < 2) { showToast('Registre mais aplicações para expandir.'); return; }
+  const mo = document.getElementById('mo-dose-chart-fs');
+  mo.hidden = false;
+  document.body.style.overflow = 'hidden';
+  const c = _chartColors();
+  if (doseChartFs) doseChartFs.destroy();
+  doseChartFs = new Chart(document.getElementById('doseChartFs'), _buildDoseChartConfig(apps, c));
+  const sorted = [...apps].sort((a,b) => a.date.localeCompare(b.date));
+  const first = sorted[0].doseMg, last = sorted[sorted.length-1].doseMg;
+  document.getElementById('dose-chart-fs-info').textContent =
+    `${apps.length} aplicações · dose inicial ${first} mg → atual ${last} mg`;
+}
+
+function closeDoseChartFullscreen() {
+  document.getElementById('mo-dose-chart-fs').hidden = true;
+  document.body.style.overflow = '';
+  if (doseChartFs) { doseChartFs.destroy(); doseChartFs = null; }
+}
+
 function renderChart(){
   renderProg();
   const weights = [...S.weights].sort((a,b)=>a.date<b.date?-1:1);
@@ -3102,9 +3208,15 @@ function doReset(){
   location.reload();
 }
 
+/* ===== DOSE HELPER ===== */
+function getLastDose() {
+  const last = [...S.applications].sort((a,b) => b.date.localeCompare(a.date) || (b.time||'').localeCompare(a.time||''))[0];
+  return last ? last.doseMg : (S.profile.currentDoseMg || null);
+}
+
 /* ===== RENDER ALL ===== */
 function renderAll(){
-  const dose = S.profile.currentDoseMg;
+  const dose = getLastDose();
   document.getElementById('hdrDose').textContent = dose ? dose + ' mg' : '–';
   renderInicio();
   renderApp();
@@ -3785,10 +3897,18 @@ function generateShareCard() {
 
   // ── Bottom stats bar: semanas · aplicações · dose ──
   const statsY = 830;
+  const sortedAppsCard = [...apps].sort((a,b) => a.date.localeCompare(b.date));
+  const firstDoseCard  = sortedAppsCard.length ? sortedAppsCard[0].doseMg : null;
+  const curDoseCard    = getLastDose();
+  const doseProgression = firstDoseCard && curDoseCard && firstDoseCard !== curDoseCard;
   const sBars = [
-    { val: weeks + '', label: 'semanas' },
-    { val: apps.length + '', label: 'aplicações' },
-    { val: p.currentDoseMg ? p.currentDoseMg + ' mg' : '—', label: 'dose atual' }
+    { val: weeks + '', label: 'semanas', sub: null },
+    { val: apps.length + '', label: 'aplicações', sub: null },
+    {
+      val: curDoseCard ? curDoseCard + ' mg' : '—',
+      label: 'dose atual',
+      sub: doseProgression ? 'inicial: ' + firstDoseCard + ' mg' : null
+    }
   ];
   const sbW = (W - 120 - 40) / 3;
   sBars.forEach((s, i) => {
@@ -3798,10 +3918,15 @@ function generateShareCard() {
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 48px Georgia, serif';
     ctx.textAlign = 'center';
-    ctx.fillText(s.val, sx + sbW/2, statsY + 70);
+    ctx.fillText(s.val, sx + sbW/2, statsY + (s.sub ? 56 : 70));
     ctx.fillStyle = 'rgba(255,255,255,0.55)';
     ctx.font = '400 24px system-ui, sans-serif';
-    ctx.fillText(s.label, sx + sbW/2, statsY + 104);
+    ctx.fillText(s.label, sx + sbW/2, statsY + (s.sub ? 86 : 104));
+    if (s.sub) {
+      ctx.fillStyle = 'rgba(125,232,164,0.75)';
+      ctx.font = '400 20px system-ui, sans-serif';
+      ctx.fillText(s.sub, sx + sbW/2, statsY + 110);
+    }
   });
 
   // ── Date & watermark ──
