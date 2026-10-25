@@ -956,7 +956,11 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 
         <!-- CONTA & BACKUP NA NUVEM -->
         <div class="card" id="auth-card">
-          <div class="card-title">☁️ Conta &amp; Sync entre dispositivos</div>
+          <button onclick="togglePerfilSection('auth')" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:16px;font-weight:600;font-family:var(--f);-webkit-tap-highlight-color:transparent">
+            <span>☁️ Conta &amp; Sync entre dispositivos</span>
+            <span id="pfil-arrow-auth" style="color:var(--ac);font-size:18px;transition:transform .2s">▸</span>
+          </button>
+          <div id="pfil-body-auth" hidden>
           <div id="auth-signed-out">
             <p class="t-m" style="margin-bottom:16px">Sincronize seus dados em todos os dispositivos com sua conta Google.</p>
             <button onclick="signInWithGoogle()" class="btn-google">
@@ -978,6 +982,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
               <button class="btn btn-g btn-sm" style="flex:1" onclick="authSignOut(this)">Sair da conta</button>
             </div>
           </div>
+          </div><!-- /pfil-body-auth -->
         </div>
 
         <!-- COMPARTILHAR EVOLUÇÃO -->
@@ -994,7 +999,11 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 
         <!-- NOTIFICAÇÕES -->
         <div class="card" style="margin-top:4px">
-          <div class="card-title">🔔 Lembretes &amp; Avisos</div>
+          <button onclick="togglePerfilSection('notif')" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:16px;font-weight:600;font-family:var(--f);-webkit-tap-highlight-color:transparent">
+            <span>🔔 Lembretes &amp; Avisos</span>
+            <span id="pfil-arrow-notif" style="color:var(--ac);font-size:18px;transition:transform .2s">▸</span>
+          </button>
+          <div id="pfil-body-notif" hidden style="margin-top:14px">
           <p class="t-m" style="margin-bottom:12px">Ative para receber lembretes de hidratação e aviso no dia da aplicação.</p>
           <div id="notif-status" style="margin-bottom:10px"></div>
           <div style="display:flex;flex-direction:column;gap:8px">
@@ -1010,18 +1019,28 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
               </label>
             </div>
           </div>
+          </div><!-- /pfil-body-notif -->
         </div>
 
         <!-- BETA UPDATE -->
         <div class="card" style="margin-top:4px">
-          <div class="card-title">🔄 Atualizar App <span style="font-size:15px;font-weight:700;background:var(--ac-lt);color:var(--ac);padding:2px 7px;border-radius:99px;vertical-align:middle;margin-left:4px">BETA</span></div>
+          <button onclick="togglePerfilSection('beta')" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:16px;font-weight:600;font-family:var(--f);-webkit-tap-highlight-color:transparent">
+            <span>🔄 Atualizar App <span style="font-size:13px;font-weight:700;background:var(--ac-lt);color:var(--ac);padding:2px 7px;border-radius:99px;vertical-align:middle;margin-left:4px">BETA</span></span>
+            <span id="pfil-arrow-beta" style="color:var(--ac);font-size:18px;transition:transform .2s;flex-shrink:0">▸</span>
+          </button>
+          <div id="pfil-body-beta" hidden style="margin-top:14px">
           <p class="t-m" style="margin-bottom:12px">Força o download da versão mais recente do app, limpando o cache do navegador. Use quando o desenvolvedor avisar que há uma nova versão disponível.</p>
           <button class="btn btn-p btn-w" id="btn-force-update" onclick="forceAppUpdate()">🔄 Buscar nova versão</button>
+          </div><!-- /pfil-body-beta -->
         </div>
 
         <!-- FEEDBACK -->
         <div class="card" style="margin-top:4px">
-          <div class="card-title">💬 Enviar Feedback</div>
+          <button onclick="togglePerfilSection('feedback')" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:16px;font-weight:600;font-family:var(--f);-webkit-tap-highlight-color:transparent">
+            <span>💬 Enviar Feedback</span>
+            <span id="pfil-arrow-feedback" style="color:var(--ac);font-size:18px;transition:transform .2s">▸</span>
+          </button>
+          <div id="pfil-body-feedback" hidden style="margin-top:14px">
           <p class="t-m" style="margin-bottom:12px">Sugestões, problemas ou dúvidas? Seu feedback chega diretamente ao desenvolvedor.</p>
           <form id="feedback-form" onsubmit="submitFeedback(event)">
             <div class="fg">
@@ -1035,6 +1054,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
             <button class="btn btn-p btn-w" type="submit" id="fb-btn">Enviar feedback</button>
             <div id="fb-result" style="margin-top:8px"></div>
           </form>
+          </div><!-- /pfil-body-feedback -->
         </div>
 
         <!-- INFORMAÇÕES MÉDICAS (colapsável) -->
@@ -1101,14 +1121,23 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         </div>
 
         <div class="card">
-          <div class="card-title">Avisos legais</div>
+          <button onclick="togglePerfilSection('legal')" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:16px;font-weight:600;font-family:var(--f);-webkit-tap-highlight-color:transparent">
+            <span>⚖️ Avisos legais</span>
+            <span id="pfil-arrow-legal" style="color:var(--ac);font-size:18px;transition:transform .2s">▸</span>
+          </button>
+          <div id="pfil-body-legal" hidden style="margin-top:14px">
           <p class="t-m">Este aplicativo é uma ferramenta auxiliar de acompanhamento pessoal e NÃO substitui o acompanhamento médico. Informações baseadas na bula Mounjaro (Eli Lilly, 2025), bula EMA e revisão acadêmica Univ. Florença (2024).</p>
+          </div><!-- /pfil-body-legal -->
         </div>
         <div class="card" style="margin-top:4px" hidden>
           <div id="profile-summary"></div>
         </div>
         <div class="card" style="margin-top:4px">
-          <div class="card-title">Dados de Demonstração</div>
+          <button onclick="togglePerfilSection('demo')" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:16px;font-weight:600;font-family:var(--f);-webkit-tap-highlight-color:transparent">
+            <span>🗄️ Dados de Demonstração</span>
+            <span id="pfil-arrow-demo" style="color:var(--ac);font-size:18px;transition:transform .2s">▸</span>
+          </button>
+          <div id="pfil-body-demo" hidden style="margin-top:14px">
           <p class="t-m" style="margin-bottom:12px">Carrega uma base de teste completa: início em 26/03/2026, 136 kg / 173 cm, 30 semanas de aplicações semanais com rodízio, histórico de peso e registros de dieta. Substitui os dados atuais.</p>
           <button class="btn btn-o btn-w" onclick="confirmSeed()">Carregar base de demonstração</button>
           <div id="seedConfirm" hidden style="margin-top:10px">
@@ -1118,6 +1147,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
               <button class="btn btn-p btn-sm" onclick="doSeedDemo()">Confirmar e carregar</button>
             </div>
           </div>
+          </div><!-- /pfil-body-demo -->
         </div>
         <div style="margin-top:4px">
           <button class="btn btn-d btn-sm" onclick="confirmReset()">Redefinir dados do app</button>
@@ -4056,6 +4086,13 @@ function toggleMedInfo() {
   if (!content) return;
   content.hidden = !content.hidden;
   if (arrow) arrow.style.transform = content.hidden ? '' : 'rotate(90deg)';
+}
+function togglePerfilSection(id) {
+  const body = document.getElementById('pfil-body-' + id);
+  const arrow = document.getElementById('pfil-arrow-' + id);
+  if (!body) return;
+  body.hidden = !body.hidden;
+  if (arrow) arrow.style.transform = body.hidden ? '' : 'rotate(90deg)';
 }
 
 /* ===== SHARE CARD (Canvas) ===== */
