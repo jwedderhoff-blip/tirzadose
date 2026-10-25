@@ -1377,19 +1377,26 @@ async function loadFromCloud() {
       .select('data')
       .eq('user_id', sbUser.id)
       .maybeSingle();
-    // Valida que o dado do cloud é um estado TirzaDose real (tem profile e applications)
     const cloudData = data?.data;
     const isValidCloudData = cloudData && cloudData.profile !== undefined && cloudData.applications !== undefined;
     if (isValidCloudData) {
-      const { _deviceId: _d, ...cloudState } = cloudData;
-      S = { ...DEFAULT_STATE, ...cloudState };
-      try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+      const localTs  = S.updatedAt  || 0;
+      const cloudTs  = cloudData.updatedAt || 0;
+      if (cloudTs >= localTs) {
+        // Nuvem é mais recente (ou igual) — usa nuvem
+        const { _deviceId: _d, ...cloudState } = cloudData;
+        S = { ...DEFAULT_STATE, ...cloudState };
+        try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+      } else {
+        // Local é mais recente — sobe dados locais para a nuvem
+        await syncToCloud();
+      }
     } else {
       // Nenhum dado válido na nuvem — faz upload dos dados locais
       await syncToCloud();
     }
   } catch(e) {
-    // Em caso de falha de rede, tenta subir dados locais
+    // Em caso de falha de rede, mantém dados locais
     try { await syncToCloud(); } catch(_) {}
   }
 }
@@ -1464,6 +1471,7 @@ function load() {
   try { const r = localStorage.getItem(DB); if(r) S = JSON.parse(r); } catch{}
 }
 function save() {
+  S.updatedAt = Date.now();
   try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
   scheduleSyncToCloud();
 }
