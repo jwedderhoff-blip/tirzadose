@@ -465,6 +465,10 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 /* Garante que [hidden] funciona mesmo com display inline */
 [hidden] { display: none !important; }
 
+/* === SUB-TABS (dentro de abas) === */
+.app-sub-tab { flex:1; padding:11px 8px; border:1.5px solid var(--border); border-radius:12px; background:var(--bg-card); color:var(--fg-m); font-size:15px; font-weight:600; cursor:pointer; font-family:var(--f); transition:background .15s, border-color .15s, color .15s; -webkit-tap-highlight-color:transparent; }
+.app-sub-tab.active { background:var(--ac); border-color:var(--ac); color:#fff; }
+
 /* === LEGIBILIDADE MOBILE — escala mínima de texto === */
 /* Muda valores px explícitos pequenos para leitura confortável sem zoom */
 .nb               { font-size: 13px; }
@@ -729,115 +733,131 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         </div>
       </div>
       <div class="inner">
-        <div class="sec-title">
-          Próxima Aplicação
-          <button class="btn btn-p btn-sm" onclick="openApplyModal()">+ Registrar</button>
+
+        <!-- SUB-TABS -->
+        <div style="display:flex;gap:8px;margin-bottom:18px">
+          <button class="app-sub-tab active" id="apptab-app" onclick="switchAppTab('app')">💉 Aplicações</button>
+          <button class="app-sub-tab" id="apptab-proto" onclick="switchAppTab('proto')">📋 Protocolo</button>
         </div>
-        <div id="next-app-card"></div>
-        <div class="divider"></div>
-        <div class="sec-title">Protocolo de Escalonamento</div>
-        <div class="card"><div class="tl" id="tl-container"></div></div>
-        <div class="divider"></div>
-        <div class="sec-title">Calculadora de Dose</div>
-        <div class="card">
-          <div class="callout warn"><span class="ci">⚠</span><span>Cálculo auxiliar. Valide sempre com seu médico ou farmacêutico.</span></div>
-          <div class="fg">
-            <label class="fl">Concentração oficial do frasco</label>
-            <select class="fs" id="calcPreset" onchange="calcApplyPreset()">
-              <option value="">Selecionar frasco oficial…</option>
-              <option value="5">2,5 mg / 0,5 mL → 5 mg/mL</option>
-              <option value="10">5 mg / 0,5 mL → 10 mg/mL</option>
-              <option value="15">7,5 mg / 0,5 mL → 15 mg/mL</option>
-              <option value="20">10 mg / 0,5 mL → 20 mg/mL</option>
-              <option value="25">12,5 mg / 0,5 mL → 25 mg/mL</option>
-              <option value="30">15 mg / 0,5 mL → 30 mg/mL</option>
-              <option value="custom">Concentração personalizada (manipulado)</option>
-            </select>
+
+        <!-- ── SUB-TAB: APLICAÇÕES ── -->
+        <div id="appsubtab-app">
+          <div class="sec-title">
+            Próxima Aplicação
+            <button class="btn btn-p btn-sm" onclick="openApplyModal()">+ Registrar</button>
           </div>
-          <div class="fg" id="calcCustomWrap" style="display:none">
-            <label class="fl">Concentração real (mg/mL)</label>
-            <input class="fi" id="calcConc" type="number" min="0.1" max="200" step="0.1" placeholder="Ex: 20" oninput="calcUpdate()">
-            <p class="fh">Atenção: rótulos informam mg/0,5 mL. Divida por 0,5 para obter mg/mL.</p>
-          </div>
-          <div class="fg">
-            <label class="fl">Dose prescrita (mg)</label>
-            <select class="fs" id="calcDose" onchange="calcUpdate()">
-              <option value="">Selecionar dose…</option>
-              <option value="2.5">2,5 mg</option>
-              <option value="5">5 mg</option>
-              <option value="7.5">7,5 mg</option>
-              <option value="10">10 mg</option>
-              <option value="12.5">12,5 mg</option>
-              <option value="15">15 mg</option>
-            </select>
-          </div>
-          <div id="calcResult" hidden>
-            <div class="calc-out">
-              <div class="calc-val" id="calcMl">–</div>
-              <div class="calc-lbl">mililitros a aspirar</div>
+          <div id="next-app-card"></div>
+          <div class="divider"></div>
+          <div class="sec-title">Calculadora de Dose</div>
+          <div class="card">
+            <div class="callout warn"><span class="ci">⚠</span><span>Cálculo auxiliar. Valide sempre com seu médico ou farmacêutico.</span></div>
+            <div class="fg">
+              <label class="fl">Concentração oficial do frasco</label>
+              <select class="fs" id="calcPreset" onchange="calcApplyPreset()">
+                <option value="">Selecionar frasco oficial…</option>
+                <option value="5">2,5 mg / 0,5 mL → 5 mg/mL</option>
+                <option value="10">5 mg / 0,5 mL → 10 mg/mL</option>
+                <option value="15">7,5 mg / 0,5 mL → 15 mg/mL</option>
+                <option value="20">10 mg / 0,5 mL → 20 mg/mL</option>
+                <option value="25">12,5 mg / 0,5 mL → 25 mg/mL</option>
+                <option value="30">15 mg / 0,5 mL → 30 mg/mL</option>
+                <option value="custom">Concentração personalizada (manipulado)</option>
+              </select>
             </div>
-            <div class="calc-grid">
-              <div class="calc-item">
-                <div class="cv" id="calcUI">–</div>
-                <div class="cl">Unidades UI (seringa U-100)</div>
-              </div>
-              <div class="calc-item">
-                <div class="cv" id="calcConcentration">–</div>
-                <div class="cl">mg/mL (concentração real)</div>
-              </div>
+            <div class="fg" id="calcCustomWrap" style="display:none">
+              <label class="fl">Concentração real (mg/mL)</label>
+              <input class="fi" id="calcConc" type="number" min="0.1" max="200" step="0.1" placeholder="Ex: 20" oninput="calcUpdate()">
+              <p class="fh">Atenção: rótulos informam mg/0,5 mL. Divida por 0,5 para obter mg/mL.</p>
             </div>
-            <div class="callout info" style="margin-top:12px"><span class="ci">ℹ</span><span>Fórmula: <strong>Volume(mL) = Dose(mg) ÷ Conc(mg/mL)</strong>. UI = Volume × 100.</span></div>
-            <button class="btn btn-p btn-w" style="margin-top:14px" onclick="openQuickApply()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-              Registrar aplicação desta dose
+            <div class="fg">
+              <label class="fl">Dose prescrita (mg)</label>
+              <select class="fs" id="calcDose" onchange="calcUpdate()">
+                <option value="">Selecionar dose…</option>
+                <option value="2.5">2,5 mg</option>
+                <option value="5">5 mg</option>
+                <option value="7.5">7,5 mg</option>
+                <option value="10">10 mg</option>
+                <option value="12.5">12,5 mg</option>
+                <option value="15">15 mg</option>
+              </select>
+            </div>
+            <div id="calcResult" hidden>
+              <div class="calc-out">
+                <div class="calc-val" id="calcMl">–</div>
+                <div class="calc-lbl">mililitros a aspirar</div>
+              </div>
+              <div class="calc-grid">
+                <div class="calc-item">
+                  <div class="cv" id="calcUI">–</div>
+                  <div class="cl">Unidades UI (seringa U-100)</div>
+                </div>
+                <div class="calc-item">
+                  <div class="cv" id="calcConcentration">–</div>
+                  <div class="cl">mg/mL (concentração real)</div>
+                </div>
+              </div>
+              <div class="callout info" style="margin-top:12px"><span class="ci">ℹ</span><span>Fórmula: <strong>Volume(mL) = Dose(mg) ÷ Conc(mg/mL)</strong>. UI = Volume × 100.</span></div>
+              <button class="btn btn-p btn-w" style="margin-top:14px" onclick="openQuickApply()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                Registrar aplicação desta dose
+              </button>
+            </div>
+          </div>
+          <div class="card" style="padding-bottom:4px">
+            <button onclick="toggleRefTable(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;font-family:var(--f);padding:0 0 12px" aria-expanded="false">
+              <span class="card-title" style="margin-bottom:0;font-size:15px">Tabela de Referência — Frascos Oficiais</span>
+              <span id="ref-table-chevron" style="font-size:18px;color:var(--fg-m);transition:transform .2s">▾</span>
             </button>
-          </div>
-        </div>
-        <div class="card" style="padding-bottom:4px">
-          <button onclick="toggleRefTable(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;font-family:var(--f);padding:0 0 12px" aria-expanded="false">
-            <span class="card-title" style="margin-bottom:0;font-size:15px">Tabela de Referência — Frascos Oficiais</span>
-            <span id="ref-table-chevron" style="font-size:18px;color:var(--fg-m);transition:transform .2s">▾</span>
-          </button>
-          <div id="ref-table-body" style="display:none">
-            <p class="t-m" style="margin-bottom:10px">Cada frasco é manipulado em concentração específica para que 0,5 mL entregue exatamente a dose indicada. O volume a aspirar é sempre 0,50 mL — troque o frasco, não a seringa.</p>
-            <div class="tw">
-              <table class="rt">
-                <thead><tr><th>Frasco</th><th>Volume</th><th>Conc. real</th><th>Para dose</th><th>Volume a aspirar</th><th>UI (U-100)</th></tr></thead>
-                <tbody>
-                  <tr><td><span class="tag">2,5 mg</span></td><td>0,5 mL</td><td>5 mg/mL</td><td>2,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                  <tr><td><span class="tag">5 mg</span></td><td>0,5 mL</td><td>10 mg/mL</td><td>5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                  <tr><td><span class="tag">7,5 mg</span></td><td>0,5 mL</td><td>15 mg/mL</td><td>7,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                  <tr><td><span class="tag">10 mg</span></td><td>0,5 mL</td><td>20 mg/mL</td><td>10 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                  <tr><td><span class="tag">12,5 mg</span></td><td>0,5 mL</td><td>25 mg/mL</td><td>12,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                  <tr><td><span class="tag max">15 mg</span></td><td>0,5 mL</td><td>30 mg/mL</td><td>15 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                </tbody>
-              </table>
+            <div id="ref-table-body" style="display:none">
+              <p class="t-m" style="margin-bottom:10px">Cada frasco é manipulado em concentração específica para que 0,5 mL entregue exatamente a dose indicada. O volume a aspirar é sempre 0,50 mL — troque o frasco, não a seringa.</p>
+              <div class="tw">
+                <table class="rt">
+                  <thead><tr><th>Frasco</th><th>Volume</th><th>Conc. real</th><th>Para dose</th><th>Volume a aspirar</th><th>UI (U-100)</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="tag">2,5 mg</span></td><td>0,5 mL</td><td>5 mg/mL</td><td>2,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                    <tr><td><span class="tag">5 mg</span></td><td>0,5 mL</td><td>10 mg/mL</td><td>5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                    <tr><td><span class="tag">7,5 mg</span></td><td>0,5 mL</td><td>15 mg/mL</td><td>7,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                    <tr><td><span class="tag">10 mg</span></td><td>0,5 mL</td><td>20 mg/mL</td><td>10 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                    <tr><td><span class="tag">12,5 mg</span></td><td>0,5 mL</td><td>25 mg/mL</td><td>12,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                    <tr><td><span class="tag max">15 mg</span></td><td>0,5 mL</td><td>30 mg/mL</td><td>15 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="t-m" style="margin-top:8px;padding-bottom:8px">* Para canetas de dose única, a dose é pré-carregada: sem cálculo necessário.</p>
             </div>
-            <p class="t-m" style="margin-top:8px;padding-bottom:8px">* Para canetas de dose única, a dose é pré-carregada: sem cálculo necessário.</p>
+          </div>
+          <div class="divider"></div>
+          <div class="sec-title" style="cursor:pointer;user-select:none" onclick="toggleAppHistory(this)" id="app-history-header" aria-expanded="false">
+            <span>Histórico de Aplicações</span>
+            <span id="app-history-chevron" style="color:var(--ac);font-size:16px;transition:transform .2s">▸</span>
+          </div>
+          <div id="app-history-wrap" style="display:none">
+            <div class="card" id="app-history">
+              <div class="empty"><div class="empty-t">Nenhuma aplicação registrada</div><div class="empty-s">Toque em "+ Registrar" para adicionar sua primeira aplicação.</div></div>
+            </div>
           </div>
         </div>
-        <div class="divider"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between" class="sec-title">Protocolo Ativo <button onclick="openProtocolModal()" style="font-size:16px;padding:5px 14px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--ac);cursor:pointer;font-family:var(--f);font-weight:600">Alterar</button></div>
-        <div class="card" id="app-protocol-card"><div id="app-protocol-info" class="t-m">–</div></div>
-        <div class="divider"></div>
-        <div class="card" id="app-dose-chart-card" style="display:none">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div class="card-title" style="margin-bottom:0">Evolução da Dose</div>
-            <button onclick="openDoseChartFullscreen()" title="Expandir" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:5px 10px;font-size:15px;cursor:pointer;font-family:var(--f)">⤢</button>
+
+        <!-- ── SUB-TAB: PROTOCOLO ── -->
+        <div id="appsubtab-proto" hidden>
+          <div style="display:flex;align-items:center;justify-content:space-between" class="sec-title">
+            Protocolo Ativo
+            <button onclick="openProtocolModal()" style="font-size:16px;padding:5px 14px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--ac);cursor:pointer;font-family:var(--f);font-weight:600">Alterar</button>
           </div>
-          <div style="position:relative;height:180px"><canvas id="doseChart"></canvas></div>
-          <div id="doseChartEmpty" style="display:none;height:180px;align-items:center;justify-content:center;color:var(--fg-m);font-size:15px">Sem aplicações registradas</div>
-        </div>
-        <div class="divider"></div>
-        <div class="sec-title" style="cursor:pointer;user-select:none" onclick="toggleAppHistory(this)" id="app-history-header" aria-expanded="false">
-          <span>Histórico de Aplicações</span>
-          <span id="app-history-chevron" style="color:var(--ac);font-size:16px;transition:transform .2s">▸</span>
-        </div>
-        <div id="app-history-wrap" style="display:none">
-          <div class="card" id="app-history">
-            <div class="empty"><div class="empty-t">Nenhuma aplicação registrada</div><div class="empty-s">Toque em "+ Registrar" para adicionar sua primeira aplicação.</div></div>
+          <div class="card" id="app-protocol-card"><div id="app-protocol-info" class="t-m">–</div></div>
+          <div class="card" id="app-dose-chart-card" style="display:none">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div class="card-title" style="margin-bottom:0">Evolução da Dose</div>
+              <button onclick="openDoseChartFullscreen()" title="Expandir" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:5px 10px;font-size:15px;cursor:pointer;font-family:var(--f)">⤢</button>
+            </div>
+            <div style="position:relative;height:180px"><canvas id="doseChart"></canvas></div>
+            <div id="doseChartEmpty" style="display:none;height:180px;align-items:center;justify-content:center;color:var(--fg-m);font-size:15px">Sem aplicações registradas</div>
           </div>
+          <div class="divider"></div>
+          <div class="sec-title">Protocolo de Escalonamento</div>
+          <div class="card"><div class="tl" id="tl-container"></div></div>
         </div>
+
       </div>
     </div>
 
@@ -3974,6 +3994,16 @@ function renderPerfilTab() {
     ps.innerHTML = `<div style="font-size:16px"><strong>${p.name}</strong><br>
       <span class="t-m">${p.weightKg ? p.weightKg + ' kg' : ''} ${p.heightCm ? '· ' + p.heightCm + ' cm' : ''} ${p.currentDoseMg ? '· ' + p.currentDoseMg + ' mg' : ''}</span></div>`;
   }
+}
+
+/* ===== SUB-TABS (aba Aplicações) ===== */
+function switchAppTab(tab) {
+  ['app', 'proto'].forEach(t => {
+    const btn = document.getElementById('apptab-' + t);
+    const panel = document.getElementById('appsubtab-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (panel) panel.hidden = t !== tab;
+  });
 }
 
 /* ===== COLLAPSIBLE APP HISTORY ===== */
