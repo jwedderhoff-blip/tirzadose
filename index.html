@@ -755,22 +755,28 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
             </button>
           </div>
         </div>
-        <div class="card">
-          <div class="card-title">Tabela de Referência — Frascos Oficiais</div>
-          <div class="tw">
-            <table class="rt">
-              <thead><tr><th>Frasco</th><th>Volume</th><th>Conc. real</th><th>Para dose</th><th>Volume a aspirar</th><th>UI (U-100)</th></tr></thead>
-              <tbody>
-                <tr><td><span class="tag">2,5 mg</span></td><td>0,5 mL</td><td>5 mg/mL</td><td>2,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                <tr><td><span class="tag">5 mg</span></td><td>0,5 mL</td><td>10 mg/mL</td><td>5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                <tr><td><span class="tag">7,5 mg</span></td><td>0,5 mL</td><td>15 mg/mL</td><td>7,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                <tr><td><span class="tag">10 mg</span></td><td>0,5 mL</td><td>20 mg/mL</td><td>10 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                <tr><td><span class="tag">12,5 mg</span></td><td>0,5 mL</td><td>25 mg/mL</td><td>12,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-                <tr><td><span class="tag max">15 mg</span></td><td>0,5 mL</td><td>30 mg/mL</td><td>15 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
-              </tbody>
-            </table>
+        <div class="card" style="padding-bottom:4px">
+          <button onclick="toggleRefTable(this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;font-family:var(--f);padding:0 0 12px" aria-expanded="false">
+            <span class="card-title" style="margin-bottom:0;font-size:15px">Tabela de Referência — Frascos Oficiais</span>
+            <span id="ref-table-chevron" style="font-size:18px;color:var(--fg-m);transition:transform .2s">▾</span>
+          </button>
+          <div id="ref-table-body" style="display:none">
+            <p class="t-m" style="margin-bottom:10px">Cada frasco é manipulado em concentração específica para que 0,5 mL entregue exatamente a dose indicada. O volume a aspirar é sempre 0,50 mL — troque o frasco, não a seringa.</p>
+            <div class="tw">
+              <table class="rt">
+                <thead><tr><th>Frasco</th><th>Volume</th><th>Conc. real</th><th>Para dose</th><th>Volume a aspirar</th><th>UI (U-100)</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="tag">2,5 mg</span></td><td>0,5 mL</td><td>5 mg/mL</td><td>2,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                  <tr><td><span class="tag">5 mg</span></td><td>0,5 mL</td><td>10 mg/mL</td><td>5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                  <tr><td><span class="tag">7,5 mg</span></td><td>0,5 mL</td><td>15 mg/mL</td><td>7,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                  <tr><td><span class="tag">10 mg</span></td><td>0,5 mL</td><td>20 mg/mL</td><td>10 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                  <tr><td><span class="tag">12,5 mg</span></td><td>0,5 mL</td><td>25 mg/mL</td><td>12,5 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                  <tr><td><span class="tag max">15 mg</span></td><td>0,5 mL</td><td>30 mg/mL</td><td>15 mg</td><td>0,50 mL</td><td>50 UI</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="t-m" style="margin-top:8px;padding-bottom:8px">* Para canetas de dose única, a dose é pré-carregada: sem cálculo necessário.</p>
           </div>
-          <p class="t-m" style="margin-top:8px">* Para canetas de dose única, a dose é pré-carregada: sem cálculo necessário.</p>
         </div>
         <div class="divider"></div>
         <div style="display:flex;align-items:center;justify-content:space-between" class="sec-title">Protocolo Ativo <button onclick="openProtocolModal()" style="font-size:12px;padding:5px 14px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--ac);cursor:pointer;font-family:var(--f);font-weight:600">Alterar</button></div>
@@ -3289,6 +3295,16 @@ function saveQuickApply(){
   renderAll();
   goTab('app', document.getElementById('nb-app'));
   alert2('Aplicação registrada com sucesso!');
+}
+
+/* ===== COLLAPSIBLE REF TABLE ===== */
+function toggleRefTable(btn) {
+  const body = document.getElementById('ref-table-body');
+  const chevron = document.getElementById('ref-table-chevron');
+  const open = body.style.display === 'none';
+  body.style.display = open ? '' : 'none';
+  chevron.style.transform = open ? 'rotate(180deg)' : '';
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
 /* ===== CALCULATOR ===== */
