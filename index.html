@@ -377,6 +377,15 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 .tl-dose { font-size: 17px; font-weight: 600; }
 .tl-item.fut .tl-dose { color: var(--fg-m); }
 .tl-meta { font-size: 14px; color: var(--fg-m); }
+.tl-phase-sep { display: flex; align-items: center; gap: 8px; margin: 12px 0 8px 0; }
+.tl-phase-sep span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-m); opacity: .65; white-space: nowrap; }
+.tl-phase-sep::before, .tl-phase-sep::after { content:''; flex:1; height:1px; background:var(--border); }
+.tl-item.tl-reduce.cur .tl-dot { background: var(--warn); border-color: var(--warn); color: #fff; box-shadow: 0 0 0 4px var(--warn-lt); }
+.tl-item.tl-reduce .tl-dose { color: var(--warn); }
+.tl-item.tl-reduce.done .tl-dose { color: var(--fg); }
+.tl-item.tl-maint.cur .tl-dot { background: var(--ok); border-color: var(--ok); color: #fff; box-shadow: 0 0 0 4px var(--ok-lt); }
+.tl-item.tl-maint .tl-dose { color: var(--ok); }
+.tl-item.tl-maint.done .tl-dose { color: var(--fg); }
 
 /* === TABLES === */
 .tw { overflow-x: auto; }
@@ -2199,29 +2208,54 @@ function confirm2(msg, cb){
 function renderTimeline(){
   const startDate = S.profile.startDate;
   if(!startDate) return;
+  // Protocolo personalizado: escalonamento até 12,5 mg, depois regressão para manutenção em 5 mg
   const steps = [
-    {dose:'2.5 mg', weeks:'1–4', start:0, end:27},
-    {dose:'5 mg', weeks:'5–8', start:28, end:55},
-    {dose:'7.5 mg', weeks:'9–12', start:56, end:83},
-    {dose:'10 mg', weeks:'13–16', start:84, end:111},
-    {dose:'12.5 mg', weeks:'17–20', start:112, end:139},
-    {dose:'15 mg', weeks:'21+', start:140, end:9999},
+    {dose:'2.5 mg',  weeks:'1–4',   start:0,   end:27,   type:'up'},
+    {dose:'5 mg',    weeks:'5–8',   start:28,  end:55,   type:'up'},
+    {dose:'7.5 mg',  weeks:'9–12',  start:56,  end:83,   type:'up'},
+    {dose:'10 mg',   weeks:'13–16', start:84,  end:111,  type:'up'},
+    {dose:'12.5 mg', weeks:'17–20', start:112, end:139,  type:'peak'},
+    {dose:'10 mg',   weeks:'21–24', start:140, end:167,  type:'down'},
+    {dose:'7.5 mg',  weeks:'25–28', start:168, end:195,  type:'down'},
+    {dose:'5 mg',    weeks:'29+',   start:196, end:9999, type:'maint'},
   ];
   const daysSince = diffDays(startDate, today());
   const tl = document.getElementById('tl-container');
-  tl.innerHTML = steps.map((step, i) => {
+
+  const metaFor = (state, type) => {
+    if (state === 'done') return 'Concluído';
+    if (state === 'cur') {
+      if (type === 'peak')  return 'Dose máxima alcançada';
+      if (type === 'down')  return 'Reduzindo dose';
+      if (type === 'maint') return 'Manutenção';
+      return 'Dose atual (recomendada)';
+    }
+    if (type === 'down')  return 'Próxima: redução';
+    if (type === 'maint') return 'Meta: manutenção';
+    return 'Próxima etapa';
+  };
+
+  let html = '';
+  let reductionHeaderAdded = false;
+  steps.forEach(step => {
+    if (!reductionHeaderAdded && (step.type === 'down' || step.type === 'maint')) {
+      reductionHeaderAdded = true;
+      html += `<div class="tl-phase-sep"><span>Redução &amp; Manutenção</span></div>`;
+    }
     let state = 'fut';
-    if(daysSince > step.end) state = 'done';
-    else if(daysSince >= step.start) state = 'cur';
-    const icon = state==='done'?'✓':state==='cur'?'●':'';
-    return `<div class="tl-item ${state}">
+    if (daysSince > step.end) state = 'done';
+    else if (daysSince >= step.start) state = 'cur';
+    const icon = state === 'done' ? '✓' : state === 'cur' ? '●' : '';
+    const extraClass = (step.type === 'down') ? ' tl-reduce' : (step.type === 'maint') ? ' tl-maint' : '';
+    html += `<div class="tl-item ${state}${extraClass}">
       <div class="tl-dot">${icon}</div>
       <div class="tl-body">
         <div class="tl-dose">${step.dose} <span style="font-weight:400;font-size:13px;color:var(--fg-m)">· Semanas ${step.weeks}</span></div>
-        <div class="tl-meta">${state==='done'?'Concluído':state==='cur'?'Dose atual (recomendada)':'Próxima etapa'}</div>
+        <div class="tl-meta">${metaFor(state, step.type)}</div>
       </div>
     </div>`;
-  }).join('');
+  });
+  tl.innerHTML = html;
 }
 
 /* ===== RENDER PROGRESSO ===== */
