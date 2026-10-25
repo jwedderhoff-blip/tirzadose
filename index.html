@@ -791,9 +791,14 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           <div id="doseChartEmpty" style="display:none;height:180px;align-items:center;justify-content:center;color:var(--fg-m);font-size:13px">Sem aplicações registradas</div>
         </div>
         <div class="divider"></div>
-        <div class="sec-title">Histórico de Aplicações</div>
-        <div class="card" id="app-history">
-          <div class="empty"><div class="empty-t">Nenhuma aplicação registrada</div><div class="empty-s">Toque em "+ Registrar" para adicionar sua primeira aplicação.</div></div>
+        <div class="sec-title" style="cursor:pointer;user-select:none" onclick="toggleAppHistory(this)" id="app-history-header" aria-expanded="false">
+          <span>Histórico de Aplicações</span>
+          <span id="app-history-chevron" style="color:var(--ac);font-size:16px;transition:transform .2s">▸</span>
+        </div>
+        <div id="app-history-wrap" style="display:none">
+          <div class="card" id="app-history">
+            <div class="empty"><div class="empty-t">Nenhuma aplicação registrada</div><div class="empty-s">Toque em "+ Registrar" para adicionar sua primeira aplicação.</div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -3931,6 +3936,17 @@ function renderPerfilTab() {
     ps.innerHTML = `<div style="font-size:14px"><strong>${p.name}</strong><br>
       <span class="t-m">${p.weightKg ? p.weightKg + ' kg' : ''} ${p.heightCm ? '· ' + p.heightCm + ' cm' : ''} ${p.currentDoseMg ? '· ' + p.currentDoseMg + ' mg' : ''}</span></div>`;
   }
+}
+
+/* ===== COLLAPSIBLE APP HISTORY ===== */
+function toggleAppHistory(header) {
+  const wrap = document.getElementById('app-history-wrap');
+  const chevron = document.getElementById('app-history-chevron');
+  if (!wrap) return;
+  const open = wrap.style.display === 'none';
+  wrap.style.display = open ? '' : 'none';
+  if (chevron) chevron.style.transform = open ? 'rotate(90deg)' : '';
+  if (header) header.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
 /* ===== COLLAPSIBLE PESO × APLICAÇÕES ===== */
