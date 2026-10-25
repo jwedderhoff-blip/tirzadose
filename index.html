@@ -1319,6 +1319,7 @@ async function syncToCloud() {
     clearTimeout(t);
     if (result && result.error) throw result.error;
     _syncRetries = 0;
+    try { localStorage.removeItem(DB + '_dirty'); } catch{} // clear pending flag
     _setSyncStatus('✓ Sincronizado', 'ok');
     // if data changed during this sync, sync again immediately
     if (_syncDirty) { _syncDirty = false; scheduleSyncToCloud(); }
@@ -1372,6 +1373,12 @@ function syncToCloudBeacon() {
 
 async function loadFromCloud() {
   if (!sbUser) return;
+  // If local has unsynced edits, push them first — never let cloud overwrite pending changes
+  const hasDirty = (() => { try { return localStorage.getItem(DB + '_dirty') === '1'; } catch { return false; } })();
+  if (hasDirty) {
+    await syncToCloud();
+    return;
+  }
   try {
     const { data, error } = await sb.from('user_data')
       .select('data')
@@ -1380,15 +1387,15 @@ async function loadFromCloud() {
     const cloudData = data?.data;
     const isValidCloudData = cloudData && cloudData.profile !== undefined && cloudData.applications !== undefined;
     if (isValidCloudData) {
-      const localTs  = S.updatedAt  || 0;
-      const cloudTs  = cloudData.updatedAt || 0;
-      if (cloudTs >= localTs) {
-        // Nuvem é mais recente (ou igual) — usa nuvem
+      const localTs = S.updatedAt  || 0;
+      const cloudTs = cloudData.updatedAt || 0;
+      if (cloudTs > localTs) {
+        // Nuvem é mais recente — usa nuvem
         const { _deviceId: _d, ...cloudState } = cloudData;
         S = { ...DEFAULT_STATE, ...cloudState };
         try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
       } else {
-        // Local é mais recente — sobe dados locais para a nuvem
+        // Local é igual ou mais recente — sobe local para a nuvem
         await syncToCloud();
       }
     } else {
@@ -1396,7 +1403,7 @@ async function loadFromCloud() {
       await syncToCloud();
     }
   } catch(e) {
-    // Em caso de falha de rede, mantém dados locais
+    // Em caso de falha de rede, mantém dados locais e tenta subir
     try { await syncToCloud(); } catch(_) {}
   }
 }
@@ -1473,6 +1480,7 @@ function load() {
 function save() {
   S.updatedAt = Date.now();
   try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+  try { localStorage.setItem(DB + '_dirty', '1'); } catch{} // unsynced changes pending
   scheduleSyncToCloud();
 }
 
