@@ -386,6 +386,19 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 .tl-item.tl-maint.cur .tl-dot { background: var(--ok); border-color: var(--ok); color: #fff; box-shadow: 0 0 0 4px var(--ok-lt); }
 .tl-item.tl-maint .tl-dose { color: var(--ok); }
 .tl-item.tl-maint.done .tl-dose { color: var(--fg); }
+/* === PROTOCOL SELECTOR === */
+.proto-tab-btn { flex: 1; padding: 9px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-card); color: var(--fg-m); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--f); transition: .15s; }
+.proto-tab-btn.active { background: var(--ac); border-color: var(--ac); color: #fff; }
+.proto-preset-card { border: 2px solid var(--border); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: border-color .15s, background .15s; }
+.proto-preset-card:hover { border-color: var(--ac); }
+.proto-preset-card.active { border-color: var(--ac); background: var(--ac-lt); }
+.proto-preset-name { font-size: 15px; font-weight: 700; }
+.proto-preset-desc { font-size: 13px; color: var(--fg-m); margin-top: 3px; line-height: 1.4; }
+.proto-step-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.proto-step-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 99px; background: var(--ac-lt); color: var(--ac); }
+.proto-step-tag.down { background: var(--warn-lt); color: var(--warn); }
+.proto-step-tag.maint { background: var(--ok-lt); color: var(--ok); }
+.proto-builder-row { display: grid; grid-template-columns: 90px 1fr 1fr auto; gap: 6px; align-items: center; margin-bottom: 8px; }
 
 /* === TABLES === */
 .tw { overflow-x: auto; }
@@ -759,6 +772,9 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           </div>
           <p class="t-m" style="margin-top:8px">* Para canetas de dose única, a dose é pré-carregada: sem cálculo necessário.</p>
         </div>
+        <div class="divider"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between" class="sec-title">Protocolo Ativo <button onclick="openProtocolModal()" style="font-size:12px;padding:5px 14px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--ac);cursor:pointer;font-family:var(--f);font-weight:600">Alterar</button></div>
+        <div class="card" id="app-protocol-card"><div id="app-protocol-info" class="t-m">–</div></div>
         <div class="divider"></div>
         <div class="card" id="app-dose-chart-card" style="display:none">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1239,6 +1255,29 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
   </div>
 </div>
 
+<!-- MODAL: PROTOCOLO DE DOSES -->
+<div class="overlay" id="mo-protocol" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Protocolo de Doses</div>
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      <button id="proto-tab-btn-preset" class="proto-tab-btn active" onclick="switchProtoTab('preset')">Predefinidos</button>
+      <button id="proto-tab-btn-custom" class="proto-tab-btn" onclick="switchProtoTab('custom')">Personalizado</button>
+    </div>
+    <div id="proto-panel-preset">
+      <div id="proto-preset-list" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+    <div id="proto-panel-custom" style="display:none">
+      <div class="fg" style="margin-bottom:14px"><label class="fl">Nome do protocolo</label><input class="fi" id="proto-name-input" placeholder="Ex: Meu protocolo 2025"></div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--fg)">Etapas <span style="font-size:12px;font-weight:400;color:var(--fg-m)">(dose · semanas · fase)</span></div>
+      <div id="proto-steps-builder"></div>
+      <button onclick="addProtoStep()" style="width:100%;margin-top:8px;padding:11px;border:2px dashed var(--border);border-radius:12px;background:none;color:var(--ac);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--f)">+ Adicionar etapa</button>
+      <button onclick="saveCustomProtocol()" class="btn" style="margin-top:14px;width:100%">Ativar protocolo</button>
+    </div>
+    <button class="btn btn-g" style="margin-top:12px;width:100%" onclick="closeModal('mo-protocol')">Fechar</button>
+  </div>
+</div>
+
 <!-- MODAL: GRÁFICO FULLSCREEN -->
 <div id="mo-chart-fs" hidden style="position:fixed;inset:0;z-index:3000;background:var(--bg);display:flex;flex-direction:column;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--border)">
@@ -1283,8 +1322,60 @@ const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
-  applications:[], weights:[], symptoms:[], dietLogs:[]
+  applications:[], weights:[], symptoms:[], dietLogs:[], protocol: null
 };
+
+const PRESET_PROTOCOLS = [
+  {
+    id: 'personal',
+    name: 'Protocolo Personalizado',
+    desc: 'Escalonamento até 12,5 mg com regressão gradual até 5 mg de manutenção',
+    steps: [
+      {doseMg:2.5,  weeks:4,   phase:'adapt'},
+      {doseMg:5,    weeks:4,   phase:'up'},
+      {doseMg:7.5,  weeks:4,   phase:'up'},
+      {doseMg:10,   weeks:4,   phase:'up'},
+      {doseMg:12.5, weeks:4,   phase:'peak'},
+      {doseMg:10,   weeks:4,   phase:'down'},
+      {doseMg:7.5,  weeks:4,   phase:'down'},
+      {doseMg:5,    weeks:999, phase:'maint'},
+    ]
+  },
+  {
+    id: 'standard',
+    name: 'Protocolo Padrão',
+    desc: 'Escalonamento completo até 15 mg conforme bula da tirzepatida',
+    steps: [
+      {doseMg:2.5,  weeks:4,   phase:'adapt'},
+      {doseMg:5,    weeks:4,   phase:'up'},
+      {doseMg:7.5,  weeks:4,   phase:'up'},
+      {doseMg:10,   weeks:4,   phase:'up'},
+      {doseMg:12.5, weeks:4,   phase:'up'},
+      {doseMg:15,   weeks:999, phase:'peak'},
+    ]
+  },
+  {
+    id: 'conservative',
+    name: 'Protocolo Conservador',
+    desc: 'Escalonamento lento (6 semanas por etapa) com manutenção em 10 mg',
+    steps: [
+      {doseMg:2.5,  weeks:6,   phase:'adapt'},
+      {doseMg:5,    weeks:6,   phase:'up'},
+      {doseMg:7.5,  weeks:6,   phase:'up'},
+      {doseMg:10,   weeks:999, phase:'maint'},
+    ]
+  },
+  {
+    id: 'minimal',
+    name: 'Protocolo Mínimo',
+    desc: 'Supressão de apetite com dose baixa — adaptação em 2,5 mg e manutenção em 5 mg',
+    steps: [
+      {doseMg:2.5, weeks:4,   phase:'adapt'},
+      {doseMg:5,   weeks:999, phase:'maint'},
+    ]
+  },
+];
+const PHASE_LABELS = {adapt:'Adaptação', up:'Escalonamento', peak:'Dose máxima', down:'Redução', maint:'Manutenção'};
 
 /* ===== SUPABASE ===== */
 // Fix malformed OAuth redirect URL (e.g. ##access_token= from double-hash bug)
@@ -2170,7 +2261,8 @@ function renderApp(){
   // Dose evolution chart
   renderDoseChart();
 
-  // Escalation timeline
+  // Protocol card + escalation timeline
+  renderProtocolCard();
   renderTimeline();
 
   // History
@@ -2208,54 +2300,157 @@ function confirm2(msg, cb){
 function renderTimeline(){
   const startDate = S.profile.startDate;
   if(!startDate) return;
-  // Protocolo personalizado: escalonamento até 12,5 mg, depois regressão para manutenção em 5 mg
-  const steps = [
-    {dose:'2.5 mg',  weeks:'1–4',   start:0,   end:27,   type:'up'},
-    {dose:'5 mg',    weeks:'5–8',   start:28,  end:55,   type:'up'},
-    {dose:'7.5 mg',  weeks:'9–12',  start:56,  end:83,   type:'up'},
-    {dose:'10 mg',   weeks:'13–16', start:84,  end:111,  type:'up'},
-    {dose:'12.5 mg', weeks:'17–20', start:112, end:139,  type:'peak'},
-    {dose:'10 mg',   weeks:'21–24', start:140, end:167,  type:'down'},
-    {dose:'7.5 mg',  weeks:'25–28', start:168, end:195,  type:'down'},
-    {dose:'5 mg',    weeks:'29+',   start:196, end:9999, type:'maint'},
-  ];
+  if (!S.protocol || !Array.isArray(S.protocol.steps) || !S.protocol.steps.length) {
+    S.protocol = JSON.parse(JSON.stringify(PRESET_PROTOCOLS[0]));
+  }
+  const steps = S.protocol.steps;
   const daysSince = diffDays(startDate, today());
   const tl = document.getElementById('tl-container');
-
-  const metaFor = (state, type) => {
-    if (state === 'done') return 'Concluído';
-    if (state === 'cur') {
-      if (type === 'peak')  return 'Dose máxima alcançada';
-      if (type === 'down')  return 'Reduzindo dose';
-      if (type === 'maint') return 'Manutenção';
-      return 'Dose atual (recomendada)';
-    }
-    if (type === 'down')  return 'Próxima: redução';
-    if (type === 'maint') return 'Meta: manutenção';
-    return 'Próxima etapa';
-  };
-
+  const PHASE_CUR = {adapt:'Fase de adaptação',up:'Dose atual (recomendada)',peak:'Dose máxima alcançada',down:'Reduzindo dose',maint:'Manutenção'};
+  const PHASE_FUT = {adapt:'Próxima: adaptação',up:'Próxima etapa',peak:'Próxima: dose máxima',down:'Próxima: redução',maint:'Meta: manutenção'};
   let html = '';
-  let reductionHeaderAdded = false;
+  let dayOffset = 0, weekOffset = 0, sepAdded = false;
+  const hasDown = steps.some(s => s.phase === 'down');
   steps.forEach(step => {
-    if (!reductionHeaderAdded && (step.type === 'down' || step.type === 'maint')) {
-      reductionHeaderAdded = true;
-      html += `<div class="tl-phase-sep"><span>Redução &amp; Manutenção</span></div>`;
+    const startDay = dayOffset;
+    const endDay = step.weeks >= 999 ? 9999 : dayOffset + step.weeks * 7 - 1;
+    const startWeek = weekOffset + 1;
+    const endWeek = step.weeks >= 999 ? null : weekOffset + step.weeks;
+    const weeksLabel = step.weeks >= 999 ? (startWeek + '+') : (startWeek + '–' + endWeek);
+    if (!sepAdded && (step.phase === 'down' || (step.phase === 'maint' && !hasDown)) && weekOffset > 0) {
+      sepAdded = true;
+      html += `<div class="tl-phase-sep"><span>${step.phase === 'down' ? 'Redução &amp; Manutenção' : 'Manutenção'}</span></div>`;
     }
     let state = 'fut';
-    if (daysSince > step.end) state = 'done';
-    else if (daysSince >= step.start) state = 'cur';
+    if (endDay !== 9999 && daysSince > endDay) state = 'done';
+    else if (daysSince >= startDay) state = 'cur';
+    dayOffset += step.weeks >= 999 ? 0 : step.weeks * 7;
+    weekOffset += step.weeks >= 999 ? 0 : step.weeks;
     const icon = state === 'done' ? '✓' : state === 'cur' ? '●' : '';
-    const extraClass = (step.type === 'down') ? ' tl-reduce' : (step.type === 'maint') ? ' tl-maint' : '';
+    const extraClass = step.phase === 'down' ? ' tl-reduce' : step.phase === 'maint' ? ' tl-maint' : '';
+    const metaText = state === 'done' ? 'Concluído' : state === 'cur' ? (PHASE_CUR[step.phase]||'Dose atual') : (PHASE_FUT[step.phase]||'Próxima etapa');
     html += `<div class="tl-item ${state}${extraClass}">
       <div class="tl-dot">${icon}</div>
       <div class="tl-body">
-        <div class="tl-dose">${step.dose} <span style="font-weight:400;font-size:13px;color:var(--fg-m)">· Semanas ${step.weeks}</span></div>
-        <div class="tl-meta">${metaFor(state, step.type)}</div>
+        <div class="tl-dose">${step.doseMg} mg <span style="font-weight:400;font-size:13px;color:var(--fg-m)">· Semanas ${weeksLabel}</span></div>
+        <div class="tl-meta">${metaText}</div>
       </div>
     </div>`;
   });
   tl.innerHTML = html;
+}
+
+/* ===== PROTOCOL SELECTOR ===== */
+let _protoBuilderSteps = [];
+
+function openProtocolModal() {
+  if (!S.protocol || !Array.isArray(S.protocol.steps) || !S.protocol.steps.length) {
+    S.protocol = JSON.parse(JSON.stringify(PRESET_PROTOCOLS[0]));
+  }
+  _renderPresetList();
+  switchProtoTab('preset');
+  document.getElementById('mo-protocol').hidden = false;
+}
+
+function switchProtoTab(tab) {
+  document.getElementById('proto-tab-btn-preset').classList.toggle('active', tab === 'preset');
+  document.getElementById('proto-tab-btn-custom').classList.toggle('active', tab === 'custom');
+  document.getElementById('proto-panel-preset').style.display = tab === 'preset' ? '' : 'none';
+  document.getElementById('proto-panel-custom').style.display = tab === 'custom' ? '' : 'none';
+  if (tab === 'custom') _initCustomBuilder();
+}
+
+function _renderPresetList() {
+  const curId = S.protocol?.id;
+  document.getElementById('proto-preset-list').innerHTML = PRESET_PROTOCOLS.map(p => {
+    const isActive = p.id === curId;
+    const tags = p.steps.map(s => {
+      const cls = s.phase === 'down' ? 'down' : s.phase === 'maint' ? 'maint' : '';
+      return `<span class="proto-step-tag ${cls}">${s.doseMg} mg</span>`;
+    }).join('');
+    return `<div class="proto-preset-card${isActive?' active':''}" onclick="activatePreset('${p.id}')">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="proto-preset-name">${p.name}</div>
+        ${isActive?'<span style="font-size:11px;color:var(--ac);font-weight:700">✓ Ativo</span>':''}
+      </div>
+      <div class="proto-preset-desc">${p.desc}</div>
+      <div class="proto-step-tags">${tags}</div>
+    </div>`;
+  }).join('');
+}
+
+function activatePreset(id) {
+  const proto = PRESET_PROTOCOLS.find(p => p.id === id);
+  if (!proto) return;
+  S.protocol = JSON.parse(JSON.stringify(proto));
+  save(); renderProtocolCard(); renderTimeline(); _renderPresetList();
+  showToast('Protocolo ativado: ' + proto.name);
+  setTimeout(() => closeModal('mo-protocol'), 700);
+}
+
+function _initCustomBuilder() {
+  const cur = S.protocol;
+  if (cur && !PRESET_PROTOCOLS.find(p => p.id === cur.id)) {
+    _protoBuilderSteps = JSON.parse(JSON.stringify(cur.steps || []));
+    document.getElementById('proto-name-input').value = cur.name || '';
+  } else {
+    _protoBuilderSteps = [];
+    document.getElementById('proto-name-input').value = '';
+  }
+  _renderBuilderSteps();
+}
+
+function _renderBuilderSteps() {
+  const c = document.getElementById('proto-steps-builder');
+  if (!_protoBuilderSteps.length) {
+    c.innerHTML = '<div class="t-m" style="text-align:center;padding:14px">Nenhuma etapa — clique em "+ Adicionar" abaixo</div>';
+    return;
+  }
+  c.innerHTML = _protoBuilderSteps.map((step, i) => `
+    <div class="proto-builder-row">
+      <select class="fs" style="font-size:13px" onchange="_protoBuilderSteps[${i}].doseMg=parseFloat(this.value)">
+        ${[2.5,5,7.5,10,12.5,15].map(d=>`<option value="${d}"${step.doseMg==d?' selected':''}>${d} mg</option>`).join('')}
+      </select>
+      <input class="fi" type="number" min="1" max="52" placeholder="sem." style="font-size:13px" value="${step.weeks>=999?'':step.weeks}" oninput="_protoBuilderSteps[${i}].weeks=this.value?parseInt(this.value):999">
+      <select class="fs" style="font-size:13px" onchange="_protoBuilderSteps[${i}].phase=this.value">
+        ${Object.entries(PHASE_LABELS).map(([k,v])=>`<option value="${k}"${step.phase===k?' selected':''}>${v}</option>`).join('')}
+      </select>
+      <button onclick="removeProtoStep(${i})" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:4px;line-height:1">✕</button>
+    </div>`).join('');
+}
+
+function addProtoStep() {
+  _protoBuilderSteps.push({doseMg:2.5, weeks:4, phase:'up'});
+  _renderBuilderSteps();
+}
+
+function removeProtoStep(i) {
+  _protoBuilderSteps.splice(i, 1);
+  _renderBuilderSteps();
+}
+
+function saveCustomProtocol() {
+  if (!_protoBuilderSteps.length) { showToast('Adicione pelo menos uma etapa.'); return; }
+  const name = document.getElementById('proto-name-input').value.trim() || 'Protocolo Personalizado';
+  S.protocol = { id:'custom', name, steps: JSON.parse(JSON.stringify(_protoBuilderSteps)) };
+  save(); renderProtocolCard(); renderTimeline();
+  showToast('Protocolo salvo: ' + name);
+  closeModal('mo-protocol');
+}
+
+function renderProtocolCard() {
+  const el = document.getElementById('app-protocol-info');
+  if (!el) return;
+  if (!S.protocol || !Array.isArray(S.protocol.steps) || !S.protocol.steps.length) {
+    el.innerHTML = '<span class="t-m">Nenhum protocolo ativo</span>';
+    return;
+  }
+  const p = S.protocol;
+  const tags = p.steps.map(s => {
+    const cls = s.phase === 'down' ? 'down' : s.phase === 'maint' ? 'maint' : '';
+    return `<span class="proto-step-tag ${cls}">${s.doseMg} mg</span>`;
+  }).join('');
+  el.innerHTML = `<div style="font-weight:700;font-size:15px;margin-bottom:6px">${p.name}</div><div class="proto-step-tags" style="margin-bottom:0">${tags}</div>`;
 }
 
 /* ===== RENDER PROGRESSO ===== */
@@ -3416,6 +3611,10 @@ function authSignOut(btn) {
 
 /* ===== INIT ===== */
 load();
+// Migrate: ensure protocol is initialized for users with older saved state
+if (!S.protocol || !Array.isArray(S.protocol.steps) || !S.protocol.steps.length) {
+  S.protocol = JSON.parse(JSON.stringify(PRESET_PROTOCOLS[0]));
+}
 // Render immediately from localStorage so the home tab shows instantly (no blank screen)
 // onAuthStateChange will re-render after cloud sync completes
 if (isOnboarded()) { renderAll(); generatePlan(); }
