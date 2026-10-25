@@ -933,6 +933,13 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 
     <!-- TAB: PERFIL -->
     <div class="panel" id="p-info">
+      <!-- Back button -->
+      <div style="padding:10px max(16px,env(safe-area-inset-left,0px)) 0;padding-right:max(16px,env(safe-area-inset-right,0px))">
+        <button onclick="goTab(_prevTab||'inicio',null)"
+          style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--ac);font-size:16px;font-weight:600;cursor:pointer;padding:6px 0;font-family:var(--f)">
+          ← Voltar
+        </button>
+      </div>
       <!-- Profile Hero — rendered dynamically -->
       <div id="perfil-hero" style="background:linear-gradient(135deg,#2D5A3D,#4A7C59);padding:28px max(16px,env(safe-area-inset-left,0px)) 24px;padding-right:max(16px,env(safe-area-inset-right,0px))">
         <div style="display:flex;align-items:center;gap:16px">
@@ -1144,10 +1151,6 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     <button class="nb" onclick="goTab('diet',this)" id="nb-diet">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
       Dieta
-    </button>
-    <button class="nb" onclick="goTab('info',this)" id="nb-info">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      Perfil
     </button>
   </nav>
 </div>
@@ -1806,11 +1809,13 @@ function uid(){ return Math.random().toString(36).slice(2,9); }
 
 /* ===== NAVIGATION ===== */
 let currentTab = 'inicio';
+let _prevTab = 'inicio';
 function goTab(name, btn){
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
   document.getElementById('p-'+name).classList.add('active');
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(name !== 'info') _prevTab = currentTab;
   currentTab = name;
   if(name==='prog') renderChart();
   if(name==='inicio') renderInicio();
@@ -3677,8 +3682,7 @@ function _renderAuthCard() {
 }
 
 function goToAccountTab() {
-  const tab = document.getElementById('nb-info');
-  if (tab) tab.click();
+  goTab('info', null);
 }
 
 function _showAuthError(msg) {
