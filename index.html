@@ -105,8 +105,8 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--f);
-  font-size: 17px;
-  line-height: 1.6;
+  font-size: 18px;
+  line-height: 1.65;
   height: 100%;
   overflow: hidden;
   padding-left: max(0px, env(safe-area-inset-left, 0px));
@@ -464,6 +464,44 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 .pref-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-m); margin: 14px 0 8px; }
 /* Garante que [hidden] funciona mesmo com display inline */
 [hidden] { display: none !important; }
+
+/* === LEGIBILIDADE MOBILE — escala mínima de texto === */
+/* Muda valores px explícitos pequenos para leitura confortável sem zoom */
+.nb               { font-size: 13px; }
+.card-title       { font-size: 15px; }
+.stat-l           { font-size: 14px; }
+.h-title          { font-size: 17px; }
+.h-meta, .h-right { font-size: 16px; }
+.del-btn          { font-size: 15px; }
+.site-btn         { font-size: 15px; }
+.site-icon        { font-size: 22px; }
+.calc-lbl         { font-size: 15px; }
+.calc-item .cl    { font-size: 15px; }
+.tl-dose          { font-size: 18px; }
+.tl-meta          { font-size: 15px; }
+.tl-phase-sep span{ font-size: 13px; }
+.tl-dot           { font-size: 13px; }
+.proto-tab-btn    { font-size: 15px; }
+.proto-preset-name{ font-size: 16px; }
+.proto-preset-desc{ font-size: 15px; }
+.proto-step-tag   { font-size: 13px; }
+.fh               { font-size: 15px; }
+.hero-eyebrow     { font-size: 14px; }
+.meal-slot-label  { font-size: 13px; }
+.meal-ingr        { font-size: 15px; }
+.pref-section-title{ font-size: 13px; }
+.badge-ok, .badge-warn { font-size: 14px; }
+.tag              { font-size: 14px; }
+.rt th            { font-size: 14px; }
+.rt td            { font-size: 15px; }
+.chip             { font-size: 16px; }
+.sheet-title      { font-size: 21px; }
+.sec-title        { font-size: 20px; }
+.t-m              { font-size: 16px; }
+.fl               { font-size: 16px; }
+.callout          { font-size: 16px; }
+.btn              { font-size: 17px; }
+.btn-sm           { font-size: 16px; }
 </style>
 
 <!-- INSTALL BANNER -->
@@ -471,9 +509,9 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
   <img src="icon-192.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0" alt="">
   <div style="flex:1;min-width:0">
     <div style="font-size:15px;font-weight:700;color:#1a1a1a">Instalar TirzaDose</div>
-    <div style="font-size:13px;color:#666;margin-top:2px">Adicionar à tela inicial</div>
+    <div style="font-size:15px;color:#666;margin-top:2px">Adicionar à tela inicial</div>
   </div>
-  <button onclick="triggerInstall()" style="background:#4A7C59;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;flex-shrink:0">Instalar</button>
+  <button onclick="triggerInstall()" style="background:#4A7C59;color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:16px;font-weight:600;cursor:pointer;flex-shrink:0">Instalar</button>
   <button onclick="dismissInstall()" style="background:none;border:none;color:#999;font-size:22px;cursor:pointer;padding:8px 10px;flex-shrink:0;line-height:1;min-width:40px;min-height:40px">×</button>
 </div>
 
@@ -489,8 +527,8 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
       Entrar com Google
     </button>
     <div style="text-align:center;display:flex;flex-direction:column;gap:4px">
-      <button onclick="hideAuthGate();enterDemoMode()" style="background:none;border:none;color:rgba(255,255,255,.65);font-size:14px;cursor:pointer;font-family:var(--f);padding:6px;font-weight:600">🔍 Ver demonstração</button>
-      <button onclick="authGateSkip()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:13px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Usar sem conta</button>
+      <button onclick="hideAuthGate();enterDemoMode()" style="background:none;border:none;color:rgba(255,255,255,.65);font-size:16px;cursor:pointer;font-family:var(--f);padding:6px;font-weight:600">🔍 Ver demonstração</button>
+      <button onclick="authGateSkip()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:15px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Usar sem conta</button>
     </div>
   </div>
 </div>
@@ -516,7 +554,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         Entrar com Google
       </button>
       <div style="text-align:center;margin-top:10px">
-        <button onclick="obLoginSkip()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Usar sem conta</button>
+        <button onclick="obLoginSkip()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:16px;cursor:pointer;font-family:var(--f);padding:4px;text-decoration:underline">Usar sem conta</button>
       </div>
     </div>
     <!-- Step 1: PERFIL -->
@@ -582,7 +620,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
       <p class="ob-step-sub">Receba lembretes no dia da aplicação e dicas de hidratação durante o tratamento.</p>
       <div style="text-align:center;margin:16px 0">
         <div style="font-size:52px;margin-bottom:8px">🔔</div>
-        <div style="color:rgba(255,255,255,.82);font-size:14px;line-height:1.7">Lembrete no dia da aplicação semanal<br>Hidratação a cada 2h durante o dia</div>
+        <div style="color:rgba(255,255,255,.82);font-size:16px;line-height:1.7">Lembrete no dia da aplicação semanal<br>Hidratação a cada 2h durante o dia</div>
       </div>
       <div id="ob-notif-feedback" style="min-height:20px;margin-bottom:8px"></div>
       <button id="ob-notif-btn" class="btn btn-p btn-w" onclick="obEnableNotif()">🔔 Ativar notificações</button>
@@ -598,26 +636,26 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 <div id="demo-banner">
   <span>🔍 Modo Demo — dados fictícios</span>
   <div style="display:flex;gap:8px;align-items:center">
-    <button onclick="startTour()" style="background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:20px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--f)">📖 Tutorial</button>
+    <button onclick="startTour()" style="background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.5);color:#fff;border-radius:20px;padding:5px 12px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:var(--f)">📖 Tutorial</button>
     <button id="demo-banner-enter" onclick="showAuthGate();hideDemoBanner()">Entrar com sua conta</button>
   </div>
 </div>
 
 <!-- APP ROW CONTEXT MENU -->
 <div id="app-ctx-menu" hidden style="position:fixed;z-index:4000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);overflow:hidden;min-width:150px">
-  <button onclick="appMenuEdit()"   style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:13px 16px;font-size:14px;font-family:var(--f);color:var(--fg);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">✏️ Editar</button>
-  <button onclick="appMenuDelete()" style="width:100%;background:none;border:none;padding:13px 16px;font-size:14px;font-family:var(--f);color:var(--danger);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">🗑️ Excluir</button>
+  <button onclick="appMenuEdit()"   style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:13px 16px;font-size:16px;font-family:var(--f);color:var(--fg);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">✏️ Editar</button>
+  <button onclick="appMenuDelete()" style="width:100%;background:none;border:none;padding:13px 16px;font-size:16px;font-family:var(--f);color:var(--danger);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">🗑️ Excluir</button>
 </div>
 
 <!-- WEIGHT ROW CONTEXT MENU -->
 <div id="wgt-ctx-menu" hidden style="position:fixed;z-index:4000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);overflow:hidden;min-width:150px">
-  <button onclick="wgtMenuEdit()"   style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:13px 16px;font-size:14px;font-family:var(--f);color:var(--fg);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">✏️ Editar</button>
-  <button onclick="wgtMenuDelete()" style="width:100%;background:none;border:none;padding:13px 16px;font-size:14px;font-family:var(--f);color:var(--danger);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">🗑️ Excluir</button>
+  <button onclick="wgtMenuEdit()"   style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:13px 16px;font-size:16px;font-family:var(--f);color:var(--fg);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">✏️ Editar</button>
+  <button onclick="wgtMenuDelete()" style="width:100%;background:none;border:none;padding:13px 16px;font-size:16px;font-family:var(--f);color:var(--danger);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">🗑️ Excluir</button>
 </div>
 
 <!-- PROFILE CONTEXT MENU -->
 <div id="prof-ctx-menu" hidden style="position:fixed;z-index:4000;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.18);overflow:hidden;min-width:150px">
-  <button onclick="profMenuEdit()" style="width:100%;background:none;border:none;padding:13px 16px;font-size:14px;font-family:var(--f);color:var(--fg);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">✏️ Editar perfil</button>
+  <button onclick="profMenuEdit()" style="width:100%;background:none;border:none;padding:13px 16px;font-size:16px;font-family:var(--f);color:var(--fg);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">✏️ Editar perfil</button>
 </div>
 
 
@@ -627,12 +665,12 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     <span style="font-size:24px;line-height:1;flex-shrink:0">📖</span>
     <div>
       <div style="font-size:15px;font-weight:700;line-height:1.3">Quer um tour rápido?</div>
-      <div style="font-size:12px;opacity:.85;margin-top:2px">Veja como usar cada parte do app</div>
+      <div style="font-size:16px;opacity:.85;margin-top:2px">Veja como usar cada parte do app</div>
     </div>
   </div>
   <div style="display:flex;gap:8px">
-    <button onclick="hideTourInvite()" style="flex:1;background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:10px;padding:9px 10px;font-size:13px;cursor:pointer;font-family:var(--f)">Agora não</button>
-    <button onclick="hideTourInvite();startTour()" style="flex:1;background:#fff;border:none;color:#2D5A3D;border-radius:10px;padding:9px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--f)">Iniciar →</button>
+    <button onclick="hideTourInvite()" style="flex:1;background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:10px;padding:9px 10px;font-size:15px;cursor:pointer;font-family:var(--f)">Agora não</button>
+    <button onclick="hideTourInvite();startTour()" style="flex:1;background:#fff;border:none;color:#2D5A3D;border-radius:10px;padding:9px 10px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--f)">Iniciar →</button>
   </div>
 </div>
 
@@ -643,13 +681,13 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     <div id="tour-arrow"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div id="tour-dots" style="display:flex;gap:5px"></div>
-      <button onclick="tourSkip()" style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;padding:2px 4px;font-family:var(--f)">Pular</button>
+      <button onclick="tourSkip()" style="background:none;border:none;color:#999;font-size:15px;cursor:pointer;padding:2px 4px;font-family:var(--f)">Pular</button>
     </div>
     <div id="tour-title" style="font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:6px"></div>
-    <div id="tour-text" style="font-size:14px;color:#555;line-height:1.55;margin-bottom:16px"></div>
+    <div id="tour-text" style="font-size:16px;color:#555;line-height:1.55;margin-bottom:16px"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-      <button id="tour-prev-btn" onclick="tourStep(-1)" style="background:none;border:1.5px solid #ddd;color:#555;border-radius:9px;padding:8px 16px;font-size:14px;cursor:pointer;font-family:var(--f)">← Anterior</button>
-      <button id="tour-next-btn" onclick="tourStep(1)" style="background:#2D5A3D;color:#fff;border:none;border-radius:9px;padding:8px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--f)">Próximo →</button>
+      <button id="tour-prev-btn" onclick="tourStep(-1)" style="background:none;border:1.5px solid #ddd;color:#555;border-radius:9px;padding:8px 16px;font-size:16px;cursor:pointer;font-family:var(--f)">← Anterior</button>
+      <button id="tour-next-btn" onclick="tourStep(1)" style="background:#2D5A3D;color:#fff;border:none;border-radius:9px;padding:8px 20px;font-size:16px;font-weight:600;cursor:pointer;font-family:var(--f)">Próximo →</button>
     </div>
   </div>
 </div>
@@ -664,9 +702,9 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
       <button id="hdr-account-btn" onclick="goToAccountTab()" style="display:none;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:20px;transition:background .15s" title="Minha conta">
         <img id="hdr-avatar" src="" alt="" width="28" height="28" style="border-radius:50%;border:1.5px solid var(--ac);display:none">
         <div id="hdr-avatar-ph" style="width:28px;height:28px;border-radius:50%;background:var(--ac-lt);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;display:none">👤</div>
-        <span id="hdr-name" style="font-size:13px;font-weight:600;color:var(--fg);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <span id="hdr-name" style="font-size:15px;font-weight:600;color:var(--fg);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
       </button>
-      <button id="hdr-signin-btn" onclick="showAuthGate()" style="display:none;font-size:12px;font-weight:600;padding:5px 10px;border-radius:16px;background:var(--ac-lt);color:var(--ac);border:none;cursor:pointer">Entrar</button>
+      <button id="hdr-signin-btn" onclick="showAuthGate()" style="display:none;font-size:16px;font-weight:600;padding:5px 10px;border-radius:16px;background:var(--ac-lt);color:var(--ac);border:none;cursor:pointer">Entrar</button>
     </div>
   </header>
 
@@ -686,7 +724,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         <img src="img-aplicacoes.png" alt="" style="width:100%;height:160px;object-fit:cover;object-position:center 30%;display:block;">
         <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.78),rgba(61,110,74,.52))"></div>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 max(16px,env(safe-area-inset-left,0px));">
-          <div style="color:rgba(255,255,255,.75);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Controle Semanal</div>
+          <div style="color:rgba(255,255,255,.75);font-size:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Controle Semanal</div>
           <div style="color:#fff;font-family:var(--fd);font-size:28px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Suas<br><em>Aplicações</em></div>
         </div>
       </div>
@@ -779,16 +817,16 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           </div>
         </div>
         <div class="divider"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between" class="sec-title">Protocolo Ativo <button onclick="openProtocolModal()" style="font-size:12px;padding:5px 14px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--ac);cursor:pointer;font-family:var(--f);font-weight:600">Alterar</button></div>
+        <div style="display:flex;align-items:center;justify-content:space-between" class="sec-title">Protocolo Ativo <button onclick="openProtocolModal()" style="font-size:16px;padding:5px 14px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--ac);cursor:pointer;font-family:var(--f);font-weight:600">Alterar</button></div>
         <div class="card" id="app-protocol-card"><div id="app-protocol-info" class="t-m">–</div></div>
         <div class="divider"></div>
         <div class="card" id="app-dose-chart-card" style="display:none">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <div class="card-title" style="margin-bottom:0">Evolução da Dose</div>
-            <button onclick="openDoseChartFullscreen()" title="Expandir" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer;font-family:var(--f)">⤢</button>
+            <button onclick="openDoseChartFullscreen()" title="Expandir" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:5px 10px;font-size:15px;cursor:pointer;font-family:var(--f)">⤢</button>
           </div>
           <div style="position:relative;height:180px"><canvas id="doseChart"></canvas></div>
-          <div id="doseChartEmpty" style="display:none;height:180px;align-items:center;justify-content:center;color:var(--fg-m);font-size:13px">Sem aplicações registradas</div>
+          <div id="doseChartEmpty" style="display:none;height:180px;align-items:center;justify-content:center;color:var(--fg-m);font-size:15px">Sem aplicações registradas</div>
         </div>
         <div class="divider"></div>
         <div class="sec-title" style="cursor:pointer;user-select:none" onclick="toggleAppHistory(this)" id="app-history-header" aria-expanded="false">
@@ -809,7 +847,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         <img src="img-progresso.png" alt="" style="width:100%;height:160px;object-fit:cover;object-position:center;display:block;">
         <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(20,50,35,.78),rgba(61,110,74,.52))"></div>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 max(16px,env(safe-area-inset-left,0px));">
-          <div style="color:rgba(255,255,255,.75);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Evolução do Tratamento</div>
+          <div style="color:rgba(255,255,255,.75);font-size:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Evolução do Tratamento</div>
           <div style="color:#fff;font-family:var(--fd);font-size:28px;line-height:1.2;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu<br><em>Progresso</em></div>
         </div>
       </div>
@@ -823,7 +861,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
             <div class="card-title" style="margin-bottom:0">Histórico de peso (kg)</div>
             <button onclick="openChartFullscreen()" title="Expandir gráfico"
               style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:5px 10px;font-size:16px;cursor:pointer;line-height:1;display:flex;align-items:center;gap:4px">
-              <span style="font-size:13px">⤢</span>
+              <span style="font-size:15px">⤢</span>
             </button>
           </div>
           <div class="chart-wrap">
@@ -834,7 +872,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         <div class="sec-title" style="margin-top:16px;cursor:pointer;user-select:none" onclick="toggleProgTable(this)" id="prog-table-header" aria-expanded="false">
           <span>Peso × Aplicações</span>
           <div style="display:flex;align-items:center;gap:6px">
-            <span class="t-m" style="font-size:12px;font-weight:400">Toque para detalhes</span>
+            <span class="t-m" style="font-size:16px;font-weight:400">Toque para detalhes</span>
             <span id="prog-table-chevron" style="color:var(--ac);font-size:16px;transition:transform .2s">▸</span>
           </div>
         </div>
@@ -852,7 +890,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         <img src="img-dieta.png" alt="Alimentação saudável" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;">
         <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,60,35,.72),rgba(61,110,74,.55))"></div>
         <div style="position:relative;padding:22px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:640px;margin:0 auto;">
-          <div style="color:rgba(255,255,255,.8);font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Alimentação &amp; Tratamento</div>
+          <div style="color:rgba(255,255,255,.8);font-size:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;">Alimentação &amp; Tratamento</div>
           <div style="color:#fff;font-family:var(--fd);font-size:30px;line-height:1.2;margin-bottom:4px;text-shadow:0 1px 6px rgba(0,0,0,.3)">Seu Plano<br><em style="opacity:.95">Alimentar</em></div>
           <div style="color:rgba(255,255,255,.85);font-size:15px;margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.3)">Cardápio semanal personalizado para tirzepatida</div>
         </div>
@@ -881,7 +919,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           <div id="perfil-avatar" style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.18);border:2.5px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--fd)">?</div>
           <div>
             <div id="perfil-name" style="color:#fff;font-family:var(--fd);font-size:24px;font-weight:400;line-height:1.2">Meu Perfil</div>
-            <div id="perfil-sub" style="color:rgba(255,255,255,.7);font-size:14px;margin-top:3px">Configure seu acompanhamento</div>
+            <div id="perfil-sub" style="color:rgba(255,255,255,.7);font-size:16px;margin-top:3px">Configure seu acompanhamento</div>
           </div>
           <button onclick="openProfileMenu(this)" style="margin-left:auto;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 12px;font-size:20px;font-weight:700;line-height:1;cursor:pointer;min-width:38px;min-height:36px;display:flex;align-items:center;justify-content:center">⋮</button>
         </div>
@@ -905,7 +943,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
               <div id="auth-avatar-placeholder" style="width:44px;height:44px;border-radius:50%;background:var(--ac-lt);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">👤</div>
               <div style="min-width:0">
                 <div id="auth-name-display" style="font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-                <div id="sync-status" style="font-size:13px;color:var(--fg-m)">Sincronizando…</div>
+                <div id="sync-status" style="font-size:15px;color:var(--fg-m)">Sincronizando…</div>
               </div>
             </div>
             <div style="display:flex;gap:8px">
@@ -936,8 +974,8 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
             <button class="btn btn-p btn-w" id="btn-notif-enable" onclick="enableNotifications()">Ativar notificações</button>
             <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border)" id="water-row" hidden>
               <div>
-                <div style="font-size:14px;font-weight:600">💧 Lembrete de água</div>
-                <div class="t-m" style="font-size:12px;margin-top:2px">A cada 2 horas enquanto o app estiver aberto</div>
+                <div style="font-size:16px;font-weight:600">💧 Lembrete de água</div>
+                <div class="t-m" style="font-size:16px;margin-top:2px">A cada 2 horas enquanto o app estiver aberto</div>
               </div>
               <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">
                 <input type="checkbox" id="toggle-water" onchange="toggleWaterReminder(this.checked)" style="opacity:0;width:0;height:0">
@@ -949,7 +987,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 
         <!-- BETA UPDATE -->
         <div class="card" style="margin-top:4px">
-          <div class="card-title">🔄 Atualizar App <span style="font-size:11px;font-weight:700;background:var(--ac-lt);color:var(--ac);padding:2px 7px;border-radius:99px;vertical-align:middle;margin-left:4px">BETA</span></div>
+          <div class="card-title">🔄 Atualizar App <span style="font-size:15px;font-weight:700;background:var(--ac-lt);color:var(--ac);padding:2px 7px;border-radius:99px;vertical-align:middle;margin-left:4px">BETA</span></div>
           <p class="t-m" style="margin-bottom:12px">Força o download da versão mais recente do app, limpando o cache do navegador. Use quando o desenvolvedor avisar que há uma nova versão disponível.</p>
           <button class="btn btn-p btn-w" id="btn-force-update" onclick="forceAppUpdate()">🔄 Buscar nova versão</button>
         </div>
@@ -974,7 +1012,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 
         <!-- INFORMAÇÕES MÉDICAS (colapsável) -->
         <div class="card" style="margin-top:4px">
-          <button onclick="toggleMedInfo()" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:14px;font-weight:600;font-family:var(--f)">
+          <button onclick="toggleMedInfo()" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:16px;font-weight:600;font-family:var(--f)">
             <span>ℹ Informações médicas do acompanhamento</span>
             <span id="med-info-arrow" style="color:var(--ac);font-size:18px;transition:transform .2s">▸</span>
           </button>
@@ -1292,9 +1330,9 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     </div>
     <div id="proto-panel-custom" style="display:none">
       <div class="fg" style="margin-bottom:14px"><label class="fl">Nome do protocolo</label><input class="fi" id="proto-name-input" placeholder="Ex: Meu protocolo 2025"></div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--fg)">Etapas <span style="font-size:12px;font-weight:400;color:var(--fg-m)">(dose · semanas · fase)</span></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:10px;color:var(--fg)">Etapas <span style="font-size:16px;font-weight:400;color:var(--fg-m)">(dose · semanas · fase)</span></div>
       <div id="proto-steps-builder"></div>
-      <button onclick="addProtoStep()" style="width:100%;margin-top:8px;padding:11px;border:2px dashed var(--border);border-radius:12px;background:none;color:var(--ac);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--f)">+ Adicionar etapa</button>
+      <button onclick="addProtoStep()" style="width:100%;margin-top:8px;padding:11px;border:2px dashed var(--border);border-radius:12px;background:none;color:var(--ac);font-size:16px;font-weight:600;cursor:pointer;font-family:var(--f)">+ Adicionar etapa</button>
       <button onclick="saveCustomProtocol()" class="btn" style="margin-top:14px;width:100%">Ativar protocolo</button>
     </div>
     <button class="btn btn-g" style="margin-top:12px;width:100%" onclick="closeModal('mo-protocol')">Fechar</button>
@@ -1305,25 +1343,25 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 <div id="mo-chart-fs" hidden style="position:fixed;inset:0;z-index:3000;background:var(--bg);display:flex;flex-direction:column;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--border)">
     <div style="font-size:16px;font-weight:700;color:var(--fg)">Evolução do Peso</div>
-    <button onclick="closeChartFullscreen()" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:6px 14px;font-size:14px;cursor:pointer;font-family:var(--f)">Fechar ✕</button>
+    <button onclick="closeChartFullscreen()" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:6px 14px;font-size:16px;cursor:pointer;font-family:var(--f)">Fechar ✕</button>
   </div>
   <div id="chart-fs-filter" style="display:flex;gap:6px;padding:10px max(16px,env(safe-area-inset-left,0px));overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0"></div>
   <div style="flex:1;min-height:0;padding:0 max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-bottom:12px;position:relative">
     <canvas id="wChartFs" style="width:100%;height:100%"></canvas>
   </div>
-  <div id="chart-fs-info" style="padding:8px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:12px;color:var(--fg-m);text-align:center;flex-shrink:0"></div>
+  <div id="chart-fs-info" style="padding:8px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:16px;color:var(--fg-m);text-align:center;flex-shrink:0"></div>
 </div>
 
 <!-- MODAL: GRÁFICO DOSE FULLSCREEN -->
 <div id="mo-dose-chart-fs" hidden style="position:fixed;inset:0;z-index:3000;background:var(--bg);display:flex;flex-direction:column;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--border)">
     <div style="font-size:16px;font-weight:700;color:var(--fg)">Evolução da Dose</div>
-    <button onclick="closeDoseChartFullscreen()" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:6px 14px;font-size:14px;cursor:pointer;font-family:var(--f)">Fechar ✕</button>
+    <button onclick="closeDoseChartFullscreen()" style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:6px 14px;font-size:16px;cursor:pointer;font-family:var(--f)">Fechar ✕</button>
   </div>
   <div style="flex:1;min-height:0;padding:12px max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));position:relative">
     <canvas id="doseChartFs" style="width:100%;height:100%"></canvas>
   </div>
-  <div id="dose-chart-fs-info" style="padding:8px max(16px,env(safe-area-inset-left,0px));font-size:12px;color:var(--fg-m);text-align:center;flex-shrink:0"></div>
+  <div id="dose-chart-fs-info" style="padding:8px max(16px,env(safe-area-inset-left,0px));font-size:16px;color:var(--fg-m);text-align:center;flex-shrink:0"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
@@ -1737,7 +1775,7 @@ function _obTogglePref(id, el){
 /* ===== ALERT REPLACEMENT ===== */
 function alert2(msg){
   const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:999;max-width:90vw;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.3)';
+  el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:8px;font-size:15px;z-index:999;max-width:90vw;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.3)';
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(()=>el.remove(), 3000);
@@ -1798,7 +1836,7 @@ function showToast(msg, duration) {
   if (!t) {
     t = document.createElement('div');
     t.id = '_toast';
-    t.style.cssText = 'position:fixed;bottom:max(24px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#2D5A3D;color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:9999;pointer-events:none;transition:opacity .25s;opacity:0;white-space:nowrap;max-width:90vw;text-align:center';
+    t.style.cssText = 'position:fixed;bottom:max(24px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#2D5A3D;color:#fff;padding:10px 20px;border-radius:20px;font-size:16px;font-weight:600;z-index:9999;pointer-events:none;transition:opacity .25s;opacity:0;white-space:nowrap;max-width:90vw;text-align:center';
     document.body.appendChild(t);
   }
   clearTimeout(t._timer);
@@ -1929,7 +1967,7 @@ function renderProfileSummary(){
       <div class="stat"><div class="stat-v">${fmtD(p.startDate)}</div><div class="stat-l">Início</div></div>
       <div class="stat"><div class="stat-v">${getLastDose()||'–'} mg</div><div class="stat-l">Dose atual</div></div>
     </div>
-    <p class="t-m" style="font-size:12px;margin-top:6px">Dia de aplicação: <strong>${DAYS_PT[p.weekDay]}</strong></p>`;
+    <p class="t-m" style="font-size:16px;margin-top:6px">Dia de aplicação: <strong>${DAYS_PT[p.weekDay]}</strong></p>`;
 }
 
 /* ===== QUICK ADD WEIGHT FROM HISTORY ===== */
@@ -2144,7 +2182,7 @@ function renderInicio(){
       <div class="card-title">Dose atual · <span class="t-a">${prof.currentDoseMg} mg</span></div>
       <div class="row">
         <div>
-          <div style="font-size:13px;color:var(--fg-2)">Semana ${weeksSince > 0 ? weeksSince : 1} de acompanhamento</div>
+          <div style="font-size:15px;color:var(--fg-2)">Semana ${weeksSince > 0 ? weeksSince : 1} de acompanhamento</div>
           <div class="t-m">${DAYS_PT[prof.weekDay]}s · iniciado em ${fmtD(prof.startDate)}</div>
         </div>
         <span class="spacer"></span>
@@ -2187,15 +2225,15 @@ function _buildBestTimeCard(daysUntil, prof) {
   return `
     <div class="card">
       <div class="card-title">${statusIcon} Melhor horário · ${prof.currentDoseMg} mg</div>
-      <div style="font-size:14px;font-weight:600;color:${statusColor};margin-bottom:6px">${statusLabel}</div>
+      <div style="font-size:16px;font-weight:600;color:${statusColor};margin-bottom:6px">${statusLabel}</div>
       <div style="display:flex;align-items:flex-start;gap:8px">
         <span style="font-size:18px">🕗</span>
         <div>
-          <div style="font-size:14px;font-weight:600;color:var(--fg)">Manhã (7h–10h) ou início da tarde (12h–14h)</div>
+          <div style="font-size:16px;font-weight:600;color:var(--fg)">Manhã (7h–10h) ou início da tarde (12h–14h)</div>
           <div class="t-m" style="margin-top:3px">Com refeição leve · reduz náusea e desconforto</div>
         </div>
       </div>
-      <div class="callout info" style="margin-top:10px;padding:8px 10px"><span class="ci" style="font-size:13px">💡</span><span style="font-size:13px">${tip}</span></div>
+      <div class="callout info" style="margin-top:10px;padding:8px 10px"><span class="ci" style="font-size:15px">💡</span><span style="font-size:15px">${tip}</span></div>
     </div>`;
 }
 
@@ -2243,11 +2281,11 @@ function _buildMealNowCard(weeksSince) {
         <img src="${icon}" alt="${meal}" style="width:22px;height:22px;object-fit:contain;border-radius:4px">
         Refeição agora · ${meal}
       </div>
-      <div style="font-size:14px;color:var(--fg);margin-bottom:6px">Boa ${period}! Sugestão para esta refeição:</div>
+      <div style="font-size:16px;color:var(--fg);margin-bottom:6px">Boa ${period}! Sugestão para esta refeição:</div>
       <div style="display:flex;align-items:flex-start;gap:8px">
         <span style="font-size:18px">🥗</span>
         <div>
-          <div style="font-size:14px;font-weight:600;color:var(--fg)">${tip}</div>
+          <div style="font-size:16px;font-weight:600;color:var(--fg)">${tip}</div>
           <div class="t-m" style="margin-top:3px">Meta de proteína: ${Math.round(proteinGoalPerKg(calcAge(S.profile.birthDate), S.profile.sex) * (S.profile.weightKg || 70))}g/dia</div>
         </div>
       </div>
@@ -2273,7 +2311,7 @@ function renderApp(){
           <div class="t-m">${days===0?'Hoje!':days===1?'Amanhã':`Em ${days} dias`}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:13px;font-weight:600">Local sugerido</div>
+          <div style="font-size:15px;font-weight:600">Local sugerido</div>
           <div class="t-m">${nextSiteLabel}</div>
           ${lastApp?`<div class="t-m">Último: ${lastSiteLabel}</div>`:''}
         </div>
@@ -2299,8 +2337,8 @@ function renderApp(){
     const siteLabel = SITES.find(s=>s.id===a.site)?.label||a.site;
     const hasWeight = S.weights.some(w => w.date === a.date);
     const weightBadge = hasWeight
-      ? `<span title="Peso registrado neste dia" style="background:color-mix(in srgb,var(--ok) 15%,transparent);border:1px solid color-mix(in srgb,var(--ok) 40%,transparent);color:var(--ok);border-radius:8px;padding:4px 8px;font-size:13px;line-height:1;white-space:nowrap">⚖️ ✓</span>`
-      : `<button title="Registrar peso neste dia" onclick="quickAddWeight('${a.date}')" style="background:color-mix(in srgb,#F59E0B 12%,transparent);border:1px solid color-mix(in srgb,#F59E0B 35%,transparent);color:#B45309;border-radius:8px;padding:4px 8px;font-size:13px;line-height:1;cursor:pointer;white-space:nowrap">⚖️ + peso</button>`;
+      ? `<span title="Peso registrado neste dia" style="background:color-mix(in srgb,var(--ok) 15%,transparent);border:1px solid color-mix(in srgb,var(--ok) 40%,transparent);color:var(--ok);border-radius:8px;padding:4px 8px;font-size:15px;line-height:1;white-space:nowrap">⚖️ ✓</span>`
+      : `<button title="Registrar peso neste dia" onclick="quickAddWeight('${a.date}')" style="background:color-mix(in srgb,#F59E0B 12%,transparent);border:1px solid color-mix(in srgb,#F59E0B 35%,transparent);color:#B45309;border-radius:8px;padding:4px 8px;font-size:15px;line-height:1;cursor:pointer;white-space:nowrap">⚖️ + peso</button>`;
     return `<div class="h-item">
       <div class="h-dot"></div>
       <div class="h-main">
@@ -2355,7 +2393,7 @@ function renderTimeline(){
     html += `<div class="tl-item ${state}${extraClass}">
       <div class="tl-dot">${icon}</div>
       <div class="tl-body">
-        <div class="tl-dose">${step.doseMg} mg <span style="font-weight:400;font-size:13px;color:var(--fg-m)">· Semanas ${weeksLabel}</span></div>
+        <div class="tl-dose">${step.doseMg} mg <span style="font-weight:400;font-size:15px;color:var(--fg-m)">· Semanas ${weeksLabel}</span></div>
         <div class="tl-meta">${metaText}</div>
       </div>
     </div>`;
@@ -2394,7 +2432,7 @@ function _renderPresetList() {
     return `<div class="proto-preset-card${isActive?' active':''}" onclick="activatePreset('${p.id}')">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div class="proto-preset-name">${p.name}</div>
-        ${isActive?'<span style="font-size:11px;color:var(--ac);font-weight:700">✓ Ativo</span>':''}
+        ${isActive?'<span style="font-size:15px;color:var(--ac);font-weight:700">✓ Ativo</span>':''}
       </div>
       <div class="proto-preset-desc">${p.desc}</div>
       <div class="proto-step-tags">${tags}</div>
@@ -2431,11 +2469,11 @@ function _renderBuilderSteps() {
   }
   c.innerHTML = _protoBuilderSteps.map((step, i) => `
     <div class="proto-builder-row">
-      <select class="fs" style="font-size:13px" onchange="_protoBuilderSteps[${i}].doseMg=parseFloat(this.value)">
+      <select class="fs" style="font-size:15px" onchange="_protoBuilderSteps[${i}].doseMg=parseFloat(this.value)">
         ${[2.5,5,7.5,10,12.5,15].map(d=>`<option value="${d}"${step.doseMg==d?' selected':''}>${d} mg</option>`).join('')}
       </select>
-      <input class="fi" type="number" min="1" max="52" placeholder="sem." style="font-size:13px" value="${step.weeks>=999?'':step.weeks}" oninput="_protoBuilderSteps[${i}].weeks=this.value?parseInt(this.value):999">
-      <select class="fs" style="font-size:13px" onchange="_protoBuilderSteps[${i}].phase=this.value">
+      <input class="fi" type="number" min="1" max="52" placeholder="sem." style="font-size:15px" value="${step.weeks>=999?'':step.weeks}" oninput="_protoBuilderSteps[${i}].weeks=this.value?parseInt(this.value):999">
+      <select class="fs" style="font-size:15px" onchange="_protoBuilderSteps[${i}].phase=this.value">
         ${Object.entries(PHASE_LABELS).map(([k,v])=>`<option value="${k}"${step.phase===k?' selected':''}>${v}</option>`).join('')}
       </select>
       <button onclick="removeProtoStep(${i})" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:4px;line-height:1">✕</button>
@@ -2533,13 +2571,13 @@ function renderProgTable() {
 
   wrap.innerHTML = `
     <div class="tw" style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <table style="width:100%;border-collapse:collapse;font-size:15px">
         <thead>
           <tr style="background:var(--bg-2,#f0f5f1);border-bottom:1.5px solid var(--border)">
-            <th style="padding:8px 10px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Data</th>
-            <th style="padding:8px 8px;text-align:right;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Peso</th>
-            <th style="padding:8px 8px;text-align:right;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Var.</th>
-            <th style="padding:8px 10px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Dose</th>
+            <th style="padding:8px 10px;text-align:left;font-size:15px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Data</th>
+            <th style="padding:8px 8px;text-align:right;font-size:15px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Peso</th>
+            <th style="padding:8px 8px;text-align:right;font-size:15px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Var.</th>
+            <th style="padding:8px 10px;text-align:center;font-size:15px;font-weight:700;letter-spacing:.06em;color:var(--ac);text-transform:uppercase">Dose</th>
           </tr>
         </thead>
         <tbody>
@@ -2556,14 +2594,14 @@ function renderProgTable() {
               onmouseleave="this.style.background='${i%2===0?'':'var(--bg-2,rgba(0,0,0,.025))'}'">
               <td style="padding:9px 10px">
                 <div style="font-weight:600;color:var(--fg)">${fmtD(r.date)}</div>
-                <div style="font-size:11px;color:var(--fg-m)">${weekday}</div>
+                <div style="font-size:15px;color:var(--fg-m)">${weekday}</div>
               </td>
               <td style="padding:9px 8px;text-align:right;font-weight:${r.w?'600':'400'};color:${r.w?'var(--fg)':'var(--fg-m)'}">
                 ${r.w ? r.w.kg.toFixed(1)+' kg' : '–'}
               </td>
               <td style="padding:9px 8px;text-align:right">${deltaHtml}</td>
               <td style="padding:9px 10px;text-align:center">
-                ${hasApp ? `<span style="background:var(--ac);color:#fff;border-radius:10px;padding:2px 8px;font-size:12px;font-weight:700">${doseLabel}</span>` : '<span style="color:var(--fg-m)">–</span>'}
+                ${hasApp ? `<span style="background:var(--ac);color:#fff;border-radius:10px;padding:2px 8px;font-size:16px;font-weight:700">${doseLabel}</span>` : '<span style="color:var(--fg-m)">–</span>'}
               </td>
             </tr>`;
           }).join('')}
@@ -2624,15 +2662,15 @@ function openProgDetail(date) {
 
   // Header
   html += `<div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
-    ${weekNum ? `<span style="background:var(--ac);color:#fff;border-radius:10px;padding:4px 12px;font-size:13px;font-weight:700">Semana ${weekNum}</span>` : ''}
-    <span style="color:var(--fg-m);font-size:13px">${weekday}, ${fmtD(date)}</span>
+    ${weekNum ? `<span style="background:var(--ac);color:#fff;border-radius:10px;padding:4px 12px;font-size:15px;font-weight:700">Semana ${weekNum}</span>` : ''}
+    <span style="color:var(--fg-m);font-size:15px">${weekday}, ${fmtD(date)}</span>
   </div>`;
 
   // ── PESO ──
   html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)">⚖ Pesagem</div>
+    <div style="font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)">⚖ Pesagem</div>
     ${w ? `<button onclick="deleteWeightFromDetail('${w.id}')"
-      style="background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--f)">
+      style="background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;font-family:var(--f)">
       🗑 Excluir peso</button>` : ''}
   </div>`;
   html += `<input type="hidden" id="pd-weight-id" value="${w ? w.id : ''}">`;
@@ -2642,13 +2680,13 @@ function openProgDetail(date) {
     <span style="font-size:16px;color:var(--fg-m);font-weight:600;flex-shrink:0">kg</span>
   </div>`;
   if (delta !== null) {
-    html += `<div style="font-size:12px;color:var(--fg-m);margin-bottom:4px">
+    html += `<div style="font-size:16px;color:var(--fg-m);margin-bottom:4px">
       vs anterior ${prevW.kg.toFixed(1)} kg
       <span style="color:${delta<=0?'var(--ok)':'var(--warn)'};font-weight:600">&nbsp;${delta<=0?'':'+'}${delta.toFixed(1)} kg</span>
       ${bmi ? `· IMC ${bmi}` : ''}
     </div>`;
   }
-  if (!w) html += `<div style="font-size:12px;color:var(--fg-m);margin-bottom:4px">Deixe em branco para não registrar</div>`;
+  if (!w) html += `<div style="font-size:16px;color:var(--fg-m);margin-bottom:4px">Deixe em branco para não registrar</div>`;
 
   // ── APLICAÇÕES (somente leitura, com opção de excluir) ──
   if (aa.length) {
@@ -2656,32 +2694,32 @@ function openProgDetail(date) {
       const siteObj = SITES.find(s => s.id === a.site);
       html += sep;
       html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)">💉 Aplicação</div>
+        <div style="font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)">💉 Aplicação</div>
         <button onclick="deleteAppFromDetail('${a.id}')"
-          style="background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--f)">
+          style="background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;font-family:var(--f)">
           🗑 Excluir</button>
       </div>`;
       html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
         <div style="flex:1;min-width:100px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:10px;padding:10px 14px">
-          <div style="font-size:11px;color:var(--fg-m);margin-bottom:2px">Dose</div>
+          <div style="font-size:15px;color:var(--fg-m);margin-bottom:2px">Dose</div>
           <div style="font-size:16px;font-weight:700;color:var(--fg)">${a.doseMg} mg</div>
         </div>
         ${siteObj ? `<div style="flex:1;min-width:100px;background:var(--bg-2,rgba(0,0,0,.04));border-radius:10px;padding:10px 14px">
-          <div style="font-size:11px;color:var(--fg-m);margin-bottom:2px">Local</div>
+          <div style="font-size:15px;color:var(--fg-m);margin-bottom:2px">Local</div>
           <div style="font-size:16px;font-weight:700;color:var(--fg)">${siteObj.icon} ${siteObj.label}</div>
         </div>` : ''}
       </div>`;
-      if (a.notes) html += `<div style="font-size:12px;color:var(--fg-m);padding:0 2px;margin-bottom:4px">${a.notes}</div>`;
+      if (a.notes) html += `<div style="font-size:16px;color:var(--fg-m);padding:0 2px;margin-bottom:4px">${a.notes}</div>`;
     });
   }
 
   // ── SINTOMAS (leitura) ──
   if (symp.length) {
     html += sep;
-    html += `<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:8px">🩺 Sintomas</div>`;
+    html += `<div style="font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:8px">🩺 Sintomas</div>`;
     html += symp.map(s=>`<div style="background:rgba(230,126,34,.08);border-radius:10px;padding:10px;margin-bottom:4px">
-      <div style="font-size:13px;font-weight:600;color:var(--fg)">${s.symptoms.join(', ') || 'Registrado'}</div>
-      <div style="font-size:12px;color:var(--fg-m);margin-top:2px">Intensidade ${s.severity}/5${s.notes?' · '+s.notes:''}</div>
+      <div style="font-size:15px;font-weight:600;color:var(--fg)">${s.symptoms.join(', ') || 'Registrado'}</div>
+      <div style="font-size:16px;color:var(--fg-m);margin-top:2px">Intensidade ${s.severity}/5${s.notes?' · '+s.notes:''}</div>
     </div>`).join('');
   }
 
@@ -2690,10 +2728,10 @@ function openProgDetail(date) {
     html += sep;
     const totProt = dietDay.reduce((s,d)=>s+d.proteinG,0);
     const totCal  = dietDay.reduce((s,d)=>s+d.caloriesKcal,0);
-    html += `<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:8px">🥗 Alimentação</div>
+    html += `<div style="font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ac);margin-bottom:8px">🥗 Alimentação</div>
       <div style="background:var(--bg-2,rgba(0,0,0,.04));border-radius:10px;padding:10px">
-        <div style="font-size:13px;font-weight:600;color:var(--fg)">Proteína: ${totProt}g · ${totCal} kcal</div>
-        ${dietDay.map(d=>`<div style="font-size:12px;color:var(--fg-m);margin-top:3px">${d.description||'Refeição registrada'}</div>`).join('')}
+        <div style="font-size:15px;font-weight:600;color:var(--fg)">Proteína: ${totProt}g · ${totCal} kcal</div>
+        ${dietDay.map(d=>`<div style="font-size:16px;color:var(--fg-m);margin-top:3px">${d.description||'Refeição registrada'}</div>`).join('')}
       </div>`;
   }
 
@@ -2826,7 +2864,7 @@ function _setFsFilterButtons(activeWeeks) {
   ];
   document.getElementById('chart-fs-filter').innerHTML = opts.map(o =>
     `<button onclick="_setFsRange(${o.weeks===null?'null':o.weeks})" style="
-      padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:var(--f);
+      padding:6px 14px;border-radius:20px;font-size:15px;cursor:pointer;white-space:nowrap;font-family:var(--f);
       border:1.5px solid ${(o.weeks===activeWeeks)?'var(--ac)':'var(--border)'};
       background:${(o.weeks===activeWeeks)?'var(--ac)':'none'};
       color:${(o.weeks===activeWeeks)?'#fff':'var(--fg-m)'}">
@@ -3217,7 +3255,7 @@ function renderMealPlan(){
         <div class="meal-ingr">${ingrHtml}</div>
       </div>`;
     }).join('');
-    const enjooTag = day.isEnjooDia ? '<span class="badge-warn" style="font-size:10px">Dia de enjoo — porções menores</span>' : '';
+    const enjooTag = day.isEnjooDia ? '<span class="badge-warn" style="font-size:13px">Dia de enjoo — porções menores</span>' : '';
     return `<div class="meal-day${day.isEnjooDia?' enjoo':''}">
       <div class="meal-day-header"><span class="meal-day-name">${day.dayLabel}</span>${enjooTag}</div>
       ${slotsHtml}
@@ -3916,7 +3954,7 @@ function renderPerfilTab() {
       style="background:rgba(255,255,255,.15);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:background .15s"
       onmouseenter="this.style.background='rgba(255,255,255,.25)'" onmouseleave="this.style.background='rgba(255,255,255,.15)'">
       <div style="color:#fff;font-size:18px;font-weight:700;font-family:var(--fd)">${val}</div>
-      <div style="color:rgba(255,255,255,.75);font-size:10px;margin-top:2px;text-transform:uppercase;letter-spacing:.06em">${label}</div>
+      <div style="color:rgba(255,255,255,.75);font-size:13px;margin-top:2px;text-transform:uppercase;letter-spacing:.06em">${label}</div>
     </div>`;
   }
 
@@ -3933,7 +3971,7 @@ function renderPerfilTab() {
   // Update profile-summary (old hidden card)
   const ps = document.getElementById('profile-summary');
   if (ps && p.name) {
-    ps.innerHTML = `<div style="font-size:14px"><strong>${p.name}</strong><br>
+    ps.innerHTML = `<div style="font-size:16px"><strong>${p.name}</strong><br>
       <span class="t-m">${p.weightKg ? p.weightKg + ' kg' : ''} ${p.heightCm ? '· ' + p.heightCm + ' cm' : ''} ${p.currentDoseMg ? '· ' + p.currentDoseMg + ' mg' : ''}</span></div>`;
   }
 }
