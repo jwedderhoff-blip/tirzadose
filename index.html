@@ -3989,7 +3989,7 @@ function toggleMedInfo() {
 /* ===== SHARE CARD (Canvas) ===== */
 let shareCardBlob = null;
 
-function generateShareCard() {
+async function generateShareCard() {
   const canvas = document.getElementById('share-canvas');
   const status = document.getElementById('share-status');
   const shareBtn = document.getElementById('share-btn');
@@ -3999,6 +3999,21 @@ function generateShareCard() {
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
+
+  // ── Load avatar image (if user is logged in and has one) ──
+  let avatarImg = null;
+  const avatarUrl = sbUser?.user_metadata?.avatar_url;
+  if (avatarUrl) {
+    try {
+      avatarImg = await new Promise(resolve => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = avatarUrl;
+      });
+    } catch(e) { avatarImg = null; }
+  }
 
   // ── Background ──
   const grad = ctx.createLinearGradient(0, 0, W, H);
@@ -4044,6 +4059,23 @@ function generateShareCard() {
   ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(W*0.35, 90); ctx.lineTo(W*0.65, 90); ctx.stroke();
 
+  // ── Avatar (circular photo, centered between header and name) ──
+  const avR = 35, avCX = W/2, avCY = 135;
+  if (avatarImg) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(avCX, avCY, avR, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(avatarImg, avCX - avR, avCY - avR, avR * 2, avR * 2);
+    ctx.restore();
+    // White ring around avatar
+    ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(avCX, avCY, avR + 1, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
   // ── Name ──
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 66px Georgia, serif';
@@ -4054,14 +4086,14 @@ function generateShareCard() {
   if (ctx.measureText(nameText).width > maxNameW) {
     ctx.font = 'bold 52px Georgia, serif';
   }
-  ctx.fillText(nameText, W/2, 180);
+  ctx.fillText(nameText, W/2, 230);
 
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.font = '400 32px system-ui, sans-serif';
-  ctx.fillText('Minha evolução com tirzepatida', W/2, 232);
+  ctx.fillText('Minha evolução com tirzepatida', W/2, 282);
 
   // ── Weight comparison band ──
-  const bandY = 272, bandH = 148;
+  const bandY = 322, bandH = 148;
   ctx.fillStyle = 'rgba(0,0,0,0.2)';
   ctx.beginPath(); ctx.roundRect(60, bandY, W - 120, bandH, 20); ctx.fill();
 
@@ -4110,7 +4142,7 @@ function generateShareCard() {
   }
 
   // ── Weight Chart ──
-  const chartX = 80, chartY = 450, chartW = W - 160, chartH = 310;
+  const chartX = 80, chartY = 500, chartW = W - 160, chartH = 310;
 
   // Chart background
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
@@ -4201,7 +4233,7 @@ function generateShareCard() {
   }
 
   // ── Bottom stats bar: semanas · aplicações · dose ──
-  const statsY = 830;
+  const statsY = 880;
   const sortedAppsCard = [...apps].sort((a,b) => a.date.localeCompare(b.date));
   const firstDoseCard  = sortedAppsCard.length ? sortedAppsCard[0].doseMg : null;
   const curDoseCard    = getLastDose();
