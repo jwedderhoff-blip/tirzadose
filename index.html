@@ -916,7 +916,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         </div>
       </div>
       <div class="inner">
-        <div id="diet-today" style="margin-bottom:10px"></div>
+        <div id="diet-today" style="margin-bottom:10px" hidden></div>
         <div class="sec-title" style="margin-top:4px;">Cardápio da Semana
           <div class="row" style="gap:6px">
             <button class="btn btn-g btn-sm" onclick="openPrefsModal()">⚙ Preferências</button>
@@ -2218,7 +2218,18 @@ function renderInicio(){
       </div>
     </div>` : '';
 
-  el.innerHTML = `
+  const novaDietaDismissed = (() => { try { return localStorage.getItem('tirza_nova_dieta_v2') === '1'; } catch(e){ return false; } })();
+  const novidadeHtml = novaDietaDismissed ? '' : `
+    <div id="novidade-balloon" style="background:linear-gradient(135deg,#1a3a2a 0%,#0d2218 100%);border:1.5px solid var(--ac);border-radius:16px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:12px;position:relative">
+      <div style="font-size:24px;line-height:1;flex-shrink:0">🥗</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;color:var(--ac);margin-bottom:3px">Novidade na Dieta!</div>
+        <div style="font-size:13px;color:var(--fg-2);line-height:1.4">Cardápio expandido com mais de 60 ingredientes e 70+ receitas — café, almoço, jantar e lanches com muito mais variedade.</div>
+      </div>
+      <button onclick="(function(){try{localStorage.setItem('tirza_nova_dieta_v2','1')}catch(e){}document.getElementById('novidade-balloon').remove()})()" style="position:absolute;top:10px;right:12px;background:none;border:none;color:var(--fg-2);font-size:18px;cursor:pointer;line-height:1;padding:2px 4px" aria-label="Fechar">×</button>
+    </div>`;
+
+  el.innerHTML = novidadeHtml + `
     <div class="${heroClass}">
       <div class="hero-eyebrow">Próxima aplicação</div>
       <div class="hero-countdown">${daysLabel}</div>
@@ -3170,13 +3181,22 @@ const INGR_CATS = {
     {id:'frango',label:'Frango'},{id:'tilapia',label:'Tilápia'},{id:'salmao',label:'Salmão'},
     {id:'atum',label:'Atum (lata)'},{id:'sardinha',label:'Sardinha'},{id:'ovos',label:'Ovos'},
     {id:'iogurte',label:'Iogurte grego'},{id:'cottage',label:'Queijo cottage'},
-    {id:'carne_moida',label:'Carne moída'},{id:'whey',label:'Whey protein'},
-    {id:'tofu',label:'Tofu'},{id:'lentilha',label:'Lentilha'},{id:'feijao',label:'Feijão'},
+    {id:'carne_moida',label:'Carne moída'},{id:'carne_bovina',label:'Carne bovina (patinho/músculo)'},
+    {id:'whey',label:'Whey protein'},{id:'tofu',label:'Tofu'},
+    {id:'lentilha',label:'Lentilha'},{id:'feijao',label:'Feijão'},
+    {id:'grao_bico',label:'Grão-de-bico'},{id:'ervilha',label:'Ervilha'},
+    {id:'bacalhau',label:'Bacalhau'},{id:'camarao',label:'Camarão'},
+    {id:'peito_peru',label:'Peito de peru'},{id:'ricota',label:'Ricota'},
+    {id:'ovo_codorna',label:'Ovo de codorna'},{id:'amendoim',label:'Amendoim (pasta)'},
   ],
   'Grãos e carboidratos': [
     {id:'arroz_int',label:'Arroz integral'},{id:'batata_doce',label:'Batata-doce'},
     {id:'aveia',label:'Aveia'},{id:'quinoa',label:'Quinoa'},
     {id:'pao_int',label:'Pão integral'},{id:'macarrao_int',label:'Macarrão integral'},
+    {id:'mandioca',label:'Mandioca (aipim)'},{id:'inhame',label:'Inhame'},
+    {id:'batata_ing',label:'Batata inglesa'},{id:'cuscuz',label:'Cuscuz de milho'},
+    {id:'tapioca',label:'Tapioca'},{id:'polenta',label:'Polenta'},
+    {id:'arroz_branco',label:'Arroz branco'},{id:'pipoca',label:'Pipoca (sem manteiga)'},
   ],
   'Vegetais': [
     {id:'brocolis',label:'Brócolis'},{id:'espinafre',label:'Espinafre'},
@@ -3185,59 +3205,119 @@ const INGR_CATS = {
     {id:'couve',label:'Couve'},{id:'chuchu',label:'Chuchu 🌿'},
     {id:'beterraba',label:'Beterraba'},{id:'pepino',label:'Pepino'},
     {id:'repolho',label:'Repolho'},{id:'quiabo',label:'Quiabo 🌿'},
+    {id:'pimentao',label:'Pimentão'},{id:'cebola',label:'Cebola'},
+    {id:'alho',label:'Alho'},{id:'aspargo',label:'Aspargo'},
+    {id:'cogumelo',label:'Cogumelo (paris/shitake)'},{id:'berinjela',label:'Berinjela'},
+    {id:'vagem',label:'Vagem'},{id:'milho',label:'Milho verde'},
+    {id:'abobora',label:'Abóbora'},{id:'rucula',label:'Rúcula'},
+    {id:'agriao',label:'Agrião'},{id:'palmito',label:'Palmito'},
+    {id:'couve_flor',label:'Couve-flor'},{id:'aipo',label:'Aipo (salsão)'},
   ],
   'Frutas': [
     {id:'banana',label:'Banana'},{id:'maca',label:'Maçã'},
     {id:'morango',label:'Morango 🌿'},{id:'mamao',label:'Mamão'},
     {id:'laranja',label:'Laranja'},{id:'abacate',label:'Abacate 🌿'},
-    {id:'melancia',label:'Melancia 🌿'},
+    {id:'melancia',label:'Melancia 🌿'},{id:'melao',label:'Melão 🌿'},
+    {id:'kiwi',label:'Kiwi'},{id:'manga',label:'Manga 🌿'},
+    {id:'maracuja',label:'Maracujá'},{id:'goiaba',label:'Goiaba'},
+    {id:'acerola',label:'Acerola'},{id:'framboesa',label:'Framboesa'},
+    {id:'limon',label:'Limão (suco/tempero)'},{id:'pera',label:'Pera'},
   ],
   'Gorduras saudáveis': [
     {id:'azeite',label:'Azeite'},{id:'amendoas',label:'Amêndoas'},
-    {id:'chia',label:'Chia'},{id:'castanha',label:'Castanha-do-pará'},{id:'linhaca',label:'Linhaça'},
+    {id:'chia',label:'Chia'},{id:'castanha',label:'Castanha-do-pará'},
+    {id:'linhaca',label:'Linhaça'},{id:'nozes',label:'Nozes'},
+    {id:'gergelim',label:'Gergelim / Tahine'},{id:'coco',label:'Coco ralado (sem açúcar)'},
+    {id:'sementes_abobora',label:'Sementes de abóbora'},
+  ],
+  'Laticínios': [
+    {id:'leite_desnatado',label:'Leite desnatado'},{id:'queijo_minas',label:'Queijo minas frescal'},
+    {id:'kefir',label:'Kefir'},{id:'requeijao_light',label:'Requeijão light'},
+    {id:'queijo_prato',label:'Queijo prato (fatia)'},
   ]
 };
 
 // enjoo:true = adequado para dias com náusea (dia da aplicação e seguinte)
 const MEAL_DB = {
   cafe: [
-    {id:'c1',label:'Omelete de espinafre no azeite',ingr:['ovos','espinafre','azeite'],enjoo:true},
-    {id:'c2',label:'Aveia com banana e chia',ingr:['aveia','banana','chia'],enjoo:true},
-    {id:'c3',label:'Iogurte grego com morango e chia',ingr:['iogurte','morango','chia'],enjoo:true},
-    {id:'c4',label:'Ovos mexidos com tomate e azeite',ingr:['ovos','tomate','azeite'],enjoo:true},
-    {id:'c5',label:'Pão integral com queijo cottage e pepino',ingr:['pao_int','cottage','pepino'],enjoo:false},
-    {id:'c6',label:'Vitamina de banana com whey',ingr:['banana','whey'],enjoo:false},
-    {id:'c7',label:'Aveia com mamão e castanha',ingr:['aveia','mamao','castanha'],enjoo:true},
-    {id:'c8',label:'Omelete de claras com espinafre e tomate',ingr:['ovos','espinafre','tomate'],enjoo:true},
+    {id:'c1', label:'Omelete de espinafre no azeite',ingr:['ovos','espinafre','azeite'],enjoo:true},
+    {id:'c2', label:'Aveia com banana e chia',ingr:['aveia','banana','chia'],enjoo:true},
+    {id:'c3', label:'Iogurte grego com morango e chia',ingr:['iogurte','morango','chia'],enjoo:true},
+    {id:'c4', label:'Ovos mexidos com tomate e azeite',ingr:['ovos','tomate','azeite'],enjoo:true},
+    {id:'c5', label:'Pão integral com queijo cottage e pepino',ingr:['pao_int','cottage','pepino'],enjoo:false},
+    {id:'c6', label:'Vitamina de banana com whey',ingr:['banana','whey'],enjoo:false},
+    {id:'c7', label:'Aveia com mamão e castanha',ingr:['aveia','mamao','castanha'],enjoo:true},
+    {id:'c8', label:'Omelete de claras com espinafre e tomate',ingr:['ovos','espinafre','tomate'],enjoo:true},
+    {id:'c9', label:'Tapioca com ricota e tomate',ingr:['tapioca','ricota','tomate'],enjoo:true},
+    {id:'c10',label:'Iogurte grego com granola e kiwi',ingr:['iogurte','kiwi'],enjoo:false},
+    {id:'c11',label:'Ovos mexidos com cogumelo e pimentão',ingr:['ovos','cogumelo','pimentao'],enjoo:false},
+    {id:'c12',label:'Aveia com maçã ralada e nozes',ingr:['aveia','maca','nozes'],enjoo:true},
+    {id:'c13',label:'Pão integral com pasta de amendoim e banana',ingr:['pao_int','amendoim','banana'],enjoo:false},
+    {id:'c14',label:'Omelete de claras com queijo minas e rúcula',ingr:['ovos','queijo_minas','rucula'],enjoo:true},
+    {id:'c15',label:'Vitamina de abacate com leite desnatado',ingr:['abacate','leite_desnatado'],enjoo:false},
+    {id:'c16',label:'Cuscuz com ovo cozido e tomate',ingr:['cuscuz','ovos','tomate'],enjoo:true},
+    {id:'c17',label:'Kefir com morango e chia',ingr:['kefir','morango','chia'],enjoo:true},
+    {id:'c18',label:'Tapioca com peito de peru e queijo minas',ingr:['tapioca','peito_peru','queijo_minas'],enjoo:false},
   ],
   almoco: [
-    {id:'a1',label:'Frango grelhado com arroz integral e salada',ingr:['frango','arroz_int','alface','tomate'],enjoo:false},
-    {id:'a2',label:'Tilápia assada com batata-doce e brócolis',ingr:['tilapia','batata_doce','brocolis'],enjoo:false},
-    {id:'a3',label:'Frango desfiado com arroz, feijão e cenoura',ingr:['frango','arroz_int','feijao','cenoura'],enjoo:true},
-    {id:'a4',label:'Salmão grelhado com quinoa e espinafre refogado',ingr:['salmao','quinoa','espinafre'],enjoo:false},
-    {id:'a5',label:'Omelete proteico com salada de alface e tomate',ingr:['ovos','alface','tomate','azeite'],enjoo:true},
-    {id:'a6',label:'Carne moída com arroz integral, feijão e couve',ingr:['carne_moida','arroz_int','feijao','couve'],enjoo:false},
-    {id:'a7',label:'Lentilha refogada com cenoura e arroz integral',ingr:['lentilha','cenoura','arroz_int'],enjoo:true},
-    {id:'a8',label:'Sardinha com arroz integral e salada de tomate',ingr:['sardinha','arroz_int','tomate','alface'],enjoo:false},
+    {id:'a1', label:'Frango grelhado com arroz integral e salada',ingr:['frango','arroz_int','alface','tomate'],enjoo:false},
+    {id:'a2', label:'Tilápia assada com batata-doce e brócolis',ingr:['tilapia','batata_doce','brocolis'],enjoo:false},
+    {id:'a3', label:'Frango desfiado com arroz, feijão e cenoura',ingr:['frango','arroz_int','feijao','cenoura'],enjoo:true},
+    {id:'a4', label:'Salmão grelhado com quinoa e espinafre',ingr:['salmao','quinoa','espinafre'],enjoo:false},
+    {id:'a5', label:'Omelete proteico com salada de alface e tomate',ingr:['ovos','alface','tomate','azeite'],enjoo:true},
+    {id:'a6', label:'Carne moída com arroz integral, feijão e couve',ingr:['carne_moida','arroz_int','feijao','couve'],enjoo:false},
+    {id:'a7', label:'Lentilha refogada com cenoura e arroz integral',ingr:['lentilha','cenoura','arroz_int'],enjoo:true},
+    {id:'a8', label:'Sardinha com arroz integral e salada de tomate',ingr:['sardinha','arroz_int','tomate','alface'],enjoo:false},
+    {id:'a9', label:'Grão-de-bico refogado com pimentão e couve-flor',ingr:['grao_bico','pimentao','couve_flor'],enjoo:true},
+    {id:'a10',label:'Bacalhau desfiado com batata inglesa e tomate',ingr:['bacalhau','batata_ing','tomate','cebola'],enjoo:false},
+    {id:'a11',label:'Tofu grelhado com arroz integral, vagem e cogumelo',ingr:['tofu','arroz_int','vagem','cogumelo'],enjoo:false},
+    {id:'a12',label:'Carne bovina com mandioca cozida e couve refogada',ingr:['carne_bovina','mandioca','couve'],enjoo:false},
+    {id:'a13',label:'Camarão salteado com abobrinha e quinoa',ingr:['camarao','abobrinha','quinoa'],enjoo:false},
+    {id:'a14',label:'Frango ao forno com abóbora assada e brócolis',ingr:['frango','abobora','brocolis'],enjoo:false},
+    {id:'a15',label:'Ervilha com atum, arroz integral e pepino',ingr:['ervilha','atum','arroz_int','pepino'],enjoo:true},
+    {id:'a16',label:'Macarrão integral com carne moída e tomate',ingr:['macarrao_int','carne_moida','tomate','cebola'],enjoo:false},
+    {id:'a17',label:'Tilápia ao limão com arroz branco e vagem',ingr:['tilapia','arroz_branco','vagem','limon'],enjoo:false},
+    {id:'a18',label:'Caldo de músculo com legumes (sopa nutritiva)',ingr:['carne_bovina','cenoura','abobrinha','chuchu'],enjoo:true},
+    {id:'a19',label:'Polenta cremosa com frango desfiado e molho de tomate',ingr:['polenta','frango','tomate','cebola'],enjoo:false},
+    {id:'a20',label:'Berinjela recheada com carne moída e queijo cottage',ingr:['berinjela','carne_moida','cottage'],enjoo:false},
   ],
   jantar: [
-    {id:'j1',label:'Sopa de frango com legumes',ingr:['frango','cenoura','abobrinha','chuchu'],enjoo:true},
-    {id:'j2',label:'Atum com batata-doce assada e brócolis',ingr:['atum','batata_doce','brocolis'],enjoo:false},
-    {id:'j3',label:'Frango desfiado com abobrinha refogada no azeite',ingr:['frango','abobrinha','azeite'],enjoo:true},
-    {id:'j4',label:'Omelete de claras com espinafre',ingr:['ovos','espinafre','azeite'],enjoo:true},
-    {id:'j5',label:'Sardinha com arroz integral e salada verde',ingr:['sardinha','arroz_int','alface','tomate'],enjoo:false},
-    {id:'j6',label:'Caldo de legumes com frango desfiado',ingr:['frango','cenoura','brocolis','abobrinha'],enjoo:true},
-    {id:'j7',label:'Tilápia no vapor com cenoura e couve',ingr:['tilapia','cenoura','couve'],enjoo:false},
-    {id:'j8',label:'Macarrão integral com frango e tomate',ingr:['macarrao_int','frango','tomate','azeite'],enjoo:false},
+    {id:'j1', label:'Sopa de frango com legumes',ingr:['frango','cenoura','abobrinha','chuchu'],enjoo:true},
+    {id:'j2', label:'Atum com batata-doce assada e brócolis',ingr:['atum','batata_doce','brocolis'],enjoo:false},
+    {id:'j3', label:'Frango desfiado com abobrinha refogada no azeite',ingr:['frango','abobrinha','azeite'],enjoo:true},
+    {id:'j4', label:'Omelete de claras com espinafre',ingr:['ovos','espinafre','azeite'],enjoo:true},
+    {id:'j5', label:'Sardinha com arroz integral e salada verde',ingr:['sardinha','arroz_int','alface','tomate'],enjoo:false},
+    {id:'j6', label:'Caldo de legumes com frango desfiado',ingr:['frango','cenoura','brocolis','abobrinha'],enjoo:true},
+    {id:'j7', label:'Tilápia no vapor com cenoura e couve',ingr:['tilapia','cenoura','couve'],enjoo:false},
+    {id:'j8', label:'Macarrão integral com frango e tomate',ingr:['macarrao_int','frango','tomate','azeite'],enjoo:false},
+    {id:'j9', label:'Sopa creme de abóbora com frango',ingr:['frango','abobora','cebola'],enjoo:true},
+    {id:'j10',label:'Tofu salteado com espinafre e gergelim',ingr:['tofu','espinafre','gergelim'],enjoo:true},
+    {id:'j11',label:'Omelete de claras com cogumelo e aspargo',ingr:['ovos','cogumelo','aspargo'],enjoo:true},
+    {id:'j12',label:'Sopa de lentilha com cenoura e aipo',ingr:['lentilha','cenoura','aipo'],enjoo:true},
+    {id:'j13',label:'Camarão ao alho com abobrinha grelhada',ingr:['camarao','abobrinha','alho','azeite'],enjoo:false},
+    {id:'j14',label:'Grão-de-bico com espinafre e tomate ao azeite',ingr:['grao_bico','espinafre','tomate','azeite'],enjoo:true},
+    {id:'j15',label:'Caldo de músculo com mandioca',ingr:['carne_bovina','mandioca','cenoura','cebola'],enjoo:true},
+    {id:'j16',label:'Salmão ao forno com aspargo e limão',ingr:['salmao','aspargo','limon'],enjoo:false},
+    {id:'j17',label:'Couve-flor gratinada com ricota',ingr:['couve_flor','ricota','queijo_minas'],enjoo:false},
+    {id:'j18',label:'Peito de peru com batata-doce e salada de rúcula',ingr:['peito_peru','batata_doce','rucula'],enjoo:false},
   ],
   lanche: [
-    {id:'l1',label:'Iogurte grego com chia',ingr:['iogurte','chia'],enjoo:true},
-    {id:'l2',label:'Castanhas com maçã',ingr:['castanha','maca'],enjoo:true},
-    {id:'l3',label:'Queijo cottage com tomate',ingr:['cottage','tomate'],enjoo:true},
-    {id:'l4',label:'Amêndoas com banana',ingr:['amendoas','banana'],enjoo:true},
-    {id:'l5',label:'Iogurte grego com morango',ingr:['iogurte','morango'],enjoo:true},
-    {id:'l6',label:'Ovos cozidos',ingr:['ovos'],enjoo:true},
-    {id:'l7',label:'Atum com pão integral',ingr:['atum','pao_int'],enjoo:false},
+    {id:'l1', label:'Iogurte grego com chia',ingr:['iogurte','chia'],enjoo:true},
+    {id:'l2', label:'Castanhas com maçã',ingr:['castanha','maca'],enjoo:true},
+    {id:'l3', label:'Queijo cottage com tomate',ingr:['cottage','tomate'],enjoo:true},
+    {id:'l4', label:'Amêndoas com banana',ingr:['amendoas','banana'],enjoo:true},
+    {id:'l5', label:'Iogurte grego com morango',ingr:['iogurte','morango'],enjoo:true},
+    {id:'l6', label:'Ovos cozidos',ingr:['ovos'],enjoo:true},
+    {id:'l7', label:'Atum com pão integral',ingr:['atum','pao_int'],enjoo:false},
+    {id:'l8', label:'Kefir com kiwi e linhaça',ingr:['kefir','kiwi','linhaca'],enjoo:true},
+    {id:'l9', label:'Queijo minas com goiaba',ingr:['queijo_minas','goiaba'],enjoo:true},
+    {id:'l10',label:'Nozes com framboesa',ingr:['nozes','framboesa'],enjoo:true},
+    {id:'l11',label:'Ovo de codorna cozido com tomate cereja',ingr:['ovo_codorna','tomate'],enjoo:true},
+    {id:'l12',label:'Pasta de amendoim com banana',ingr:['amendoim','banana'],enjoo:false},
+    {id:'l13',label:'Ricota amassada com acerola e mel',ingr:['ricota','acerola'],enjoo:true},
+    {id:'l14',label:'Pepino com cottage e sementes de abóbora',ingr:['pepino','cottage','sementes_abobora'],enjoo:true},
+    {id:'l15',label:'Abacate temperado com limão e chia',ingr:['abacate','limon','chia'],enjoo:true},
+    {id:'l16',label:'Pipoca (sem manteiga) com castanha',ingr:['pipoca','castanha'],enjoo:false},
   ]
 };
 
