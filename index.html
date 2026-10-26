@@ -901,6 +901,19 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
             <div id="prog-table-inner"></div>
           </div>
         </div>
+
+        <div class="sec-title" style="margin-top:16px;cursor:pointer;user-select:none" onclick="toggleImcTable()" id="imc-table-header" aria-expanded="false">
+          <span>Tabela de IMC</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="t-m" style="font-size:16px;font-weight:400">Sua classificação</span>
+            <span id="imc-table-chevron" style="color:var(--ac);font-size:16px;transition:transform .2s">▸</span>
+          </div>
+        </div>
+        <div id="imc-table-wrap" style="display:none">
+          <div class="card" style="padding:0;overflow:hidden">
+            <div id="imc-table-inner"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -4137,6 +4150,68 @@ function toggleProgTable(header) {
   const chevron = document.getElementById('prog-table-chevron');
   if (!wrap) return;
   const open = wrap.style.display === 'none';
+  wrap.style.display = open ? '' : 'none';
+  if (chevron) chevron.style.transform = open ? 'rotate(90deg)' : '';
+  if (header) header.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+/* ===== TABELA DE IMC ===== */
+const IMC_RANGES = [
+  { label:'Abaixo do peso',  min:0,    max:18.49, color:'#3b82f6' },
+  { label:'Peso normal',     min:18.5, max:24.99, color:'#22c55e' },
+  { label:'Sobrepeso',       min:25.0, max:29.99, color:'#eab308' },
+  { label:'Obesidade Grau I',min:30.0, max:34.99, color:'#f97316' },
+  { label:'Obesidade Grau II',min:35.0,max:39.99, color:'#ef4444' },
+  { label:'Obesidade Grau III',min:40.0,max:999,  color:'#b91c1c' },
+];
+
+function renderImcTable() {
+  const wrap = document.getElementById('imc-table-inner');
+  if (!wrap) return;
+
+  const h = S.profile.heightCm;
+  const weights = [...S.weights].sort((a,b)=>a.date<b.date?-1:1);
+  const currW = weights.length ? weights[weights.length-1].kg : (S.profile.weightKg || 0);
+  const bmi = (h > 0 && currW > 0) ? currW / Math.pow(h/100, 2) : null;
+
+  const currentRange = bmi ? IMC_RANGES.find(r => bmi >= r.min && bmi <= r.max) : null;
+
+  let headerHtml = '';
+  if (bmi) {
+    headerHtml = `<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+      <div style="width:48px;height:48px;border-radius:50%;background:${currentRange?.color||'var(--ac)'};display:flex;align-items:center;justify-content:flex-end;flex-shrink:0;flex-direction:column;padding-bottom:8px">
+        <span style="color:#fff;font-size:15px;font-weight:700;line-height:1">${bmi.toFixed(1)}</span>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:${currentRange?.color||'var(--fg)'}">${currentRange?.label||'–'}</div>
+        <div style="font-size:13px;color:var(--fg-2)">IMC atual · ${currW.toFixed(1)} kg · ${h} cm</div>
+      </div>
+    </div>`;
+  } else {
+    headerHtml = `<div style="padding:14px 16px;border-bottom:1px solid var(--border);color:var(--fg-2);font-size:14px">Registre seu peso e altura no perfil para ver seu IMC.</div>`;
+  }
+
+  const rows = IMC_RANGES.map(r => {
+    const active = currentRange === r;
+    const rangeStr = r.max >= 999 ? `≥ ${r.min}` : `${r.min} – ${r.max}`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;${active?`background:${r.color}18;`:''};border-bottom:1px solid var(--border)">
+      <div style="width:10px;height:10px;border-radius:50%;background:${r.color};flex-shrink:0"></div>
+      <div style="flex:1;font-size:14px;${active?`font-weight:700;color:${r.color}`:''}">${r.label}</div>
+      <div style="font-size:13px;color:${active?r.color:'var(--fg-2)'};font-weight:${active?700:400}">${rangeStr}</div>
+      ${active ? `<div style="font-size:12px;font-weight:700;color:${r.color}">← você</div>` : ''}
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = headerHtml + rows;
+}
+
+function toggleImcTable() {
+  const wrap = document.getElementById('imc-table-wrap');
+  const chevron = document.getElementById('imc-table-chevron');
+  const header = document.getElementById('imc-table-header');
+  if (!wrap) return;
+  const open = wrap.style.display === 'none';
+  if (open) renderImcTable();
   wrap.style.display = open ? '' : 'none';
   if (chevron) chevron.style.transform = open ? 'rotate(90deg)' : '';
   if (header) header.setAttribute('aria-expanded', open ? 'true' : 'false');
