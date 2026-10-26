@@ -2856,6 +2856,8 @@ function _chartColors() {
     weightColor: isDark ? '#6DBF82' : '#3D7A56',
     fillColor:   isDark ? 'rgba(109,191,130,.1)' : 'rgba(61,122,86,.09)',
     appColor:    isDark ? '#E08040' : '#C96A2B',
+    imcColor:    isDark ? '#A78BFA' : '#7C3AED',
+    imcFill:     isDark ? 'rgba(167,139,250,.08)' : 'rgba(124,58,237,.07)',
     bgCard:      isDark ? '#201D18' : '#fff',
     fgCard:      isDark ? '#EDE8DF' : '#1A180E',
     fgM:         isDark ? '#A0B090' : '#5A6A5A',
@@ -2874,6 +2876,22 @@ function _buildChartConfig(weights, apps, c, maxTicksLimit) {
   const appBand = minKg - range * 0.28;
   const labels     = allDates.map(d => fmtD(d));
   const weightData = allDates.map(d => weightMap[d] !== undefined ? weightMap[d] : null);
+
+  const h = S.profile.heightCm || 0;
+  const showImc = h > 0 && weights.length >= 2;
+  const imcData = showImc ? allDates.map(d => weightMap[d] !== undefined ? +(weightMap[d] / Math.pow(h/100,2)).toFixed(2) : null) : [];
+  function _imcLabel(v) {
+    if (v < 18.5) return 'Abaixo do peso';
+    if (v < 25)   return 'Peso normal';
+    if (v < 30)   return 'Sobrepeso';
+    if (v < 35)   return 'Obesidade I';
+    if (v < 40)   return 'Obesidade II';
+    return 'Obesidade III';
+  }
+  const imcVals  = imcData.filter(v=>v!==null);
+  const imcMin   = imcVals.length ? Math.min(...imcVals) : 18;
+  const imcMax   = imcVals.length ? Math.max(...imcVals) : 30;
+  const imcPad   = Math.max((imcMax - imcMin) * 0.2, 1);
   const appPoints  = [];
   allDates.forEach((d,i) => { if(appMap[d]) appPoints.push({ x: labels[i], y: appBand, doses: appMap[d] }); });
 
@@ -2890,7 +2908,12 @@ function _buildChartConfig(weights, apps, c, maxTicksLimit) {
         { label:'Aplicação', type:'scatter', data:appPoints,
           backgroundColor:c.appColor, borderColor:c.isDark?'#161410':'#fff',
           borderWidth:2, pointStyle:'triangle', pointRadius:9, pointHoverRadius:11,
-          order:1, yAxisID:'y' }
+          order:1, yAxisID:'y' },
+        ...(showImc ? [{ label:'IMC', type:'line', data:imcData,
+          borderColor:c.imcColor, backgroundColor:c.imcFill, fill:false, tension:0.35,
+          borderWidth:2, pointBackgroundColor:c.imcColor, pointRadius:4, pointHoverRadius:6,
+          pointBorderColor:c.isDark?'#161410':'#fff', pointBorderWidth:1.5,
+          spanGaps:true, order:3, yAxisID:'yImc', borderDash:[4,3] }] : [])
       ]
     },
     options: {
@@ -2899,10 +2922,14 @@ function _buildChartConfig(weights, apps, c, maxTicksLimit) {
         legend: {
           display:true, position:'top', align:'start',
           labels: { color:c.tickColor, font:{size:13}, usePointStyle:true, pointStyleWidth:14, padding:18,
-            generateLabels() { return [
-              { text:'Peso', fillStyle:c.weightColor, strokeStyle:c.weightColor, lineWidth:2.5, pointStyle:'line', fontColor:c.tickColor },
-              { text:'Aplicação', fillStyle:c.appColor, strokeStyle:c.appColor, lineWidth:0, pointStyle:'triangle', fontColor:c.tickColor }
-            ]; }
+            generateLabels() {
+              const items = [
+                { text:'Peso', fillStyle:c.weightColor, strokeStyle:c.weightColor, lineWidth:2.5, pointStyle:'line', fontColor:c.tickColor },
+                { text:'Aplicação', fillStyle:c.appColor, strokeStyle:c.appColor, lineWidth:0, pointStyle:'triangle', fontColor:c.tickColor }
+              ];
+              if (showImc) items.push({ text:'IMC', fillStyle:c.imcColor, strokeStyle:c.imcColor, lineWidth:2, pointStyle:'line', fontColor:c.tickColor });
+              return items;
+            }
           }
         },
         tooltip: {
@@ -2913,6 +2940,7 @@ function _buildChartConfig(weights, apps, c, maxTicksLimit) {
             label(ctx){
               if(ctx.datasetIndex===0) return ctx.parsed.y!=null ? `⚖️  ${ctx.parsed.y.toFixed(1)} kg` : null;
               if(ctx.datasetIndex===1) return `💉  ${ctx.raw.doses.map(d=>d+' mg').join(' + ')}`;
+              if(ctx.datasetIndex===2 && ctx.parsed.y!=null) return `📊  IMC ${ctx.parsed.y.toFixed(1)} · ${_imcLabel(ctx.parsed.y)}`;
             }
           }
         }
@@ -2926,7 +2954,13 @@ function _buildChartConfig(weights, apps, c, maxTicksLimit) {
             callback(v){ return v < minKg - range*0.05 ? '' : v.toFixed(1)+' kg'; }
           },
           grace:'3%'
-        }
+        },
+        ...(showImc ? { yImc: {
+          position:'right', grid:{ drawOnChartArea:false },
+          min: imcMin - imcPad, max: imcMax + imcPad,
+          ticks: { color:c.imcColor, font:{size:11}, callback(v){ return v.toFixed(1); } },
+          title:{ display:true, text:'IMC', color:c.imcColor, font:{size:11} }
+        }} : {})
       },
       interaction:{ mode:'index', intersect:false }
     }
