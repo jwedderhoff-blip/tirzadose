@@ -3836,6 +3836,7 @@ if (!S.protocol || !Array.isArray(S.protocol.steps) || !S.protocol.steps.length)
 // Render immediately from localStorage so the home tab shows instantly (no blank screen)
 // onAuthStateChange will re-render after cloud sync completes
 if (isOnboarded()) { renderAll(); generatePlan(); }
+else { initOnboarding(); } // evita tela em branco enquanto aguarda onAuthStateChange
 
 // Garante sync ao fechar/recarregar a página — salva mesmo que o timer de 1.5s não tenha disparado
 window.addEventListener('pagehide', () => { syncToCloudBeacon(); });
