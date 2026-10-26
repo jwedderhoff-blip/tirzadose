@@ -1364,7 +1364,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 <div class="overlay" id="mo-symp" hidden>
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Registrar Sintomas</div>
+    <div class="sheet-title" id="mo-symp-title">Registrar Sintomas</div>
     <div class="fg"><label class="fl">Data</label><input class="fi" id="sDate" type="date"></div>
     <div class="fg">
       <label class="fl">Sintomas apresentados</label>
@@ -1905,11 +1905,15 @@ function openDietModal(){
   document.getElementById('dNotes').value = '';
   document.getElementById('mo-diet').hidden = false;
 }
-function openSympModal(){
-  document.getElementById('sDate').value = today();
-  document.getElementById('sNotes').value = '';
-  renderSympChips();
-  renderSevRow();
+let editingSympId = null;
+function openSympModal(id){
+  const s = id ? S.symptoms.find(x=>x.id===id) : null;
+  editingSympId = id || null;
+  document.getElementById('mo-symp-title').textContent = s ? 'Editar Sintomas' : 'Registrar Sintomas';
+  document.getElementById('sDate').value = s ? s.date : today();
+  document.getElementById('sNotes').value = s ? (s.notes||'') : '';
+  renderSympChips(s ? s.symptoms : null);
+  renderSevRow(s ? s.severity : null);
   document.getElementById('mo-symp').hidden = false;
 }
 function showToast(msg, duration) {
@@ -1929,6 +1933,7 @@ function closeModal(id){
   document.getElementById(id).hidden = true;
   if(id==='mo-apply'){ editingAppId=null; document.getElementById('mo-apply-title').textContent='Registrar Aplicação'; }
   if(id==='mo-weight'){ editingWeightId=null; document.getElementById('mo-weight-title').textContent='Registrar Peso'; }
+  if(id==='mo-symp'){ editingSympId=null; const t=document.getElementById('mo-symp-title'); if(t) t.textContent='Registrar Sintomas'; }
 }
 
 /* ===== SITE GRID ===== */
@@ -1959,10 +1964,10 @@ function selectSite(id){
 
 /* ===== SYMPTOM CHIPS ===== */
 let selSymptoms = [];
-function renderSympChips(){
-  selSymptoms = [];
+function renderSympChips(presel){
+  selSymptoms = presel ? [...presel] : [];
   const g = document.getElementById('sympChips');
-  g.innerHTML = SYMPTOMS.map(s=>`<button class="chip" onclick="toggleChip(this,'${s}')">${s}</button>`).join('');
+  g.innerHTML = SYMPTOMS.map(s=>`<button class="chip${selSymptoms.includes(s)?' on':''}" onclick="toggleChip(this,'${s}')">${s}</button>`).join('');
 }
 function toggleChip(el, val){
   el.classList.toggle('on');
@@ -1970,9 +1975,9 @@ function toggleChip(el, val){
   else selSymptoms.push(val);
 }
 let selSev = 2;
-function renderSevRow(){
-  selSev = 2;
-  document.getElementById('sevRow').innerHTML = [1,2,3,4,5].map(n=>`<button class="sev-b${n===2?' on':''}" onclick="selectSev(${n},this)">${n}</button>`).join('');
+function renderSevRow(presel){
+  selSev = presel || 2;
+  document.getElementById('sevRow').innerHTML = [1,2,3,4,5].map(n=>`<button class="sev-b${n===selSev?' on':''}" onclick="selectSev(${n},this)">${n}</button>`).join('');
 }
 function selectSev(n, el){
   selSev = n;
@@ -2177,10 +2182,16 @@ function saveSymptom(){
   const date = document.getElementById('sDate').value;
   const notes = document.getElementById('sNotes').value.trim();
   if(!date){ alert2('Informe a data.'); return; }
-  S.symptoms.push({id:uid(), date, symptoms:selSymptoms, severity:selSev, notes});
+  if(editingSympId) {
+    const idx = S.symptoms.findIndex(x=>x.id===editingSympId);
+    if(idx>=0) S.symptoms[idx] = { ...S.symptoms[idx], date, symptoms:selSymptoms, severity:selSev, notes };
+    editingSympId = null;
+  } else {
+    S.symptoms.push({id:uid(), date, symptoms:selSymptoms, severity:selSev, notes});
+  }
   S.symptoms.sort((a,b)=>a.date<b.date?1:-1);
-  save(); closeModal('mo-symp'); renderInicio();
-  alert2('Sintomas registrados!');
+  save(); closeModal('mo-symp'); renderSympList(); renderInicio();
+  alert2('Sintomas salvos!');
 }
 
 /* ===== COMPUTE NEXT DOSE DATE ===== */
@@ -2643,10 +2654,16 @@ function renderSympList() {
         </div>
         <div style="font-size:15px;color:var(--fg-m)">${weekday}, ${fmtD(s.date)} · Intensidade ${s.severity}/5${s.notes?' · '+s.notes:''}</div>
       </div>
-      <button onclick="deleteSymptom('${s.id}')"
-        style="flex-shrink:0;background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;font-family:var(--f);white-space:nowrap">
-        🗑
-      </button>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        <button onclick="openSympModal('${s.id}')"
+          style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;font-family:var(--f);white-space:nowrap">
+          ✏️
+        </button>
+        <button onclick="deleteSymptom('${s.id}')"
+          style="background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;font-family:var(--f);white-space:nowrap">
+          🗑
+        </button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -2878,9 +2895,14 @@ function openProgDetail(date) {
         <div style="font-size:15px;font-weight:600;color:var(--fg)">${s.symptoms.join(', ') || 'Registrado'}</div>
         <div style="font-size:16px;color:var(--fg-m);margin-top:2px">Intensidade ${s.severity}/5${s.notes?' · '+s.notes:''}</div>
       </div>
-      <button onclick="deleteSymptomFromDetail('${s.id}')"
-        style="background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:3px 8px;font-size:15px;cursor:pointer;font-family:var(--f);white-space:nowrap;flex-shrink:0">
-        🗑</button>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button onclick="openSympModal('${s.id}');closeModal('mo-prog-detail')"
+          style="background:none;border:1px solid var(--border);color:var(--fg-m);border-radius:8px;padding:3px 8px;font-size:15px;cursor:pointer;font-family:var(--f);white-space:nowrap">
+          ✏️</button>
+        <button onclick="deleteSymptomFromDetail('${s.id}')"
+          style="background:none;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:3px 8px;font-size:15px;cursor:pointer;font-family:var(--f);white-space:nowrap">
+          🗑</button>
+      </div>
     </div>`).join('');
   }
 
