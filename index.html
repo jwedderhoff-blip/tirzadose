@@ -4109,6 +4109,12 @@ async function generateShareCard() {
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
+  // Ensure DM Serif Display is loaded before canvas draws it
+  await Promise.all([
+    document.fonts.load('400 52px "DM Serif Display"'),
+    document.fonts.load('italic 400 52px "DM Serif Display"')
+  ]).catch(() => {});
+
   // ── Load avatar image (if user is logged in and has one) ──
   let avatarImg = null;
   const avatarUrl = sbUser?.user_metadata?.avatar_url;
@@ -4158,15 +4164,28 @@ async function generateShareCard() {
   chartPoints.forEach(pt => { seen[pt.date] = pt.kg; });
   chartPoints = Object.keys(seen).sort().map(d => ({ date: d, kg: seen[d] }));
 
-  // ── Header ──
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.font = '500 36px system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('TirzaDose', W/2, 72);
+  // ── Header — TirzaDose logo (DM Serif Display, two-tone) ──
+  const logoFontSize = 56;
+  ctx.font = `400 ${logoFontSize}px "DM Serif Display", Georgia, serif`;
+  const tirzaW = ctx.measureText('Tirza').width;
+  ctx.font = `italic 400 ${logoFontSize}px "DM Serif Display", Georgia, serif`;
+  const doseW = ctx.measureText('Dose').width;
+  const logoTotalW = tirzaW + doseW;
+  const logoStartX = W / 2 - logoTotalW / 2;
+  const logoY = 82;
+
+  ctx.font = `400 ${logoFontSize}px "DM Serif Display", Georgia, serif`;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.fillText('Tirza', logoStartX, logoY);
+
+  ctx.font = `italic 400 ${logoFontSize}px "DM Serif Display", Georgia, serif`;
+  ctx.fillStyle = '#7DE8A4';
+  ctx.fillText('Dose', logoStartX + tirzaW, logoY);
 
   ctx.strokeStyle = 'rgba(255,255,255,0.2)';
   ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(W*0.35, 90); ctx.lineTo(W*0.65, 90); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(W*0.35, 100); ctx.lineTo(W*0.65, 100); ctx.stroke();
 
   // ── Avatar (circular photo, centered between header and name) ──
   const avR = 35, avCX = W/2, avCY = 135;
@@ -4375,15 +4394,16 @@ async function generateShareCard() {
     }
   });
 
-  // ── Date & watermark ──
+  // ── Date & app link ──
   const dateStr = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
   ctx.fillStyle = 'rgba(255,255,255,0.4)';
   ctx.font = '400 26px system-ui, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(dateStr, W/2, H - 44);
-  ctx.fillStyle = 'rgba(255,255,255,0.25)';
-  ctx.font = '400 22px system-ui, sans-serif';
-  ctx.fillText('tirzadose.app', W/2, H - 14);
+  ctx.fillText(dateStr, W/2, H - 54);
+  // App URL — highlighted so viewers can access
+  ctx.fillStyle = 'rgba(125,232,164,0.75)';
+  ctx.font = '400 24px system-ui, sans-serif';
+  ctx.fillText('↗ jwedderhoff-blip.github.io/tirzadose', W/2, H - 20);
 
   // Convert to blob for sharing
   canvas.toBlob(blob => {
