@@ -4443,6 +4443,18 @@ async function generateShareCard() {
   const startW  = p.weightKg ? parseFloat(p.weightKg) : null;
   const curW    = allWeights.length ? parseFloat(allWeights[allWeights.length-1].kg) : startW;
   const lost    = (startW && curW) ? (startW - curW) : null;
+  const h = p.heightCm ? parseFloat(p.heightCm) : null;
+  const imcAtual = (h && curW) ? curW / Math.pow(h/100, 2) : null;
+  const imcInicial = (h && startW) ? startW / Math.pow(h/100, 2) : null;
+  const imcDelta = (imcAtual && imcInicial) ? (imcAtual - imcInicial) : null;
+  function imcCateg(v) {
+    if (v < 18.5) return 'Abaixo do peso';
+    if (v < 25)   return 'Peso normal';
+    if (v < 30)   return 'Sobrepeso';
+    if (v < 35)   return 'Obesidade I';
+    if (v < 40)   return 'Obesidade II';
+    return 'Obesidade III';
+  }
   const apps    = S.applications || [];
   const weeks   = p.startDate ? Math.floor((new Date() - new Date(p.startDate)) / (7 * 86400000)) : 0;
 
@@ -4542,24 +4554,34 @@ async function generateShareCard() {
   ctx.font = 'bold 58px Georgia, serif';
   ctx.fillText(curW ? curW.toFixed(1) + ' kg' : '—', rxStart + bxW/2, bandY + 112);
 
-  // Center arrow + loss
+  // Center: kg loss + IMC atual
   const cx = W / 2;
+  const midY = bandY + bandH / 2;
+  // Bubble background — taller to fit two lines
+  ctx.fillStyle = lost !== null && lost >= 0 ? 'rgba(74,200,120,0.18)' : 'rgba(248,113,113,0.18)';
+  ctx.beginPath(); ctx.ellipse(cx, midY, 50, 52, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = lost !== null && lost >= 0 ? 'rgba(125,232,164,0.3)' : 'rgba(248,113,113,0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
   if (lost !== null) {
     const lostColor = lost >= 0 ? '#7DE8A4' : '#F87171';
-    const lostText  = (lost >= 0 ? '−' : '+') + Math.abs(lost).toFixed(1) + ' kg';
-    // Arrow circle
-    ctx.fillStyle = lost >= 0 ? 'rgba(74,200,120,0.22)' : 'rgba(248,113,113,0.22)';
-    ctx.beginPath(); ctx.arc(cx, bandY + bandH/2, 36, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = lostColor;
     ctx.font = 'bold 22px system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(lostText, cx, bandY + bandH/2 + 8);
+    ctx.fillText((lost >= 0 ? '−' : '+') + Math.abs(lost).toFixed(1) + ' kg', cx, midY - 8);
   } else {
-    // Simple arrow
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font = '400 40px system-ui, sans-serif';
+    ctx.font = '400 32px system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('→', cx, bandY + bandH/2 + 14);
+    ctx.fillText('→', cx, midY - 4);
+  }
+  // IMC atual below loss
+  if (imcAtual !== null) {
+    ctx.fillStyle = '#C4B5FD';
+    ctx.font = 'bold 19px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('IMC ' + imcAtual.toFixed(1), cx, midY + 16);
   }
 
   // ── Weight Chart ──
@@ -4668,22 +4690,38 @@ async function generateShareCard() {
       sub: doseProgression ? 'inicial: ' + firstDoseCard + ' mg' : null
     }
   ];
-  const sbW = (W - 120 - 40) / 3;
+  // Add IMC as 4th stat
+  if (imcAtual !== null) {
+    sBars.splice(2, 0, {
+      val: imcAtual.toFixed(1),
+      label: 'IMC atual',
+      sub: imcCateg(imcAtual),
+      isImc: true
+    });
+  }
+  const sbCount = sBars.length;
+  const sbGap = 16;
+  const sbW = (W - 120 - sbGap * (sbCount - 1)) / sbCount;
   sBars.forEach((s, i) => {
-    const sx = 60 + i * (sbW + 20);
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    const sx = 60 + i * (sbW + sbGap);
+    ctx.fillStyle = s.isImc ? 'rgba(167,139,250,0.18)' : 'rgba(255,255,255,0.1)';
     ctx.beginPath(); ctx.roundRect(sx, statsY, sbW, 120, 16); ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 48px Georgia, serif';
+    if (s.isImc) {
+      ctx.strokeStyle = 'rgba(167,139,250,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.roundRect(sx, statsY, sbW, 120, 16); ctx.stroke();
+    }
+    ctx.fillStyle = s.isImc ? '#C4B5FD' : '#fff';
+    ctx.font = `bold ${sbCount > 3 ? 40 : 48}px Georgia, serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(s.val, sx + sbW/2, statsY + (s.sub ? 56 : 70));
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.font = '400 24px system-ui, sans-serif';
-    ctx.fillText(s.label, sx + sbW/2, statsY + (s.sub ? 86 : 104));
+    ctx.fillText(s.val, sx + sbW/2, statsY + (s.sub ? 52 : 70));
+    ctx.fillStyle = s.isImc ? 'rgba(196,181,253,0.7)' : 'rgba(255,255,255,0.55)';
+    ctx.font = `400 ${sbCount > 3 ? 20 : 24}px system-ui, sans-serif`;
+    ctx.fillText(s.label, sx + sbW/2, statsY + (s.sub ? 76 : 104));
     if (s.sub) {
-      ctx.fillStyle = 'rgba(125,232,164,0.75)';
-      ctx.font = '400 20px system-ui, sans-serif';
-      ctx.fillText(s.sub, sx + sbW/2, statsY + 110);
+      ctx.fillStyle = s.isImc ? 'rgba(196,181,253,0.85)' : 'rgba(125,232,164,0.75)';
+      ctx.font = `400 ${sbCount > 3 ? 17 : 20}px system-ui, sans-serif`;
+      ctx.fillText(s.sub, sx + sbW/2, statsY + 100);
     }
   });
 
