@@ -4538,10 +4538,15 @@ async function generateShareCard() {
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.font = '400 24px system-ui, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('PESO INICIAL', 76 + bxW/2, bandY + 46);
+  ctx.fillText('PESO INICIAL', 76 + bxW/2, bandY + 40);
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 58px Georgia, serif';
-  ctx.fillText(startW ? startW.toFixed(1) + ' kg' : '—', 76 + bxW/2, bandY + 112);
+  ctx.font = `bold ${imcInicial ? 50 : 58}px Georgia, serif`;
+  ctx.fillText(startW ? startW.toFixed(1) + ' kg' : '—', 76 + bxW/2, bandY + 90);
+  if (imcInicial !== null) {
+    ctx.fillStyle = 'rgba(196,181,253,0.85)';
+    ctx.font = 'bold 22px system-ui, sans-serif';
+    ctx.fillText('IMC ' + imcInicial.toFixed(1), 76 + bxW/2, bandY + 120);
+  }
 
   // Right: peso atual
   const rxStart = 76 + bxW + 60;
@@ -4649,6 +4654,55 @@ async function generateShareCard() {
       ctx.lineWidth = 2;
       ctx.stroke();
     });
+
+    // ── IMC evolution line (right axis) ──
+    if (h) {
+      const imcPoints = chartPoints.map(pt => ({ ...pt, imc: +(pt.kg / Math.pow(h/100, 2)).toFixed(2) }));
+      const imcVals = imcPoints.map(p => p.imc);
+      const imcMin2 = Math.min(...imcVals), imcMax2 = Math.max(...imcVals);
+      const imcRange = imcMax2 - imcMin2 || 1;
+      const imcPad2 = imcRange * 0.18;
+      const imcYMin = imcMin2 - imcPad2, imcYMax = imcMax2 + imcPad2;
+      const toYImc = v => chartY + chartH - ((v - imcYMin) / (imcYMax - imcYMin)) * chartH;
+
+      // Right axis IMC labels
+      ctx.fillStyle = 'rgba(196,181,253,0.5)';
+      ctx.font = '400 19px system-ui, sans-serif';
+      ctx.textAlign = 'left';
+      for (let g = 0; g <= 4; g++) {
+        const gy = chartY + (g / 4) * chartH;
+        const imcVal = imcYMax - (g / 4) * (imcYMax - imcYMin);
+        ctx.fillText(imcVal.toFixed(1), chartX + chartW + 10, gy + 7);
+      }
+
+      // IMC line (dashed)
+      ctx.save();
+      ctx.setLineDash([10, 6]);
+      ctx.strokeStyle = '#A78BFA';
+      ctx.lineWidth = 3;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      imcPoints.forEach((pt, i) => {
+        if (i === 0) ctx.moveTo(toX(i), toYImc(pt.imc));
+        else ctx.lineTo(toX(i), toYImc(pt.imc));
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      // IMC edge points + labels
+      [[0, 'start'], [imcPoints.length - 1, 'end']].forEach(([i, side]) => {
+        const pt = imcPoints[i];
+        const px = toX(i), py = toYImc(pt.imc);
+        ctx.fillStyle = '#A78BFA';
+        ctx.beginPath(); ctx.arc(px, py, 8, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#1E3D2A'; ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = '#C4B5FD';
+        ctx.font = 'bold 22px system-ui, sans-serif';
+        ctx.textAlign = side === 'start' ? 'left' : 'right';
+        ctx.fillText('IMC ' + pt.imc.toFixed(1), side === 'start' ? px + 14 : px - 14, py - 14);
+      });
+    }
 
     // Labels for first and last points
     [[0, 'start'], [chartPoints.length - 1, 'end']].forEach(([i, side]) => {
