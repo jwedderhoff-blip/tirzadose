@@ -4602,12 +4602,18 @@ async function generateShareCard() {
     const toX = i => chartX + (i / (chartPoints.length - 1)) * chartW;
     const toY = kg => chartY + chartH - ((kg - yMin) / (yMax - yMin)) * chartH;
 
-    // Grid lines
+    // Grid lines + Y-axis labels
     ctx.strokeStyle = 'rgba(255,255,255,0.08)';
     ctx.lineWidth = 1;
     for (let g = 0; g <= 4; g++) {
       const gy = chartY + (g / 4) * chartH;
       ctx.beginPath(); ctx.moveTo(chartX, gy); ctx.lineTo(chartX + chartW, gy); ctx.stroke();
+      // Weight label on left axis
+      const kgVal = yMax - (g / 4) * (yMax - yMin);
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.font = '400 19px system-ui, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(kgVal.toFixed(1), chartX - 10, gy + 7);
     }
 
     // Filled area under curve
