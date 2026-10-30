@@ -1,5 +1,5 @@
 /* TirzaDose Service Worker — network-first for HTML, cache-first for assets */
-const CACHE = 'tirzadose-v23';
+const CACHE = 'tirzadose-v24';
 const STATIC = [
   './icon-192.png',
   './icon-512.png',
@@ -13,7 +13,8 @@ const STATIC = [
   './icon-lanche.png',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js'
 ];
 
 self.addEventListener('install', e => {

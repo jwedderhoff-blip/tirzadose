@@ -1444,6 +1444,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.50.0/dist/umd/supabase.min.js"></script>
 <script>
 'use strict';
@@ -4397,7 +4398,7 @@ async function generateShareCard() {
   const shareBtn = document.getElementById('share-btn');
   if (!canvas) return;
 
-  const W = 1080, H = 1080;
+  const W = 1080, H = 1200;
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
@@ -4786,17 +4787,43 @@ async function generateShareCard() {
     }
   });
 
-  // ── Date & app link ──
+  // ── Footer: data + QR code ──
+  const footerY = 1010;
   const dateStr = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
   ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.font = '400 24px system-ui, sans-serif';
+  ctx.font = '400 26px system-ui, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText(dateStr, 60, H - 22);
-  // App URL — destacado à direita como atalho
-  ctx.fillStyle = 'rgba(125,232,164,0.85)';
-  ctx.font = '500 24px system-ui, sans-serif';
-  ctx.textAlign = 'right';
-  ctx.fillText('↗ jwedderhoff-blip.github.io/tirzadose', W - 60, H - 22);
+  ctx.fillText(dateStr, 60, footerY + 42);
+  ctx.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx.font = '400 22px system-ui, sans-serif';
+  ctx.fillText('Acompanhamento Tirzepátida', 60, footerY + 76);
+
+  // QR code — fundo branco arredondado
+  if (typeof QRious !== 'undefined') {
+    const qrSize = 150;
+    const qrX = W - 60 - qrSize;
+    const qrY = footerY + 10;
+    const pad = 8;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.roundRect(qrX - pad, qrY - pad, qrSize + pad * 2, qrSize + pad * 2, 10);
+    ctx.fill();
+    const qrCanvas = document.createElement('canvas');
+    new QRious({
+      element: qrCanvas,
+      value: 'https://jwedderhoff-blip.github.io/tirzadose/',
+      size: qrSize,
+      background: '#ffffff',
+      foreground: '#1a3a2a',
+      level: 'M'
+    });
+    ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+    // Label abaixo do QR
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = '400 20px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Escanear para abrir', qrX + qrSize / 2, qrY + qrSize + pad + 24);
+  }
 
   // Convert to blob for sharing
   canvas.toBlob(blob => {
