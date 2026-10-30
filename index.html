@@ -4700,7 +4700,8 @@ async function generateShareCard() {
         ctx.fillStyle = '#C4B5FD';
         ctx.font = 'bold 22px system-ui, sans-serif';
         ctx.textAlign = side === 'start' ? 'left' : 'right';
-        ctx.fillText('IMC ' + pt.imc.toFixed(1), side === 'start' ? px + 14 : px - 14, py - 14);
+        // Label abaixo do ponto IMC para não sobrepor o label de peso (que fica acima)
+        ctx.fillText('IMC ' + pt.imc.toFixed(1), side === 'start' ? px + 14 : px - 14, py + 32);
       });
     }
 
@@ -4787,14 +4788,15 @@ async function generateShareCard() {
 
   // ── Date & app link ──
   const dateStr = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.font = '400 26px system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(dateStr, W/2, H - 54);
-  // App URL — highlighted so viewers can access
-  ctx.fillStyle = 'rgba(125,232,164,0.75)';
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
   ctx.font = '400 24px system-ui, sans-serif';
-  ctx.fillText('↗ jwedderhoff-blip.github.io/tirzadose', W/2, H - 20);
+  ctx.textAlign = 'left';
+  ctx.fillText(dateStr, 60, H - 22);
+  // App URL — destacado à direita como atalho
+  ctx.fillStyle = 'rgba(125,232,164,0.85)';
+  ctx.font = '500 24px system-ui, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('↗ jwedderhoff-blip.github.io/tirzadose', W - 60, H - 22);
 
   // Convert to blob for sharing
   canvas.toBlob(blob => {
