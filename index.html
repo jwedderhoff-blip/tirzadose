@@ -1649,6 +1649,23 @@ function scheduleSyncToCloud() {
   _syncTimer = setTimeout(syncToCloud, 500);
 }
 
+// Merge seguro: une registros de duas fontes por id, nunca descarta registros existentes
+function _mergeRecords(local, cloud) {
+  const byId = {};
+  (cloud || []).forEach(r => { if (r && r.id) byId[r.id] = r; });
+  (local || []).forEach(r => { if (r && r.id) byId[r.id] = r; }); // local vence em conflito de mesmo id
+  return Object.values(byId).sort((a, b) => (b.date || '') > (a.date || '') ? 1 : -1);
+}
+
+// Merge de estado: local base + registros ausentes da nuvem adicionados
+function _mergeStateWithCloud(localState, cloudData) {
+  const merged = { ...localState };
+  for (const key of ['applications', 'weights', 'symptoms', 'dietLogs']) {
+    merged[key] = _mergeRecords(localState[key], cloudData[key]);
+  }
+  return merged;
+}
+
 async function syncToCloud() {
   if (!sbUser) return;
   if (_syncing) { _syncDirty = true; return; }
@@ -1657,18 +1674,45 @@ async function syncToCloud() {
   _syncDirty = false;
   _setSyncStatus('↑ Salvando…', '');
   try {
-    const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 8000);
+    // PROTEÇÃO: busca dados atuais da nuvem antes de escrever
+    // para nunca sobrescrever registros que só existem lá
+    let dataToSave = { ...S, _deviceId };
+    try {
+      const { data: existing } = await sb.from('user_data')
+        .select('data')
+        .eq('user_id', sbUser.id)
+        .maybeSingle();
+      if (existing?.data) {
+        const cloud = existing.data;
+        const cloudApps = (cloud.applications || []).length;
+        const cloudWeights = (cloud.weights || []).length;
+        const localApps = (S.applications || []).length;
+        const localWeights = (S.weights || []).length;
+        // Se a nuvem tem registros que o local não tem, faz merge
+        if (cloudApps > localApps || cloudWeights > localWeights) {
+          const merged = _mergeStateWithCloud(S, cloud);
+          // Atualiza S em memória e localStorage com o merge
+          S.applications = merged.applications;
+          S.weights = merged.weights;
+          S.symptoms = merged.symptoms;
+          S.dietLogs = merged.dietLogs;
+          try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+          dataToSave = { ...S, _deviceId };
+        }
+      }
+    } catch(_e) {
+      // Pre-fetch falhou — prossegue com dados locais (melhor esforço)
+      console.warn('[TirzaDose] syncToCloud pre-fetch error:', _e?.message);
+    }
+
     const result = await sb.from('user_data').upsert(
-      { user_id: sbUser.id, data: { ...S, _deviceId } },
+      { user_id: sbUser.id, data: dataToSave },
       { onConflict: 'user_id' }
     );
-    clearTimeout(t);
     if (result && result.error) throw result.error;
     _syncRetries = 0;
-    try { localStorage.removeItem(DB + '_dirty'); } catch{} // clear pending flag
+    try { localStorage.removeItem(DB + '_dirty'); } catch{}
     _setSyncStatus('✓ Sincronizado', 'ok');
-    // if data changed during this sync, sync again immediately
     if (_syncDirty) { _syncDirty = false; scheduleSyncToCloud(); }
   } catch(e) {
     _syncing = false;
@@ -1743,17 +1787,25 @@ async function loadFromCloud() {
     if (isValidCloudData) {
       const localTs = S.updatedAt || 0;
       const cloudTs = cloudData.updatedAt || 0;
-      // Usa nuvem se: nuvem é mais recente OU local não tem perfil (ex: após logout)
+      const { _deviceId: _d, ...cloudState } = cloudData;
+
       if (cloudTs >= localTs || !localHasProfile) {
-        const { _deviceId: _d, ...cloudState } = cloudData;
-        S = { ...DEFAULT_STATE, ...cloudState };
+        // Nuvem vence como base de perfil/configurações
+        // mas MERGE garante que registros locais não sejam descartados
+        const base = { ...DEFAULT_STATE, ...cloudState };
+        S = localHasProfile ? _mergeStateWithCloud(base, S) : base;
         try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+        // Se o merge adicionou registros locais que a nuvem não tinha, sobe
+        const cloudApps = (cloudData.applications || []).length;
+        const mergedApps = (S.applications || []).length;
+        if (localHasProfile && mergedApps > cloudApps) {
+          scheduleSyncToCloud();
+        }
       } else {
-        // Local tem perfil e é mais recente — sobe para nuvem
+        // Local é mais recente — sobe para nuvem (com merge interno do syncToCloud)
         await syncToCloud();
       }
     } else if (localHasProfile) {
-      // Sem dado válido na nuvem mas local tem perfil — faz upload
       await syncToCloud();
     }
     // else: nenhum lado tem perfil — nada a fazer
