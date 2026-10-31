@@ -1599,7 +1599,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v44';
+const APP_VERSION = 'v45';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -1887,18 +1887,23 @@ async function forceRefreshFromCloud(btn) {
     const isValid = cloudData && cloudData.profile !== undefined && cloudData.applications !== undefined;
     if (isValid) {
       const { _deviceId: _d, ...cloudState } = cloudData;
-      S = { ...DEFAULT_STATE, ...cloudState };
+      const cloudBase = { ...DEFAULT_STATE, ...cloudState };
+      S = _mergeStateWithCloud(cloudBase, S);
       try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
       renderAll();
       generatePlan();
+      _cloudLoaded = true;
       _setSyncStatus('✓ Sincronizado', 'ok');
-      showToast('Dados atualizados da nuvem!');
+      _logConn('recv', `↓ Buscar nuvem: ${cloudData.applications?.length||0} aplic., ${cloudData.weights?.length||0} pesos → local: ${S.applications?.length||0}, ${S.weights?.length||0}`);
+      showToast(`Dados atualizados: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`);
     } else {
       _setSyncStatus('✓ Sem dados novos', 'ok');
+      _logConn('recv', '↓ Buscar nuvem: sem dados na nuvem');
       showToast('Nenhum dado novo na nuvem.');
     }
   } catch(e) {
     _setSyncStatus('⚠ Falha ao buscar dados', 'warn');
+    _logConn('err', '↓ Buscar nuvem: ' + (e?.message || 'erro'));
     showToast('Falha ao conectar. Tente novamente.');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '↓ Buscar nuvem'; }
@@ -1928,11 +1933,14 @@ async function forceUploadToCloud(btn) {
     );
     if (result?.error) throw result.error;
     try { localStorage.removeItem(DB + '_dirty'); } catch{}
+    _cloudLoaded = true;
     renderAll();
     _setSyncStatus('✓ Sincronizado', 'ok');
+    _logConn('sent', `↑ Enviar dados: ${S.applications?.length||0} aplic., ${S.weights?.length||0} pesos`);
     showToast(`Dados enviados: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos.`);
   } catch(e) {
     _setSyncStatus('⚠ Falha ao enviar', 'warn');
+    _logConn('err', '↑ Enviar dados: ' + (e?.message || 'erro'));
     showToast('Falha ao enviar dados. Tente novamente.');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '↑ Enviar dados'; }
