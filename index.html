@@ -4343,14 +4343,21 @@ async function _onSessionEstablished(session) {
   }
 
   if (isOnboarded()) {
-    // Cadastro encontrado na nuvem — esconde welcome/onboarding e carrega o app
+    // Cadastro encontrado na nuvem — esconde TODOS os overlays e carrega o app
     const wlc = document.getElementById('welcome-screen');
-    if (wlc && !wlc.hidden) welcomeFinish();
+    if (wlc) { wlc.hidden = true; wlc.style.opacity = ''; wlc.style.transition = ''; }
+    try { localStorage.setItem(WLC_KEY, '1'); } catch{}
     document.getElementById('ob').hidden = true;
+    document.getElementById('auth-gate').hidden = true;
     save();
     renderAll();
     generatePlan();
     _setSyncStatus('✓ Dados carregados', 'ok');
+    const nApps = S.applications?.length || 0;
+    const nWeights = S.weights?.length || 0;
+    if (nApps > 0 || nWeights > 0) {
+      showToast(`✓ ${nApps} aplicaç${nApps===1?'ão':'ões'} e ${nWeights} peso${nWeights===1?'':'s'} carregados`);
+    }
   } else {
     // Sem cadastro completo — continua onboarding, mas pré-popula o form com o que tiver
     const _ob = document.getElementById('ob');
