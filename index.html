@@ -1752,6 +1752,8 @@ window.addEventListener('online', () => {
 // Sync imediato usando fetch keepalive — funciona mesmo ao fechar a aba
 function syncToCloudBeacon() {
   if (!sbUser) return;
+  // Não enviar se a nuvem ainda não foi carregada — evita sobrescrever dados da nuvem com estado local desatualizado
+  if (!_cloudLoaded) return;
   try {
     const session = sb.auth.getSession();
     // Obtém o token do usuário diretamente do localStorage do Supabase

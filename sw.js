@@ -1,5 +1,5 @@
 /* TirzaDose Service Worker — network-first for HTML, cache-first for assets */
-const CACHE = 'tirzadose-v40';
+const CACHE = 'tirzadose-v41';
 const STATIC = [
   './icon-192.png',
   './icon-512.png',
