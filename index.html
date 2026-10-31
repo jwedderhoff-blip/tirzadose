@@ -1882,7 +1882,13 @@ function welcomeFinish() {
   const el = document.getElementById('welcome-screen');
   el.style.transition = 'opacity .4s';
   el.style.opacity = '0';
-  setTimeout(() => { el.hidden = true; el.style.opacity = ''; el.style.transition = ''; }, 420);
+  setTimeout(() => {
+    el.hidden = true;
+    el.style.opacity = '';
+    el.style.transition = '';
+    // Após welcome: se não há perfil configurado, vai para onboarding/auth
+    if (!isOnboarded()) initOnboarding();
+  }, 420);
 }
 
 let _obTempAvoided = [];
@@ -4119,15 +4125,37 @@ function _showAuthError(msg) {
 
 function authSignOut(btn) {
   if (btn) { btn.textContent = 'Saindo…'; btn.disabled = true; }
-  // Local cleanup first — don't wait for network
   sbUser = null;
   if (_realtimeChannel) { try { sb.removeChannel(_realtimeChannel); } catch{} _realtimeChannel = null; }
-  try { localStorage.removeItem('tirza_skip_auth'); } catch{}
-  // Revoke server-side token in background (fire and forget)
+  // Revoke server-side token in background
   try { sb.auth.signOut({ scope: 'local' }).catch(()=>{}); } catch{}
+
+  // Limpa todos os dados locais do usuário
+  try {
+    localStorage.removeItem(DB);
+    localStorage.removeItem('tirza_skip_auth');
+    localStorage.removeItem(WLC_KEY); // reseta flag da tela de boas-vindas
+  } catch{}
+
+  // Reseta estado em memória
+  S = JSON.parse(JSON.stringify(DEFAULT_STATE));
   _renderAuthCard();
   _setSyncStatus('', '');
-  enterDemoMode();
+
+  // Esconde todo conteúdo e mostra tela de boas-vindas
+  document.getElementById('ob').hidden = true;
+  document.getElementById('auth-gate').hidden = true;
+  const wlc = document.getElementById('welcome-screen');
+  wlc.hidden = false;
+  wlc.style.opacity = '1';
+  wlc.style.transition = '';
+  // Reseta slides para o primeiro
+  _wlcStep = 0;
+  const slides = document.getElementById('wlc-slides');
+  if (slides) slides.style.transform = 'translateX(0)';
+  document.querySelectorAll('.wlc-dot').forEach((d, i) => d.classList.toggle('active', i === 0));
+  const wlcBtn = document.getElementById('wlc-btn');
+  if (wlcBtn) wlcBtn.textContent = 'Próximo';
 }
 
 /* ===== INIT ===== */
