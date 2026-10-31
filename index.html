@@ -1156,6 +1156,44 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           <p class="t-m" style="margin-bottom:4px">Força o download da versão mais recente do app, limpando o cache do navegador. Use quando o desenvolvedor avisar que há uma nova versão disponível.</p>
           <p class="t-m" style="margin-bottom:12px;color:var(--fg-m)">Versão instalada: <strong id="beta-version-text" style="color:var(--fg)">—</strong></p>
           <button class="btn btn-p btn-w" id="btn-force-update" onclick="forceAppUpdate()">🔄 Buscar nova versão</button>
+
+          <!-- Painel de Conexão -->
+          <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <span style="font-size:13px;font-weight:700;color:var(--fg-m);text-transform:uppercase;letter-spacing:.06em">Status de Conexão</span>
+              <button onclick="_updateConnPanel()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--ac);font-weight:600;padding:2px 6px;font-family:var(--f)">↻ Atualizar</button>
+            </div>
+
+            <!-- Status atual -->
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-warm);border-radius:10px;margin-bottom:10px">
+              <span id="cp-dot" style="width:9px;height:9px;border-radius:50%;background:var(--fg-m);flex-shrink:0;transition:background .3s"></span>
+              <span id="cp-status" style="font-size:14px;font-weight:500;color:var(--fg)">—</span>
+            </div>
+
+            <!-- Métricas -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+              <div style="background:var(--bg-warm);border-radius:10px;padding:10px 12px">
+                <div style="font-size:11px;color:var(--fg-m);margin-bottom:3px;font-weight:500">↓ Último recebimento</div>
+                <div id="cp-received" style="font-size:13px;font-weight:600;color:var(--fg)">—</div>
+              </div>
+              <div style="background:var(--bg-warm);border-radius:10px;padding:10px 12px">
+                <div style="font-size:11px;color:var(--fg-m);margin-bottom:3px;font-weight:500">↑ Último envio</div>
+                <div id="cp-sent" style="font-size:13px;font-weight:600;color:var(--fg)">—</div>
+              </div>
+              <div style="background:var(--bg-warm);border-radius:10px;padding:10px 12px">
+                <div style="font-size:11px;color:var(--fg-m);margin-bottom:3px;font-weight:500">💉 Aplicações</div>
+                <div id="cp-apps" style="font-size:13px;font-weight:600;color:var(--fg)">—</div>
+              </div>
+              <div style="background:var(--bg-warm);border-radius:10px;padding:10px 12px">
+                <div style="font-size:11px;color:var(--fg-m);margin-bottom:3px;font-weight:500">⚖️ Pesos</div>
+                <div id="cp-weights" style="font-size:13px;font-weight:600;color:var(--fg)">—</div>
+              </div>
+            </div>
+
+            <!-- Log de eventos -->
+            <div style="font-size:12px;font-weight:600;color:var(--fg-m);margin-bottom:6px">Histórico desta sessão</div>
+            <div id="cp-log" style="font-size:12px;line-height:2;background:var(--bg-warm);border-radius:10px;padding:10px 12px;min-height:48px;color:var(--fg-m)">—</div>
+          </div>
           </div><!-- /pfil-body-beta -->
         </div>
 
@@ -1561,7 +1599,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v43';
+const APP_VERSION = 'v44';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -1645,6 +1683,10 @@ let _syncRetryTimer = null;
 let _syncWatchdog = null;  // segurança: reseta _syncing se travar
 let _cloudLoaded = false;  // true após loadFromCloud() concluir com sucesso
 let _realtimeChannel = null;
+// Painel de conexão
+let _connLog = [];         // [{time, type, msg}] — últimos 10 eventos
+let _lastReceived = null;  // horário do último recebimento da nuvem
+let _lastSent = null;      // horário do último envio para nuvem
 // Each tab/device gets a random ID so it can ignore its own realtime events
 const _deviceId = Math.random().toString(36).slice(2);
 
@@ -1724,6 +1766,7 @@ async function syncToCloud() {
     _syncRetries = 0;
     try { localStorage.removeItem(DB + '_dirty'); } catch{}
     _setSyncStatus('✓ Sincronizado', 'ok');
+    _logConn('sent', `${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`);
     const _hadDirty = _syncDirty;
     _syncing = false;
     _syncDirty = false;
@@ -1738,6 +1781,7 @@ async function syncToCloud() {
     } else {
       _syncRetries = 0;
       _setSyncStatus('⚠ Falha — tentará ao reconectar', 'warn');
+      _logConn('err', e?.message || 'Falha ao sincronizar');
     }
     return;
   }
@@ -1806,6 +1850,7 @@ async function loadFromCloud() {
       try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
 
       _cloudLoaded = true;
+      _logConn('recv', `Nuvem: ${cloudData.applications?.length||0} aplic., ${cloudData.weights?.length||0} pesos → local: ${S.applications?.length||0}, ${S.weights?.length||0}`);
       // Sobe de volta se: havia dirty, local era mais recente, ou merge adicionou registros
       const cloudApps = (cloudData.applications || []).length;
       const mergedApps = (S.applications || []).length;
@@ -1819,6 +1864,7 @@ async function loadFromCloud() {
     // else: nenhum lado tem dados — nada a fazer
   } catch(e) {
     console.warn('[TirzaDose] loadFromCloud error:', e?.message || e);
+    _logConn('err', 'loadFromCloud: ' + (e?.message || 'erro desconhecido'));
     if (localHasProfile && hasDirty) {
       try { await syncToCloud(); } catch(_) {}
     } else if (!localHasProfile) {
@@ -1910,6 +1956,7 @@ function subscribeToRealtime() {
       try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
       if (isOnboarded()) { renderAll(); generatePlan(); }
       _setSyncStatus('↓ Atualizado por outro dispositivo', 'ok');
+      _logConn('recv', `Realtime: ${S.applications?.length||0} aplic., ${S.weights?.length||0} pesos`);
       setTimeout(() => _setSyncStatus('✓ Sincronizado', 'ok'), 3000);
     })
     .subscribe();
@@ -1920,6 +1967,54 @@ function _setSyncStatus(msg, type) {
   if (!el) return;
   el.textContent = msg;
   el.style.color = type === 'ok' ? 'var(--ok)' : type === 'warn' ? 'var(--warn)' : 'var(--fg-m)';
+  _updateConnPanel();
+}
+
+function _logConn(type, msg) {
+  const time = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  _connLog.unshift({type, msg, time});
+  if (_connLog.length > 10) _connLog.length = 10;
+  if (type === 'recv') _lastReceived = time;
+  if (type === 'sent') _lastSent = time;
+  _updateConnPanel();
+}
+
+function _updateConnPanel() {
+  const dotEl      = document.getElementById('cp-dot');
+  const statusEl   = document.getElementById('cp-status');
+  const recvEl     = document.getElementById('cp-received');
+  const sentEl     = document.getElementById('cp-sent');
+  const appsEl     = document.getElementById('cp-apps');
+  const weightsEl  = document.getElementById('cp-weights');
+  const logEl      = document.getElementById('cp-log');
+  if (!statusEl) return;
+
+  // Status atual — espelha o sync-status
+  const syncEl = document.getElementById('sync-status');
+  const txt = syncEl?.textContent || '';
+  statusEl.textContent = txt || 'Aguardando…';
+  const isOk   = txt.includes('✓') || txt.includes('Sincronizado') || txt.includes('carregad');
+  const isWarn = txt.includes('⚠') || txt.includes('Falha') || txt.includes('Timeout') || txt.includes('Reconect');
+  const isWork = txt.includes('↑') || txt.includes('↓') || txt.includes('Carregando') || txt.includes('Buscando') || txt.includes('Enviando');
+  statusEl.style.color = isOk ? 'var(--ok)' : isWarn ? 'var(--warn)' : 'var(--fg)';
+  if (dotEl) dotEl.style.background = isOk ? 'var(--ok)' : isWarn ? 'var(--warn)' : isWork ? 'var(--ac)' : 'var(--fg-m)';
+
+  if (recvEl) recvEl.textContent = _lastReceived || '—';
+  if (sentEl) sentEl.textContent = _lastSent || '—';
+  if (appsEl) appsEl.textContent = (S?.applications?.length ?? '—') + (S?.applications ? ' registros' : '');
+  if (weightsEl) weightsEl.textContent = (S?.weights?.length ?? '—') + (S?.weights ? ' registros' : '');
+
+  if (logEl) {
+    if (_connLog.length === 0) {
+      logEl.textContent = '—';
+    } else {
+      logEl.innerHTML = _connLog.map(e => {
+        const icon  = e.type === 'recv' ? '↓' : e.type === 'sent' ? '↑' : e.type === 'err' ? '⚠' : '·';
+        const color = e.type === 'err' ? 'var(--warn)' : (e.type === 'recv' || e.type === 'sent') ? 'var(--ok)' : 'var(--fg-m)';
+        return `<span style="opacity:.55">${e.time}</span>&nbsp;<span style="color:${color};font-weight:700">${icon}</span>&nbsp;${e.msg}`;
+      }).join('<br>');
+    }
+  }
 }
 
 /* ===== STATE ===== */
