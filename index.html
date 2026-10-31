@@ -2323,14 +2323,16 @@ function saveSymptom(){
 /* ===== COMPUTE NEXT DOSE DATE ===== */
 function computeNextDoseDate(){
   if(!S.profile.startDate) return null;
+  const td = today();
   const apps = [...S.applications].sort((a,b)=>a.date>b.date?-1:1);
   if(apps.length){
-    const lastDate = apps[0].date;
-    return addDays(lastDate, 7);
+    let nextDate = addDays(apps[0].date, 7);
+    // Se semanas foram puladas sem registro, avança até hoje ou futuro
+    while(nextDate < td) nextDate = addDays(nextDate, 7);
+    return nextDate;
   }
   const wd = parseInt(S.profile.weekDay);
   const start = S.profile.startDate;
-  const td = today();
   let next = nextWeekdayFrom(start, wd);
   if(next <= td) next = nextWeekdayFrom(td, wd);
   return next;
