@@ -1716,7 +1716,10 @@ async function syncToCloud() {
     _syncRetries = 0;
     try { localStorage.removeItem(DB + '_dirty'); } catch{}
     _setSyncStatus('✓ Sincronizado', 'ok');
-    if (_syncDirty) { _syncDirty = false; scheduleSyncToCloud(); }
+    const _hadDirty = _syncDirty;
+    _syncing = false;   // reseta ANTES de checar dirty para evitar loop travado
+    _syncDirty = false;
+    if (_hadDirty) scheduleSyncToCloud();
   } catch(e) {
     _syncing = false;
     if (_syncRetries < _SYNC_TIMEOUTS.length) {
@@ -1729,7 +1732,6 @@ async function syncToCloud() {
     }
     return;
   }
-  _syncing = false;
 }
 
 // Retry automatically when network comes back
