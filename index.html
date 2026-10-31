@@ -1311,13 +1311,16 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
 <div class="overlay" id="mo-profile" hidden>
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Editar meus dados</div>
-    <div class="fg"><label class="fl">Seu nome</label><input class="fi" id="prName" placeholder="Como posso te chamar?"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="sheet-title" style="margin:0">Editar meus dados</div>
+      <span id="pr-save-badge" style="font-size:13px;font-weight:600;min-width:72px;text-align:right;transition:color .3s"></span>
+    </div>
+    <div class="fg"><label class="fl">Seu nome</label><input class="fi" id="prName" placeholder="Como posso te chamar?" oninput="scheduleProfileAutoSave()"></div>
     <div class="frow">
-      <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="prBirth" type="date"></div>
+      <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="prBirth" type="date" onchange="scheduleProfileAutoSave()"></div>
       <div class="fg">
         <label class="fl">Sexo biológico</label>
-        <select class="fs" id="prSex">
+        <select class="fs" id="prSex" onchange="scheduleProfileAutoSave()">
           <option value="">Selecione</option>
           <option value="M">Masculino</option>
           <option value="F">Feminino</option>
@@ -1325,13 +1328,13 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
       </div>
     </div>
     <div class="frow">
-      <div class="fg"><label class="fl">Peso inicial (kg)</label><input class="fi" id="prWeight" type="number" min="30" max="300" step="0.1" placeholder="Ex: 95.0"></div>
-      <div class="fg"><label class="fl">Altura (cm)</label><input class="fi" id="prHeight" type="number" min="100" max="250" placeholder="Ex: 170"></div>
+      <div class="fg"><label class="fl">Peso inicial (kg)</label><input class="fi" id="prWeight" type="number" min="30" max="300" step="0.1" placeholder="Ex: 95.0" oninput="scheduleProfileAutoSave()"></div>
+      <div class="fg"><label class="fl">Altura (cm)</label><input class="fi" id="prHeight" type="number" min="100" max="250" placeholder="Ex: 170" oninput="scheduleProfileAutoSave()"></div>
     </div>
-    <div class="fg"><label class="fl">Data de início do acompanhamento</label><input class="fi" id="prStart" type="date"></div>
+    <div class="fg"><label class="fl">Data de início do acompanhamento</label><input class="fi" id="prStart" type="date" onchange="scheduleProfileAutoSave()"></div>
     <div class="fg">
       <label class="fl">Dia fixo de aplicação</label>
-      <select class="fs" id="prDay">
+      <select class="fs" id="prDay" onchange="scheduleProfileAutoSave()">
         <option value="0">Domingo</option><option value="1">Segunda-feira</option>
         <option value="2">Terça-feira</option><option value="3">Quarta-feira</option>
         <option value="4">Quinta-feira</option><option value="5">Sexta-feira</option>
@@ -1340,8 +1343,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
     </div>
     <div class="callout info"><span class="ci">ℹ</span><span>O <strong>peso inicial</strong> é apenas o do perfil (usado para cálculos de IMC). Para registrar pesagens no histórico, use o botão "+ Peso" na aba Progresso.</span></div>
     <div class="sheet-actions">
-      <button class="btn btn-g" onclick="closeModal('mo-profile')">Cancelar</button>
-      <button class="btn btn-p" style="flex:1" onclick="saveProfile()">Salvar dados</button>
+      <button class="btn btn-p btn-w" onclick="saveProfile()">Fechar</button>
     </div>
   </div>
 </div>
@@ -2213,7 +2215,41 @@ function openProfileModal(){
   document.getElementById('prDay').value = p.weekDay||4;
   document.getElementById('mo-profile').hidden = false;
 }
+let _profileSaveTimer = null;
+
+function scheduleProfileAutoSave() {
+  clearTimeout(_profileSaveTimer);
+  const badge = document.getElementById('pr-save-badge');
+  if (badge) { badge.textContent = '…'; badge.style.color = 'var(--fg-m,#888)'; }
+  _profileSaveTimer = setTimeout(_doProfileAutoSave, 900);
+}
+
+function _doProfileAutoSave() {
+  const name = (document.getElementById('prName')?.value || '').trim();
+  const start = document.getElementById('prStart')?.value || '';
+  if (!name || !start) return;
+  const w = parseFloat(document.getElementById('prWeight')?.value || '0');
+  const h = parseFloat(document.getElementById('prHeight')?.value || '0');
+  if (w && (w < 30 || w > 300)) return;
+  if (h && (h < 100 || h > 250)) return;
+  const birth = document.getElementById('prBirth')?.value || '';
+  const sex = document.getElementById('prSex')?.value || '';
+  const day = parseInt(document.getElementById('prDay')?.value ?? '4');
+  S.profile = { ...S.profile, name, birthDate: birth, sex, weekDay: day, startDate: start };
+  if (w >= 30 && w <= 300) S.profile.weightKg = w;
+  if (h >= 100 && h <= 250) S.profile.heightCm = h;
+  save();
+  renderAll();
+  const badge = document.getElementById('pr-save-badge');
+  if (badge) {
+    badge.textContent = '✓ Salvo';
+    badge.style.color = 'var(--ok,#4a7c59)';
+    setTimeout(() => { if (badge) badge.textContent = ''; }, 2500);
+  }
+}
+
 function saveProfile(){
+  clearTimeout(_profileSaveTimer);
   const name = document.getElementById('prName').value.trim();
   const birth = document.getElementById('prBirth').value;
   const sex = document.getElementById('prSex').value;
@@ -2229,7 +2265,6 @@ function saveProfile(){
   save();
   closeModal('mo-profile');
   renderAll();
-  alert2('Perfil atualizado!');
 }
 function calcAge(birthDate) {
   if (!birthDate) return null;
