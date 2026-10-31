@@ -1072,7 +1072,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           </div>
           <button onclick="openProfileMenu(this)" style="margin-left:auto;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 12px;font-size:20px;font-weight:700;line-height:1;cursor:pointer;min-width:38px;min-height:36px;display:flex;align-items:center;justify-content:center">⋮</button>
         </div>
-        <div id="perfil-stats-hero" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:20px"></div>
+        <div id="perfil-stats-hero" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:20px"></div>
       </div>
       <div class="inner">
 
@@ -1599,7 +1599,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v46';
+const APP_VERSION = 'v47';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -1714,6 +1714,10 @@ function _mergeStateWithCloud(localState, cloudData) {
   const merged = { ...localState };
   for (const key of ['applications', 'weights', 'symptoms', 'dietLogs']) {
     merged[key] = _mergeRecords(localState[key], cloudData[key]);
+  }
+  // Preserve protocol from cloudData if localState has none (e.g. first cloud load)
+  if (!merged.protocol && cloudData && cloudData.protocol) {
+    merged.protocol = cloudData.protocol;
   }
   return merged;
 }
@@ -4710,7 +4714,7 @@ function renderPerfilTab() {
       const age = calcAge(p.birthDate);
       const agePart = age !== null ? ` · ${age} anos` : '';
       const sexPart = p.sex === 'M' ? ' · ♂' : p.sex === 'F' ? ' · ♀' : '';
-      sub.textContent = `${weeks} semana${weeks !== 1 ? 's' : ''} de acompanhamento · ${p.currentDoseMg || '?'} mg${agePart}${sexPart}`;
+      sub.innerHTML = `<span>${weeks} semana${weeks !== 1 ? 's' : ''} de acompanhamento · ${p.currentDoseMg || '?'} mg</span><br><span style="font-size:13px;opacity:.85">${age !== null ? age + ' anos' : ''}${sexPart}</span>`;
     } else {
       sub.textContent = 'Configure seu acompanhamento';
     }
