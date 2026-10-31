@@ -1759,6 +1759,11 @@ async function loadFromCloud() {
     // else: nenhum lado tem perfil — nada a fazer
   } catch(e) {
     if (localHasProfile) { try { await syncToCloud(); } catch(_) {} }
+    else {
+      // Cloud fetch falhou sem dados locais — loga o erro para diagnóstico
+      console.warn('[TirzaDose] loadFromCloud error:', e?.message || e);
+      try { _setSyncStatus('⚠ Erro ao buscar dados da nuvem', 'warn'); } catch{}
+    }
   }
 }
 
@@ -1900,16 +1905,34 @@ function welcomeFinish() {
 
 let _obTempAvoided = [];
 function isOnboarded(){ return !!(S.profile && S.profile.startDate); }
+
+// Popula os campos do formulário de perfil (step 1 do onboarding) a partir de S.profile
+function _populateObProfileForm() {
+  const p = S.profile || {};
+  const set = (id, val) => { try { const el = document.getElementById(id); if(el && val !== undefined && val !== null && String(val) !== '') el.value = val; } catch{} };
+  set('obName', p.name);
+  set('obBirth', p.birthDate);
+  set('obSex', p.sex);
+  if (p.weightKg) set('obWeight', p.weightKg);
+  if (p.heightCm) set('obHeight', p.heightCm);
+  if (p.startDate) set('obStart', p.startDate);
+  if (p.currentDoseMg) set('obDose', p.currentDoseMg);
+  if (p.weekDay !== undefined && p.weekDay !== null) set('obDay', p.weekDay);
+}
+
 function initOnboarding(){
   const ob = document.getElementById('ob');
   if(isOnboarded()){ if(ob) ob.hidden = true; return; }
   if(ob) ob.hidden = false;
   const startStep = sbUser ? 1 : 0;
   obGo(startStep);
+  // Preenche defaults apenas se não há dados no perfil
   const d = new Date();
-  document.getElementById('obStart').value = today();
-  const wd = (d.getDay()+1)%7;
-  document.getElementById('obDay').value = wd;
+  if (!S.profile.startDate) document.getElementById('obStart').value = today();
+  if (S.profile.weekDay === undefined || S.profile.weekDay === null || S.profile.weekDay === '')
+    document.getElementById('obDay').value = (d.getDay()+1)%7;
+  // Re-aplica dados existentes do perfil sobre os defaults
+  _populateObProfileForm();
 }
 function obLoginSkip(){
   try{ localStorage.setItem('tirza_skip_auth','1'); }catch{}
@@ -4190,11 +4213,18 @@ async function _onSessionEstablished(session) {
   _setSyncStatus('Carregando dados da nuvem…', '');
   await loadFromCloud();
 
+  // Preenche nome a partir dos metadados do Google apenas se ainda vazio
   const _gName = sbUser?.user_metadata?.full_name || sbUser?.user_metadata?.name;
-  if (_gName && !S.profile.name) {
-    S.profile.name = _gName;
-    const nameInput = document.getElementById('obName');
-    if (nameInput) nameInput.value = _gName;
+  if (_gName && !S.profile.name) S.profile.name = _gName;
+
+  // Recupera startDate a partir das aplicações/pesos se o perfil existe mas startDate está ausente
+  // (proteção contra dados corrompidos ou migração incompleta)
+  if (!S.profile.startDate && (S.applications.length || S.weights.length)) {
+    const allDates = [
+      ...S.applications.map(a => a.date),
+      ...S.weights.map(w => w.date)
+    ].filter(Boolean).sort();
+    if (allDates.length) S.profile.startDate = allDates[0];
   }
 
   if (isOnboarded()) {
@@ -4207,12 +4237,13 @@ async function _onSessionEstablished(session) {
     generatePlan();
     _setSyncStatus('✓ Dados carregados', 'ok');
   } else {
-    // Sem cadastro na nuvem — continua onboarding (novo usuário)
+    // Sem cadastro completo — continua onboarding, mas pré-popula o form com o que tiver
     const _ob = document.getElementById('ob');
     if (_ob && !_ob.hidden && obCurrentStep === 0) {
+      _populateObProfileForm();
       obGo(1);
     } else {
-      initOnboarding();
+      initOnboarding(); // já chama _populateObProfileForm internamente
     }
     _setSyncStatus('', '');
   }
