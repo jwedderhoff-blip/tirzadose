@@ -1685,26 +1685,17 @@ async function syncToCloud() {
         .select('data')
         .eq('user_id', sbUser.id)
         .maybeSingle();
-      if (existing?.data) {
-        const cloud = existing.data;
-        const cloudApps = (cloud.applications || []).length;
-        const cloudWeights = (cloud.weights || []).length;
-        const localApps = (S.applications || []).length;
-        const localWeights = (S.weights || []).length;
-        // Se a nuvem tem registros que o local não tem, faz merge
-        if (cloudApps > localApps || cloudWeights > localWeights) {
-          const merged = _mergeStateWithCloud(S, cloud);
-          // Atualiza S em memória e localStorage com o merge
-          S.applications = merged.applications;
-          S.weights = merged.weights;
-          S.symptoms = merged.symptoms;
-          S.dietLogs = merged.dietLogs;
-          try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
-          dataToSave = { ...S, _deviceId };
-        }
+      if (existing?.data && existing.data.applications !== undefined) {
+        // Sempre faz merge — nunca sobrescreve sem unir os registros de ambos os lados
+        const merged = _mergeStateWithCloud(S, existing.data);
+        S.applications = merged.applications;
+        S.weights = merged.weights;
+        S.symptoms = merged.symptoms;
+        S.dietLogs = merged.dietLogs;
+        try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+        dataToSave = { ...S, _deviceId };
       }
     } catch(_e) {
-      // Pre-fetch falhou — prossegue com dados locais (melhor esforço)
       console.warn('[TirzaDose] syncToCloud pre-fetch error:', _e?.message);
     }
 
