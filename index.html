@@ -1599,7 +1599,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v45';
+const APP_VERSION = 'v46';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -1682,6 +1682,8 @@ let _syncRetries = 0;
 let _syncRetryTimer = null;
 let _syncWatchdog = null;  // segurança: reseta _syncing se travar
 let _cloudLoaded = false;  // true após loadFromCloud() concluir com sucesso
+let _maxAppsEver = 0;      // maior contagem de aplicações já vista (local ou nuvem)
+let _maxWeightsEver = 0;   // maior contagem de pesos já vista
 let _realtimeChannel = null;
 // Painel de conexão
 let _connLog = [];         // [{time, type, msg}] — últimos 10 eventos
@@ -1735,25 +1737,30 @@ async function syncToCloud() {
   _setSyncStatus('↑ Salvando…', '');
   try {
     let dataToSave = { ...S, _deviceId };
-    // Sempre faz pre-fetch + merge antes de subir — garante que nunca sobrescreve
-    // registros que estão na nuvem mas não no estado local atual.
-    // O watchdog de 20s previne que o fetch trave o sync indefinidamente.
-    try {
-      const { data: existing } = await sb.from('user_data')
-        .select('data')
-        .eq('user_id', sbUser.id)
-        .maybeSingle();
-      if (existing?.data && existing.data.applications !== undefined) {
-        const merged = _mergeStateWithCloud(S, existing.data);
-        S.applications = merged.applications;
-        S.weights = merged.weights;
-        S.symptoms = merged.symptoms;
-        S.dietLogs = merged.dietLogs;
-        try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
-        dataToSave = { ...S, _deviceId };
+    const curApps = S.applications?.length || 0;
+    const curWeights = S.weights?.length || 0;
+    // Pre-fetch + merge apenas quando: (1) primeira sync da sessão, ou
+    // (2) S tem menos registros do que o máximo já visto — evita regressão.
+    // Isso elimina o SELECT desnecessário em saves normais.
+    const needsPrefetch = !_cloudLoaded || curApps < _maxAppsEver || curWeights < _maxWeightsEver;
+    if (needsPrefetch) {
+      try {
+        const { data: existing } = await sb.from('user_data')
+          .select('data')
+          .eq('user_id', sbUser.id)
+          .maybeSingle();
+        if (existing?.data && existing.data.applications !== undefined) {
+          const merged = _mergeStateWithCloud(S, existing.data);
+          S.applications = merged.applications;
+          S.weights = merged.weights;
+          S.symptoms = merged.symptoms;
+          S.dietLogs = merged.dietLogs;
+          try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+          dataToSave = { ...S, _deviceId };
+        }
+      } catch(_e) {
+        console.warn('[TirzaDose] syncToCloud pre-fetch error:', _e?.message);
       }
-    } catch(_e) {
-      console.warn('[TirzaDose] syncToCloud pre-fetch error:', _e?.message);
     }
 
     const result = await sb.from('user_data').upsert(
@@ -1763,6 +1770,8 @@ async function syncToCloud() {
     if (result && result.error) throw result.error;
     clearTimeout(_syncWatchdog);
     _cloudLoaded = true;
+    _maxAppsEver = Math.max(_maxAppsEver, S.applications?.length || 0);
+    _maxWeightsEver = Math.max(_maxWeightsEver, S.weights?.length || 0);
     _syncRetries = 0;
     try { localStorage.removeItem(DB + '_dirty'); } catch{}
     _setSyncStatus('✓ Sincronizado', 'ok');
@@ -1850,6 +1859,8 @@ async function loadFromCloud() {
       try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
 
       _cloudLoaded = true;
+      _maxAppsEver = Math.max(_maxAppsEver, S.applications?.length || 0);
+      _maxWeightsEver = Math.max(_maxWeightsEver, S.weights?.length || 0);
       _logConn('recv', `Nuvem: ${cloudData.applications?.length||0} aplic., ${cloudData.weights?.length||0} pesos → local: ${S.applications?.length||0}, ${S.weights?.length||0}`);
       // Sobe de volta se: havia dirty, local era mais recente, ou merge adicionou registros
       const cloudApps = (cloudData.applications || []).length;
