@@ -2321,21 +2321,34 @@ function saveSymptom(){
 }
 
 /* ===== COMPUTE NEXT DOSE DATE ===== */
+// Retorna a ocorrência mais recente do weekDay em fromStr (hoje se hoje for o dia)
+function lastWeekdayOn(fromStr, weekDay){
+  const d = parseD(fromStr);
+  const diff = (d.getDay() - weekDay + 7) % 7;
+  d.setDate(d.getDate() - diff);
+  return d.toISOString().slice(0,10);
+}
+
 function computeNextDoseDate(){
   if(!S.profile.startDate) return null;
   const td = today();
-  const apps = [...S.applications].sort((a,b)=>a.date>b.date?-1:1);
-  if(apps.length){
-    let nextDate = addDays(apps[0].date, 7);
-    // Se semanas foram puladas sem registro, avança até hoje ou futuro
-    while(nextDate < td) nextDate = addDays(nextDate, 7);
-    return nextDate;
-  }
   const wd = parseInt(S.profile.weekDay);
-  const start = S.profile.startDate;
-  let next = nextWeekdayFrom(start, wd);
-  if(next <= td) next = nextWeekdayFrom(td, wd);
-  return next;
+  const apps = [...S.applications].sort((a,b)=>a.date>b.date?-1:1);
+  const latestApp = apps.length ? apps[0].date : null;
+
+  // Última data esperada de aplicação (hoje se hoje = dia do perfil, senão última ocorrência)
+  const lastExpected = lastWeekdayOn(td, wd);
+
+  if (latestApp && latestApp >= lastExpected) {
+    // Já aplicou nesta semana ou adiantado — próxima é +7 da última aplicação
+    return addDays(latestApp, 7);
+  }
+
+  // Não aplicou ainda para a data esperada atual → retorna essa data
+  // (days=0 se hoje é o dia, days<0 se já passou)
+  const firstExpected = nextWeekdayFrom(S.profile.startDate, wd);
+  if (lastExpected < firstExpected) return firstExpected; // antes do início
+  return lastExpected;
 }
 
 function countdownDays(nextDate){
