@@ -1149,10 +1149,12 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
         <div class="card" style="margin-top:4px">
           <button onclick="togglePerfilSection('beta')" style="width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;color:var(--fg);font-size:16px;font-weight:600;font-family:var(--f);-webkit-tap-highlight-color:transparent">
             <span>🔄 Atualizar App <span style="font-size:13px;font-weight:700;background:var(--ac-lt);color:var(--ac);padding:2px 7px;border-radius:99px;vertical-align:middle;margin-left:4px">BETA</span></span>
+            <span id="beta-version-badge" style="font-size:12px;color:var(--fg-m);margin-left:auto;margin-right:10px;font-weight:500"></span>
             <span id="pfil-arrow-beta" style="color:var(--ac);font-size:18px;transition:transform .2s;flex-shrink:0">▸</span>
           </button>
           <div id="pfil-body-beta" hidden style="margin-top:14px">
-          <p class="t-m" style="margin-bottom:12px">Força o download da versão mais recente do app, limpando o cache do navegador. Use quando o desenvolvedor avisar que há uma nova versão disponível.</p>
+          <p class="t-m" style="margin-bottom:4px">Força o download da versão mais recente do app, limpando o cache do navegador. Use quando o desenvolvedor avisar que há uma nova versão disponível.</p>
+          <p class="t-m" style="margin-bottom:12px;color:var(--fg-m)">Versão instalada: <strong id="beta-version-text" style="color:var(--fg)">—</strong></p>
           <button class="btn btn-p btn-w" id="btn-force-update" onclick="forceAppUpdate()">🔄 Buscar nova versão</button>
           </div><!-- /pfil-body-beta -->
         </div>
@@ -1559,6 +1561,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const APP_VERSION = 'v43';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -5282,6 +5285,11 @@ window.addEventListener('appinstalled', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   updateNotifUI();
+  // Exibe versão do app na seção Beta
+  const vBadge = document.getElementById('beta-version-badge');
+  const vText = document.getElementById('beta-version-text');
+  if (vBadge) vBadge.textContent = APP_VERSION;
+  if (vText) vText.textContent = APP_VERSION;
 });
 
 /* ===== APP CONTEXT MENU ===== */
