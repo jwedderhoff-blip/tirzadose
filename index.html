@@ -1720,38 +1720,45 @@ function syncToCloudBeacon() {
 
 async function loadFromCloud() {
   if (!sbUser) return;
-  // If local has unsynced edits, push them first — never let cloud overwrite pending changes
+  const localHasProfile = !!(S.profile && S.profile.startDate);
   const hasDirty = (() => { try { return localStorage.getItem(DB + '_dirty') === '1'; } catch { return false; } })();
-  if (hasDirty) {
+
+  // Só sobe dados locais antes de buscar se há edições pendentes E o local tem perfil
+  // (nunca subir estado vazio sobre dados válidos na nuvem)
+  if (hasDirty && localHasProfile) {
     await syncToCloud();
     return;
   }
+
   try {
     const { data, error } = await sb.from('user_data')
       .select('data')
       .eq('user_id', sbUser.id)
       .maybeSingle();
+    if (error) throw error;
+
     const cloudData = data?.data;
     const isValidCloudData = cloudData && cloudData.profile !== undefined && cloudData.applications !== undefined;
+
     if (isValidCloudData) {
-      const localTs = S.updatedAt  || 0;
+      const localTs = S.updatedAt || 0;
       const cloudTs = cloudData.updatedAt || 0;
-      if (cloudTs > localTs) {
-        // Nuvem é mais recente — usa nuvem
+      // Usa nuvem se: nuvem é mais recente OU local não tem perfil (ex: após logout)
+      if (cloudTs >= localTs || !localHasProfile) {
         const { _deviceId: _d, ...cloudState } = cloudData;
         S = { ...DEFAULT_STATE, ...cloudState };
         try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
       } else {
-        // Local é igual ou mais recente — sobe local para a nuvem
+        // Local tem perfil e é mais recente — sobe para nuvem
         await syncToCloud();
       }
-    } else {
-      // Nenhum dado válido na nuvem — faz upload dos dados locais
+    } else if (localHasProfile) {
+      // Sem dado válido na nuvem mas local tem perfil — faz upload
       await syncToCloud();
     }
+    // else: nenhum lado tem perfil — nada a fazer
   } catch(e) {
-    // Em caso de falha de rede, mantém dados locais e tenta subir
-    try { await syncToCloud(); } catch(_) {}
+    if (localHasProfile) { try { await syncToCloud(); } catch(_) {} }
   }
 }
 
@@ -4182,22 +4189,35 @@ async function _onSessionEstablished(session) {
   hideAuthGate();
   _setSyncStatus('Carregando dados da nuvem…', '');
   await loadFromCloud();
+
   const _gName = sbUser?.user_metadata?.full_name || sbUser?.user_metadata?.name;
-  if (_gName) {
+  if (_gName && !S.profile.name) {
     S.profile.name = _gName;
     const nameInput = document.getElementById('obName');
     if (nameInput) nameInput.value = _gName;
   }
-  // If user was on the login step of onboarding, advance to profile step
-  const _ob = document.getElementById('ob');
-  if (_ob && !_ob.hidden && obCurrentStep === 0) {
-    obGo(1);
+
+  if (isOnboarded()) {
+    // Cadastro encontrado na nuvem — esconde welcome/onboarding e carrega o app
+    const wlc = document.getElementById('welcome-screen');
+    if (wlc && !wlc.hidden) welcomeFinish();
+    document.getElementById('ob').hidden = true;
+    save();
+    renderAll();
+    generatePlan();
+    _setSyncStatus('✓ Dados carregados', 'ok');
   } else {
-    initOnboarding();
+    // Sem cadastro na nuvem — continua onboarding (novo usuário)
+    const _ob = document.getElementById('ob');
+    if (_ob && !_ob.hidden && obCurrentStep === 0) {
+      obGo(1);
+    } else {
+      initOnboarding();
+    }
+    _setSyncStatus('', '');
   }
-  if (isOnboarded()) { save(); renderAll(); generatePlan(); }
+
   subscribeToRealtime();
-  _setSyncStatus('✓ Sincronizado', 'ok');
 }
 
 // Single source of truth for auth state — driven entirely by onAuthStateChange
