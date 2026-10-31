@@ -254,6 +254,16 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
   overflow: hidden;
   box-shadow: 0 6px 24px rgba(74,124,89,.30);
 }
+/* Estado: hoje (aplicar agora) */
+.hero-card.hero-today {
+  background: linear-gradient(135deg, #5a4a1a 0%, #8a7020 60%, #b8962a 100%);
+  box-shadow: 0 6px 24px rgba(180,140,30,.35);
+}
+/* Estado: dia passou (como está se sentindo) */
+.hero-card.hero-past {
+  background: linear-gradient(135deg, #2e2060 0%, #3d2d80 60%, #5040a0 100%);
+  box-shadow: 0 6px 24px rgba(80,60,160,.35);
+}
 .hero-card::before { content: ''; position: absolute; left: -40px; bottom: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,.06); pointer-events: none; }
 .hero-card::after { content: ''; position: absolute; right: -20px; top: -20px; width: 130px; height: 130px; border-radius: 50%; background: rgba(255,255,255,.08); pointer-events: none; }
 .hero-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
@@ -2348,9 +2358,36 @@ function renderInicio(){
 
   const nextDate = computeNextDoseDate();
   const days = countdownDays(nextDate);
-  const daysLabel = days === 0 ? 'HOJE' : days === 1 ? '1 dia' : `${days} dias`;
-  const daysSubLabel = days <= 0 ? 'Dia de aplicação! Lembre-se de aplicar hoje.' : `Próxima: ${DAYS_PT[parseD(nextDate).getDay()]}, ${fmtD(nextDate)}`;
-  const heroClass = days <= 0 ? 'hero-card' : 'hero-card';
+
+  // Três estados do card hero
+  let heroEyebrow, heroCountdown, heroSub, heroActions;
+  if (days > 0) {
+    // Ainda faltam dias
+    heroEyebrow = 'Próxima aplicação';
+    heroCountdown = days === 1 ? '1 dia' : `${days} dias`;
+    heroSub = `${days === 1 ? 'Amanhã' : `Faltam ${days} dias`} · ${DAYS_PT[parseD(nextDate).getDay()]}, ${fmtD(nextDate)}`;
+    heroActions = `
+      <button class="hero-btn primary" onclick="openApplyModal();goTab('app',document.getElementById('nb-app'))">Registrar antecipado</button>
+      <button class="hero-btn" onclick="openSympModal()">+ Sintoma</button>`;
+  } else if (days === 0) {
+    // Hoje é o dia
+    heroEyebrow = 'Hoje é dia de aplicação';
+    heroCountdown = 'Prepare-se!';
+    heroSub = 'Lembre-se de aplicar hoje no horário habitual.';
+    heroActions = `
+      <button class="hero-btn primary" onclick="openApplyModal();goTab('app',document.getElementById('nb-app'))">Registrar agora</button>
+      <button class="hero-btn" onclick="openSympModal()">+ Sintoma</button>`;
+  } else {
+    // Dia já passou
+    const daysAgo = Math.abs(days);
+    heroEyebrow = `Aplicação há ${daysAgo === 1 ? '1 dia' : daysAgo + ' dias'}`;
+    heroCountdown = 'Como você está se sentindo?';
+    heroSub = 'Registre seus sintomas e confirme a aplicação se ainda não fez.';
+    heroActions = `
+      <button class="hero-btn primary" onclick="openSympModal()">Registrar sintoma</button>
+      <button class="hero-btn" onclick="openApplyModal();goTab('app',document.getElementById('nb-app'))">Confirmar aplicação</button>`;
+  }
+  const heroClass = days === 0 ? 'hero-card hero-today' : days < 0 ? 'hero-card hero-past' : 'hero-card';
 
   const totalApps = S.applications.length;
   const weeksSince = prof.startDate ? Math.floor(diffDays(prof.startDate, today())/7) : 0;
@@ -2384,13 +2421,10 @@ function renderInicio(){
 
   el.innerHTML = novidadeHtml + `
     <div class="${heroClass}">
-      <div class="hero-eyebrow">Próxima aplicação</div>
-      <div class="hero-countdown">${daysLabel}</div>
-      <div class="hero-sub">${daysSubLabel}</div>
-      <div class="hero-actions">
-        <button class="hero-btn primary" onclick="openApplyModal();goTab('app',document.getElementById('nb-app'))">Registrar agora</button>
-        <button class="hero-btn" onclick="openSympModal()">+ Sintoma</button>
-      </div>
+      <div class="hero-eyebrow">${heroEyebrow}</div>
+      <div class="hero-countdown">${heroCountdown}</div>
+      <div class="hero-sub">${heroSub}</div>
+      <div class="hero-actions">${heroActions}</div>
     </div>
     <div class="stat-row">
       <div class="stat"><div class="stat-v">${totalApps}</div><div class="stat-l">Aplicações</div></div>
