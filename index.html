@@ -1100,7 +1100,8 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
               </div>
             </div>
             <div style="display:flex;gap:8px">
-              <button class="btn btn-p btn-sm" style="flex:1" id="btn-force-sync" onclick="forceRefreshFromCloud(this)">↓ Atualizar dados</button>
+              <button class="btn btn-p btn-sm" style="flex:1" id="btn-force-sync" onclick="forceRefreshFromCloud(this)">↓ Buscar nuvem</button>
+              <button class="btn btn-p btn-sm" style="flex:1" id="btn-force-upload" onclick="forceUploadToCloud(this)">↑ Enviar dados</button>
               <button class="btn btn-g btn-sm" style="flex:1" onclick="authSignOut(this)">Sair da conta</button>
             </div>
           </div>
@@ -1840,7 +1841,41 @@ async function forceRefreshFromCloud(btn) {
     _setSyncStatus('⚠ Falha ao buscar dados', 'warn');
     showToast('Falha ao conectar. Tente novamente.');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '↓ Atualizar dados'; }
+    if (btn) { btn.disabled = false; btn.textContent = '↓ Buscar nuvem'; }
+  }
+}
+
+async function forceUploadToCloud(btn) {
+  if (!sbUser) { showToast('Faça login para sincronizar.'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Enviando…'; }
+  _setSyncStatus('↑ Enviando dados…', '');
+  try {
+    // Faz merge com nuvem antes de subir (nunca sobrescreve sem merge)
+    const { data } = await sb.from('user_data').select('data').eq('user_id', sbUser.id).maybeSingle();
+    if (data?.data && data.data.applications !== undefined) {
+      const { _deviceId: _d, ...cloudState } = data.data;
+      const base = { ...DEFAULT_STATE, ...cloudState };
+      const merged = _mergeStateWithCloud(base, S);
+      S.applications = merged.applications;
+      S.weights = merged.weights;
+      S.symptoms = merged.symptoms;
+      S.dietLogs = merged.dietLogs;
+      try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+    }
+    const result = await sb.from('user_data').upsert(
+      { user_id: sbUser.id, data: { ...S, _deviceId } },
+      { onConflict: 'user_id' }
+    );
+    if (result?.error) throw result.error;
+    try { localStorage.removeItem(DB + '_dirty'); } catch{}
+    renderAll();
+    _setSyncStatus('✓ Sincronizado', 'ok');
+    showToast(`Dados enviados: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos.`);
+  } catch(e) {
+    _setSyncStatus('⚠ Falha ao enviar', 'warn');
+    showToast('Falha ao enviar dados. Tente novamente.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↑ Enviar dados'; }
   }
 }
 
