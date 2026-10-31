@@ -1639,6 +1639,8 @@ let _syncing = false;
 let _syncDirty = false;
 let _syncRetries = 0;
 let _syncRetryTimer = null;
+let _syncWatchdog = null;  // segurança: reseta _syncing se travar
+let _cloudLoaded = false;  // true após loadFromCloud() concluir com sucesso
 let _realtimeChannel = null;
 // Each tab/device gets a random ID so it can ignore its own realtime events
 const _deviceId = Math.random().toString(36).slice(2);
@@ -1673,30 +1675,41 @@ async function syncToCloud() {
   if (!sbUser) return;
   if (_syncing) { _syncDirty = true; return; }
   clearTimeout(_syncRetryTimer);
+  clearTimeout(_syncWatchdog);
   _syncing = true;
   _syncDirty = false;
+  // Watchdog: se o sync travar por mais de 20s, libera o lock automaticamente
+  _syncWatchdog = setTimeout(() => {
+    if (_syncing) {
+      console.warn('[TirzaDose] syncToCloud watchdog: timeout');
+      _syncing = false;
+      _setSyncStatus('⟳ Timeout — tentando novamente', 'warn');
+      scheduleSyncToCloud();
+    }
+  }, 20000);
   _setSyncStatus('↑ Salvando…', '');
   try {
-    // PROTEÇÃO: busca dados atuais da nuvem antes de escrever
-    // para nunca sobrescrever registros que só existem lá
     let dataToSave = { ...S, _deviceId };
-    try {
-      const { data: existing } = await sb.from('user_data')
-        .select('data')
-        .eq('user_id', sbUser.id)
-        .maybeSingle();
-      if (existing?.data && existing.data.applications !== undefined) {
-        // Sempre faz merge — nunca sobrescreve sem unir os registros de ambos os lados
-        const merged = _mergeStateWithCloud(S, existing.data);
-        S.applications = merged.applications;
-        S.weights = merged.weights;
-        S.symptoms = merged.symptoms;
-        S.dietLogs = merged.dietLogs;
-        try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
-        dataToSave = { ...S, _deviceId };
+    // Pre-fetch + merge só na primeira sync da sessão (antes de _cloudLoaded)
+    // Nas demais, confia no estado local já mergeado via loadFromCloud + realtime
+    if (!_cloudLoaded) {
+      try {
+        const { data: existing } = await sb.from('user_data')
+          .select('data')
+          .eq('user_id', sbUser.id)
+          .maybeSingle();
+        if (existing?.data && existing.data.applications !== undefined) {
+          const merged = _mergeStateWithCloud(S, existing.data);
+          S.applications = merged.applications;
+          S.weights = merged.weights;
+          S.symptoms = merged.symptoms;
+          S.dietLogs = merged.dietLogs;
+          try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+          dataToSave = { ...S, _deviceId };
+        }
+      } catch(_e) {
+        console.warn('[TirzaDose] syncToCloud pre-fetch error:', _e?.message);
       }
-    } catch(_e) {
-      console.warn('[TirzaDose] syncToCloud pre-fetch error:', _e?.message);
     }
 
     const result = await sb.from('user_data').upsert(
@@ -1704,14 +1717,17 @@ async function syncToCloud() {
       { onConflict: 'user_id' }
     );
     if (result && result.error) throw result.error;
+    clearTimeout(_syncWatchdog);
+    _cloudLoaded = true;
     _syncRetries = 0;
     try { localStorage.removeItem(DB + '_dirty'); } catch{}
     _setSyncStatus('✓ Sincronizado', 'ok');
     const _hadDirty = _syncDirty;
-    _syncing = false;   // reseta ANTES de checar dirty para evitar loop travado
+    _syncing = false;
     _syncDirty = false;
     if (_hadDirty) scheduleSyncToCloud();
   } catch(e) {
+    clearTimeout(_syncWatchdog);
     _syncing = false;
     if (_syncRetries < _SYNC_TIMEOUTS.length) {
       const delay = _SYNC_TIMEOUTS[_syncRetries++];
@@ -1785,6 +1801,7 @@ async function loadFromCloud() {
       S = localHasProfile ? _mergeStateWithCloud(base, S) : base;
       try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
 
+      _cloudLoaded = true;
       // Sobe de volta se: havia dirty, local era mais recente, ou merge adicionou registros
       const cloudApps = (cloudData.applications || []).length;
       const mergedApps = (S.applications || []).length;
