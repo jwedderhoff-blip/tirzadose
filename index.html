@@ -1599,7 +1599,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v47';
+const APP_VERSION = 'v48';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -1729,15 +1729,23 @@ async function syncToCloud() {
   clearTimeout(_syncWatchdog);
   _syncing = true;
   _syncDirty = false;
-  // Watchdog: se o sync travar por mais de 20s, libera o lock automaticamente
+  // Watchdog: se o sync travar por mais de 45s, libera o lock com backoff
   _syncWatchdog = setTimeout(() => {
     if (_syncing) {
       console.warn('[TirzaDose] syncToCloud watchdog: timeout');
       _syncing = false;
-      _setSyncStatus('⟳ Timeout — tentando novamente', 'warn');
-      scheduleSyncToCloud();
+      if (_syncRetries < _SYNC_TIMEOUTS.length) {
+        const delay = _SYNC_TIMEOUTS[_syncRetries++];
+        _setSyncStatus(`⟳ Timeout (${_syncRetries}/${_SYNC_TIMEOUTS.length}) — aguardando…`, 'warn');
+        _syncRetryTimer = setTimeout(syncToCloud, delay);
+      } else {
+        _syncRetries = 0;
+        _cloudLoaded = true; // evita pre-fetch loop após max retries
+        _setSyncStatus('⚠ Timeout — tentará ao reconectar', 'warn');
+        _logConn('err', 'Timeout ao sincronizar (max retries)');
+      }
     }
-  }, 20000);
+  }, 45000);
   _setSyncStatus('↑ Salvando…', '');
   try {
     let dataToSave = { ...S, _deviceId };
