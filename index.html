@@ -1690,26 +1690,25 @@ async function syncToCloud() {
   _setSyncStatus('↑ Salvando…', '');
   try {
     let dataToSave = { ...S, _deviceId };
-    // Pre-fetch + merge só na primeira sync da sessão (antes de _cloudLoaded)
-    // Nas demais, confia no estado local já mergeado via loadFromCloud + realtime
-    if (!_cloudLoaded) {
-      try {
-        const { data: existing } = await sb.from('user_data')
-          .select('data')
-          .eq('user_id', sbUser.id)
-          .maybeSingle();
-        if (existing?.data && existing.data.applications !== undefined) {
-          const merged = _mergeStateWithCloud(S, existing.data);
-          S.applications = merged.applications;
-          S.weights = merged.weights;
-          S.symptoms = merged.symptoms;
-          S.dietLogs = merged.dietLogs;
-          try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
-          dataToSave = { ...S, _deviceId };
-        }
-      } catch(_e) {
-        console.warn('[TirzaDose] syncToCloud pre-fetch error:', _e?.message);
+    // Sempre faz pre-fetch + merge antes de subir — garante que nunca sobrescreve
+    // registros que estão na nuvem mas não no estado local atual.
+    // O watchdog de 20s previne que o fetch trave o sync indefinidamente.
+    try {
+      const { data: existing } = await sb.from('user_data')
+        .select('data')
+        .eq('user_id', sbUser.id)
+        .maybeSingle();
+      if (existing?.data && existing.data.applications !== undefined) {
+        const merged = _mergeStateWithCloud(S, existing.data);
+        S.applications = merged.applications;
+        S.weights = merged.weights;
+        S.symptoms = merged.symptoms;
+        S.dietLogs = merged.dietLogs;
+        try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+        dataToSave = { ...S, _deviceId };
       }
+    } catch(_e) {
+      console.warn('[TirzaDose] syncToCloud pre-fetch error:', _e?.message);
     }
 
     const result = await sb.from('user_data').upsert(
@@ -1903,7 +1902,8 @@ function subscribeToRealtime() {
       // Ignore changes originating from this device
       if (incoming._deviceId === _deviceId) return;
       const { _deviceId: _d, ...cloudState } = incoming;
-      S = { ...DEFAULT_STATE, ...cloudState };
+      const cloudBase = { ...DEFAULT_STATE, ...cloudState };
+      S = _mergeStateWithCloud(cloudBase, S);
       try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
       if (isOnboarded()) { renderAll(); generatePlan(); }
       _setSyncStatus('↓ Atualizado por outro dispositivo', 'ok');
