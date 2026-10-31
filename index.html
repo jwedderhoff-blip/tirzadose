@@ -1769,13 +1769,8 @@ async function loadFromCloud() {
   const localHasProfile = !!(S.profile && S.profile.startDate);
   const hasDirty = (() => { try { return localStorage.getItem(DB + '_dirty') === '1'; } catch { return false; } })();
 
-  // Só sobe dados locais antes de buscar se há edições pendentes E o local tem perfil
-  // (nunca subir estado vazio sobre dados válidos na nuvem)
-  if (hasDirty && localHasProfile) {
-    await syncToCloud();
-    return;
-  }
-
+  // SEMPRE busca a nuvem primeiro — nunca retorna antes de fazer o fetch
+  // (o bug anterior fazia early-return aqui e perdia dados da nuvem)
   try {
     const { data, error } = await sb.from('user_data')
       .select('data')
@@ -1791,31 +1786,27 @@ async function loadFromCloud() {
       const cloudTs = cloudData.updatedAt || 0;
       const { _deviceId: _d, ...cloudState } = cloudData;
 
-      if (cloudTs >= localTs || !localHasProfile) {
-        // Nuvem vence como base de perfil/configurações
-        // mas MERGE garante que registros locais não sejam descartados
-        const base = { ...DEFAULT_STATE, ...cloudState };
-        S = localHasProfile ? _mergeStateWithCloud(base, S) : base;
-        try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
-        // Se o merge adicionou registros locais que a nuvem não tinha, sobe
-        const cloudApps = (cloudData.applications || []).length;
-        const mergedApps = (S.applications || []).length;
-        if (localHasProfile && mergedApps > cloudApps) {
-          scheduleSyncToCloud();
-        }
-      } else {
-        // Local é mais recente — sobe para nuvem (com merge interno do syncToCloud)
-        await syncToCloud();
+      // Nuvem sempre serve de base — merge garante que registros locais não sejam descartados
+      const base = { ...DEFAULT_STATE, ...cloudState };
+      S = localHasProfile ? _mergeStateWithCloud(base, S) : base;
+      try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+
+      // Sobe de volta se: havia dirty, local era mais recente, ou merge adicionou registros
+      const cloudApps = (cloudData.applications || []).length;
+      const mergedApps = (S.applications || []).length;
+      if (hasDirty || localTs > cloudTs || (localHasProfile && mergedApps > cloudApps)) {
+        scheduleSyncToCloud();
       }
     } else if (localHasProfile) {
+      // Nuvem vazia — sobe dados locais
       await syncToCloud();
     }
-    // else: nenhum lado tem perfil — nada a fazer
+    // else: nenhum lado tem dados — nada a fazer
   } catch(e) {
-    if (localHasProfile) { try { await syncToCloud(); } catch(_) {} }
-    else {
-      // Cloud fetch falhou sem dados locais — loga o erro para diagnóstico
-      console.warn('[TirzaDose] loadFromCloud error:', e?.message || e);
+    console.warn('[TirzaDose] loadFromCloud error:', e?.message || e);
+    if (localHasProfile && hasDirty) {
+      try { await syncToCloud(); } catch(_) {}
+    } else if (!localHasProfile) {
       try { _setSyncStatus('⚠ Erro ao buscar dados da nuvem', 'warn'); } catch{}
     }
   }
