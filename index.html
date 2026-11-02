@@ -1157,6 +1157,14 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           <p class="t-m" style="margin-bottom:12px;color:var(--fg-m)">Versão instalada: <strong id="beta-version-text" style="color:var(--fg)">—</strong></p>
           <button class="btn btn-p btn-w" id="btn-force-update" onclick="forceAppUpdate()">🔄 Buscar nova versão</button>
 
+          <!-- Salvar dados locais como base na nuvem -->
+          <div style="margin-top:12px;padding:14px;background:var(--bg-warm);border-radius:12px;border:1px solid var(--border)">
+            <div style="font-size:14px;font-weight:600;color:var(--fg);margin-bottom:4px">💾 Salvar dados como base</div>
+            <div style="font-size:13px;color:var(--fg-m);margin-bottom:10px;line-height:1.5">Envia os dados atuais do app para a nuvem como versão definitiva, <strong style="color:var(--fg)">sem merge</strong>. Use para definir o ponto de restauração.</div>
+            <button class="btn btn-p btn-w btn-sm" onclick="saveLocalAsBase(this)">📤 Salvar dados atuais na nuvem</button>
+            <div id="save-base-status" style="font-size:13px;color:var(--fg-m);margin-top:8px;text-align:center;min-height:18px"></div>
+          </div>
+
           <!-- Painel de Conexão -->
           <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1599,7 +1607,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v49';
+const APP_VERSION = 'v50';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -1975,6 +1983,34 @@ async function forceUploadToCloud(btn) {
     showToast('Falha ao enviar dados. Tente novamente.');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '↑ Enviar dados'; }
+  }
+}
+
+async function saveLocalAsBase(btn) {
+  if (!sbUser) { showToast('Faça login para sincronizar.'); return; }
+  const st = document.getElementById('save-base-status');
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Salvando…'; }
+  if (st) st.textContent = 'Enviando dados locais…';
+  try {
+    S.updatedAt = Date.now();
+    try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+    const result = await sb.from('user_data').upsert(
+      { user_id: sbUser.id, data: { ...S, _deviceId } },
+      { onConflict: 'user_id' }
+    );
+    if (result?.error) throw result.error;
+    _cloudLoaded = true;
+    _maxAppsEver = Math.max(_maxAppsEver, S.applications?.length || 0);
+    _maxWeightsEver = Math.max(_maxWeightsEver, S.weights?.length || 0);
+    _setSyncStatus('✓ Sincronizado', 'ok');
+    _logConn('sent', `Base salva: ${S.applications?.length||0} aplic., ${S.weights?.length||0} pesos`);
+    if (st) st.textContent = `✓ Salvo: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`;
+    showToast(`Base salva na nuvem: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`);
+  } catch(e) {
+    if (st) st.textContent = '⚠ Falha: ' + (e?.message || 'erro ao salvar');
+    showToast('Falha ao salvar base. Tente novamente.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📤 Salvar dados atuais na nuvem'; }
   }
 }
 
