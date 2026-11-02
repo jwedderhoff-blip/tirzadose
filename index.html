@@ -1607,7 +1607,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v50';
+const APP_VERSION = 'v51';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -1990,28 +1990,38 @@ async function saveLocalAsBase(btn) {
   if (!sbUser) { showToast('Faça login para sincronizar.'); return; }
   const st = document.getElementById('save-base-status');
   if (btn) { btn.disabled = true; btn.textContent = '⟳ Salvando…'; }
-  if (st) st.textContent = 'Enviando dados locais…';
-  try {
-    S.updatedAt = Date.now();
-    try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
-    const result = await sb.from('user_data').upsert(
-      { user_id: sbUser.id, data: { ...S, _deviceId } },
-      { onConflict: 'user_id' }
-    );
-    if (result?.error) throw result.error;
-    _cloudLoaded = true;
-    _maxAppsEver = Math.max(_maxAppsEver, S.applications?.length || 0);
-    _maxWeightsEver = Math.max(_maxWeightsEver, S.weights?.length || 0);
-    _setSyncStatus('✓ Sincronizado', 'ok');
-    _logConn('sent', `Base salva: ${S.applications?.length||0} aplic., ${S.weights?.length||0} pesos`);
-    if (st) st.textContent = `✓ Salvo: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`;
-    showToast(`Base salva na nuvem: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`);
-  } catch(e) {
-    if (st) st.textContent = '⚠ Falha: ' + (e?.message || 'erro ao salvar');
-    showToast('Falha ao salvar base. Tente novamente.');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '📤 Salvar dados atuais na nuvem'; }
+  S.updatedAt = Date.now();
+  try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+  const payload = { ...S, _deviceId };
+  const MAX = 3;
+  for (let attempt = 1; attempt <= MAX; attempt++) {
+    if (st) st.textContent = `Tentativa ${attempt}/${MAX}… aguarde`;
+    try {
+      const result = await Promise.race([
+        sb.from('user_data').upsert({ user_id: sbUser.id, data: payload }, { onConflict: 'user_id' }),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout')), 20000))
+      ]);
+      if (result?.error) throw result.error;
+      _cloudLoaded = true;
+      _maxAppsEver = Math.max(_maxAppsEver, S.applications?.length || 0);
+      _maxWeightsEver = Math.max(_maxWeightsEver, S.weights?.length || 0);
+      _setSyncStatus('✓ Sincronizado', 'ok');
+      _logConn('sent', `Base salva: ${S.applications?.length||0} aplic., ${S.weights?.length||0} pesos`);
+      if (st) st.textContent = `✓ Salvo: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`;
+      showToast(`Base salva: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`);
+      if (btn) { btn.disabled = false; btn.textContent = '📤 Salvar dados atuais na nuvem'; }
+      return;
+    } catch(e) {
+      if (attempt < MAX) {
+        if (st) st.textContent = `Tentativa ${attempt} falhou — aguardando 5s…`;
+        await new Promise(r => setTimeout(r, 5000));
+      } else {
+        if (st) st.textContent = '⚠ Falha após 3 tentativas. Tente em uma rede melhor.';
+        showToast('Timeout ao salvar. Tente via Wi-Fi.');
+      }
+    }
   }
+  if (btn) { btn.disabled = false; btn.textContent = '📤 Salvar dados atuais na nuvem'; }
 }
 
 function subscribeToRealtime() {
