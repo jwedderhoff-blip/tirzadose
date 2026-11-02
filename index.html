@@ -1599,7 +1599,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v48';
+const APP_VERSION = 'v49';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -1865,9 +1865,17 @@ async function loadFromCloud() {
       const cloudTs = cloudData.updatedAt || 0;
       const { _deviceId: _d, ...cloudState } = cloudData;
 
-      // Nuvem sempre serve de base — merge garante que registros locais não sejam descartados
+      // Local prevalece em edições; cloud adiciona registros que local não tem
       const base = { ...DEFAULT_STATE, ...cloudState };
-      S = localHasProfile ? _mergeStateWithCloud(base, S) : base;
+      if (localHasProfile) {
+        S = _mergeStateWithCloud(S, base);
+        // Também incorpora campos de perfil que só existem na nuvem
+        if (cloudState.profile) {
+          S.profile = { ...cloudState.profile, ...S.profile };
+        }
+      } else {
+        S = base;
+      }
       try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
 
       _cloudLoaded = true;
@@ -1943,7 +1951,7 @@ async function forceUploadToCloud(btn) {
     if (data?.data && data.data.applications !== undefined) {
       const { _deviceId: _d, ...cloudState } = data.data;
       const base = { ...DEFAULT_STATE, ...cloudState };
-      const merged = _mergeStateWithCloud(base, S);
+      const merged = _mergeStateWithCloud(S, base); // local vence em edições
       S.applications = merged.applications;
       S.weights = merged.weights;
       S.symptoms = merged.symptoms;
