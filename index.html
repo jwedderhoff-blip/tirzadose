@@ -1626,7 +1626,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v53';
+const APP_VERSION = 'v54';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -2009,18 +2009,26 @@ async function saveLocalAsBase(btn) {
   if (!sbUser) { showToast('Faça login para sincronizar.'); return; }
   const st = document.getElementById('save-base-status');
   if (btn) { btn.disabled = true; btn.textContent = '⟳ Salvando…'; }
+
+  // Para qualquer sync em andamento para liberar a conexão
+  if (_syncRetryTimer) { clearTimeout(_syncRetryTimer); _syncRetryTimer = null; }
+  if (_syncWatchdog)   { clearTimeout(_syncWatchdog);   _syncWatchdog = null; }
+  _syncing = false;
+
   S.updatedAt = Date.now();
   try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
   const payload = { ...S, _deviceId };
   const MAX = 3;
+  let saved = false;
   for (let attempt = 1; attempt <= MAX; attempt++) {
     if (st) st.textContent = `Tentativa ${attempt}/${MAX}… aguarde`;
     try {
       const result = await Promise.race([
         sb.from('user_data').upsert({ user_id: sbUser.id, data: payload }, { onConflict: 'user_id' }),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout')), 20000))
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout')), 30000))
       ]);
       if (result?.error) throw result.error;
+      saved = true;
       _cloudLoaded = true;
       _maxAppsEver = Math.max(_maxAppsEver, S.applications?.length || 0);
       _maxWeightsEver = Math.max(_maxWeightsEver, S.weights?.length || 0);
@@ -2028,8 +2036,7 @@ async function saveLocalAsBase(btn) {
       _logConn('sent', `Base salva: ${S.applications?.length||0} aplic., ${S.weights?.length||0} pesos`);
       if (st) st.textContent = `✓ Salvo: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`;
       showToast(`Base salva: ${S.applications?.length||0} aplicações, ${S.weights?.length||0} pesos`);
-      if (btn) { btn.disabled = false; btn.textContent = '📤 Salvar dados atuais na nuvem'; }
-      return;
+      break;
     } catch(e) {
       if (attempt < MAX) {
         if (st) st.textContent = `Tentativa ${attempt} falhou — aguardando 5s…`;
@@ -2041,6 +2048,8 @@ async function saveLocalAsBase(btn) {
     }
   }
   if (btn) { btn.disabled = false; btn.textContent = '📤 Salvar dados atuais na nuvem'; }
+  // Retoma sync normal após a tentativa (salvo ou não)
+  if (saved) scheduleSyncToCloud(2000);
 }
 
 /* ===== CLOUD BACKUP ===== */
