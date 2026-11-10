@@ -1202,6 +1202,16 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
             <div style="font-size:12px;font-weight:600;color:var(--fg-m);margin-bottom:6px">Histórico desta sessão</div>
             <div id="cp-log" style="font-size:12px;line-height:2;background:var(--bg-warm);border-radius:10px;padding:10px 12px;min-height:48px;color:var(--fg-m)">—</div>
           </div>
+          <!-- Exportar dados -->
+          <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+            <div style="font-size:13px;font-weight:700;color:var(--fg-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📥 Exportar dados</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <button class="btn btn-g btn-sm" onclick="exportApplicationsCsv()">💉 Aplicações (.csv)</button>
+              <button class="btn btn-g btn-sm" onclick="exportWeightsCsv()">⚖️ Pesos (.csv)</button>
+            </div>
+            <button class="btn btn-g btn-w btn-sm" onclick="exportBackupJson()">🗂 Backup completo (.json)</button>
+            <p class="t-m" style="font-size:12px;margin-top:8px">O arquivo CSV abre direto no Google Sheets ou Excel. O .json pode ser usado para restaurar os dados.</p>
+          </div>
           </div><!-- /pfil-body-beta -->
         </div>
 
@@ -1607,7 +1617,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v51';
+const APP_VERSION = 'v52';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -2022,6 +2032,49 @@ async function saveLocalAsBase(btn) {
     }
   }
   if (btn) { btn.disabled = false; btn.textContent = '📤 Salvar dados atuais na nuvem'; }
+}
+
+/* ===== EXPORT ===== */
+function _downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+}
+
+function _toCsv(headers, rows) {
+  const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  return [headers.map(esc).join(','), ...rows.map(r => r.map(esc).join(','))].join('\r\n');
+}
+
+function exportApplicationsCsv() {
+  const apps = (S.applications || []).slice().sort((a,b) => a.date.localeCompare(b.date));
+  const csv = _toCsv(
+    ['Data', 'Hora', 'Dose (mg)', 'Local de aplicação', 'Notas'],
+    apps.map(a => [a.date, a.time||'', a.doseMg, a.site||'', a.notes||''])
+  );
+  _downloadBlob(new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'}),
+    `tirzadose-aplicacoes-${new Date().toISOString().slice(0,10)}.csv`);
+  showToast(`${apps.length} aplicações exportadas`);
+}
+
+function exportWeightsCsv() {
+  const weights = (S.weights || []).slice().sort((a,b) => a.date.localeCompare(b.date));
+  const csv = _toCsv(
+    ['Data', 'Peso (kg)'],
+    weights.map(w => [w.date, w.kg])
+  );
+  _downloadBlob(new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'}),
+    `tirzadose-pesos-${new Date().toISOString().slice(0,10)}.csv`);
+  showToast(`${weights.length} pesos exportados`);
+}
+
+function exportBackupJson() {
+  const json = JSON.stringify(S, null, 2);
+  _downloadBlob(new Blob([json], {type:'application/json'}),
+    `tirzadose-backup-${new Date().toISOString().slice(0,10)}.json`);
+  showToast('Backup JSON exportado');
 }
 
 function subscribeToRealtime() {
