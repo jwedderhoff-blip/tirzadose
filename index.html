@@ -1160,7 +1160,7 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
           <!-- Salvar dados locais como base na nuvem -->
           <div style="margin-top:12px;padding:14px;background:var(--bg-warm);border-radius:12px;border:1px solid var(--border)">
             <div style="font-size:14px;font-weight:600;color:var(--fg);margin-bottom:4px">💾 Salvar dados como base</div>
-            <div style="font-size:13px;color:var(--fg-m);margin-bottom:10px;line-height:1.5">Envia os dados atuais do app para a nuvem como versão definitiva, <strong style="color:var(--fg)">sem merge</strong>. Use para definir o ponto de restauração.</div>
+            <div style="font-size:13px;color:var(--fg-m);margin-bottom:10px;line-height:1.5">Envia aplicações, pesos, sintomas e perfil para a nuvem. <strong style="color:var(--fg)">Logs de dieta</strong> não são incluídos (use o export JSON para backup completo).</div>
             <button class="btn btn-p btn-w btn-sm" onclick="saveLocalAsBase(this)">📤 Salvar dados atuais na nuvem</button>
             <div id="save-base-status" style="font-size:13px;color:var(--fg-m);margin-top:8px;text-align:center;min-height:18px"></div>
           </div>
@@ -1626,7 +1626,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v54';
+const APP_VERSION = 'v55';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -2017,7 +2017,10 @@ async function saveLocalAsBase(btn) {
 
   S.updatedAt = Date.now();
   try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
-  const payload = { ...S, _deviceId };
+  // Payload reduzido: exclui dietLogs (volumoso) para evitar timeout no 4G
+  // dietLogs ficam disponíveis no export JSON completo
+  const { dietLogs: _dl, ...slim } = S;
+  const payload = { ...slim, _deviceId };
   const MAX = 3;
   let saved = false;
   for (let attempt = 1; attempt <= MAX; attempt++) {
