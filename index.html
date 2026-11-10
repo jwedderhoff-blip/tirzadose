@@ -1202,15 +1202,24 @@ body.demo-mode .app-header { padding-top: calc(env(safe-area-inset-top,0px) + 40
             <div style="font-size:12px;font-weight:600;color:var(--fg-m);margin-bottom:6px">Histórico desta sessão</div>
             <div id="cp-log" style="font-size:12px;line-height:2;background:var(--bg-warm);border-radius:10px;padding:10px 12px;min-height:48px;color:var(--fg-m)">—</div>
           </div>
+          <!-- Backup na nuvem -->
+          <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+            <div style="font-size:13px;font-weight:700;color:var(--fg-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">☁️ Backup na nuvem</div>
+            <p class="t-m" style="font-size:12px;margin-bottom:10px">Salva um snapshot dos dados no Supabase. Mantém os últimos 5 backups.</p>
+            <button class="btn btn-p btn-w btn-sm" id="btn-create-backup" onclick="createCloudBackup(this)">💾 Criar backup agora</button>
+            <div id="backup-status" style="font-size:13px;color:var(--fg-m);margin-top:6px;min-height:16px;text-align:center"></div>
+            <div id="backup-list" style="margin-top:10px"></div>
+          </div>
+
           <!-- Exportar dados -->
           <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
-            <div style="font-size:13px;font-weight:700;color:var(--fg-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📥 Exportar dados</div>
+            <div style="font-size:13px;font-weight:700;color:var(--fg-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📥 Exportar para arquivo</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
               <button class="btn btn-g btn-sm" onclick="exportApplicationsCsv()">💉 Aplicações (.csv)</button>
               <button class="btn btn-g btn-sm" onclick="exportWeightsCsv()">⚖️ Pesos (.csv)</button>
             </div>
             <button class="btn btn-g btn-w btn-sm" onclick="exportBackupJson()">🗂 Backup completo (.json)</button>
-            <p class="t-m" style="font-size:12px;margin-top:8px">O arquivo CSV abre direto no Google Sheets ou Excel. O .json pode ser usado para restaurar os dados.</p>
+            <p class="t-m" style="font-size:12px;margin-top:8px">CSV abre no Google Sheets / Excel. O .json pode ser restaurado aqui.</p>
           </div>
           </div><!-- /pfil-body-beta -->
         </div>
@@ -1617,7 +1626,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v52';
+const APP_VERSION = 'v53';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -2032,6 +2041,78 @@ async function saveLocalAsBase(btn) {
     }
   }
   if (btn) { btn.disabled = false; btn.textContent = '📤 Salvar dados atuais na nuvem'; }
+}
+
+/* ===== CLOUD BACKUP ===== */
+async function createCloudBackup(btn) {
+  if (!sbUser) { showToast('Faça login primeiro.'); return; }
+  const st = document.getElementById('backup-status');
+  if (btn) { btn.disabled = true; btn.textContent = '⟳ Salvando…'; }
+  if (st) st.textContent = 'Criando backup…';
+  try {
+    const label = new Date().toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})
+      + ` · ${S.applications?.length||0} aplic. · ${S.weights?.length||0} pesos`;
+    const { error } = await sb.from('user_backups').insert({
+      user_id: sbUser.id, label, data: { ...S }
+    });
+    if (error) throw error;
+    // Mantém apenas os 5 mais recentes
+    const { data: all } = await sb.from('user_backups')
+      .select('id, created_at').eq('user_id', sbUser.id)
+      .order('created_at', { ascending: false });
+    if (all && all.length > 5) {
+      const toDelete = all.slice(5).map(r => r.id);
+      await sb.from('user_backups').delete().in('id', toDelete);
+    }
+    if (st) st.textContent = '✓ Backup salvo!';
+    showToast('Backup criado na nuvem');
+    loadBackupList();
+  } catch(e) {
+    if (st) st.textContent = '⚠ Falha: ' + (e?.message || 'erro');
+    showToast('Falha ao criar backup.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '💾 Criar backup agora'; }
+  }
+}
+
+async function loadBackupList() {
+  if (!sbUser) return;
+  const el = document.getElementById('backup-list');
+  if (!el) return;
+  try {
+    const { data, error } = await sb.from('user_backups')
+      .select('id, created_at, label')
+      .eq('user_id', sbUser.id)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (error || !data?.length) { el.innerHTML = '<p class="t-m" style="font-size:12px">Nenhum backup ainda.</p>'; return; }
+    el.innerHTML = data.map((b,i) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg-warm);border-radius:8px;margin-bottom:6px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i===0?'🔵 ':''} ${b.label}</div>
+        </div>
+        <button onclick="restoreCloudBackup('${b.id}',this)" style="background:none;border:1.5px solid var(--ac);color:var(--ac);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:var(--f)">↩ Restaurar</button>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<p class="t-m" style="font-size:12px">Erro ao carregar backups.</p>'; }
+}
+
+async function restoreCloudBackup(id, btn) {
+  if (!confirm('Restaurar este backup? Os dados atuais serão substituídos.')) return;
+  if (btn) { btn.disabled = true; btn.textContent = '⟳'; }
+  try {
+    const { data, error } = await sb.from('user_backups').select('data').eq('id', id).single();
+    if (error || !data?.data) throw error || new Error('Sem dados');
+    S = { ...DEFAULT_STATE, ...data.data };
+    S.updatedAt = Date.now();
+    try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
+    renderAll(); generatePlan();
+    showToast('Backup restaurado! Salvando na nuvem…');
+    scheduleSyncToCloud();
+  } catch(e) {
+    showToast('Falha ao restaurar: ' + (e?.message || 'erro'));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '↩ Restaurar'; }
+  }
 }
 
 /* ===== EXPORT ===== */
@@ -5000,6 +5081,7 @@ function togglePerfilSection(id) {
   if (!body) return;
   body.hidden = !body.hidden;
   if (arrow) arrow.style.transform = body.hidden ? '' : 'rotate(90deg)';
+  if (id === 'beta' && !body.hidden) loadBackupList();
 }
 
 /* ===== SHARE CARD (Canvas) ===== */
