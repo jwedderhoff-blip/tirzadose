@@ -1626,7 +1626,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v55';
+const APP_VERSION = 'v56';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -1705,6 +1705,7 @@ let sbUser = null;
 let _syncTimer = null;
 let _syncing = false;
 let _syncDirty = false;
+let _prioritySave = false; // trava: saveLocalAsBase tem prioridade sobre todas as ops Supabase
 let _syncRetries = 0;
 let _syncRetryTimer = null;
 let _syncWatchdog = null;  // segurança: reseta _syncing se travar
@@ -1872,6 +1873,7 @@ function syncToCloudBeacon() {
 
 async function loadFromCloud() {
   if (!sbUser) return;
+  if (_prioritySave) return; // cede para saveLocalAsBase
   const localHasProfile = !!(S.profile && S.profile.startDate);
   const hasDirty = (() => { try { return localStorage.getItem(DB + '_dirty') === '1'; } catch { return false; } })();
 
@@ -2010,10 +2012,13 @@ async function saveLocalAsBase(btn) {
   const st = document.getElementById('save-base-status');
   if (btn) { btn.disabled = true; btn.textContent = '⟳ Salvando…'; }
 
-  // Para qualquer sync em andamento para liberar a conexão
+  // Trava global: impede loadFromCloud e createCloudBackup de rodar em paralelo
+  _prioritySave = true;
   if (_syncRetryTimer) { clearTimeout(_syncRetryTimer); _syncRetryTimer = null; }
   if (_syncWatchdog)   { clearTimeout(_syncWatchdog);   _syncWatchdog = null; }
   _syncing = false;
+  // Aguarda 500ms para qualquer requisição em voo completar antes de começar
+  await new Promise(r => setTimeout(r, 500));
 
   S.updatedAt = Date.now();
   try { localStorage.setItem(DB, JSON.stringify(S)); } catch{}
@@ -2050,6 +2055,7 @@ async function saveLocalAsBase(btn) {
       }
     }
   }
+  _prioritySave = false;
   if (btn) { btn.disabled = false; btn.textContent = '📤 Salvar dados atuais na nuvem'; }
   // Retoma sync normal após a tentativa (salvo ou não)
   if (saved) scheduleSyncToCloud(2000);
@@ -2058,6 +2064,7 @@ async function saveLocalAsBase(btn) {
 /* ===== CLOUD BACKUP ===== */
 async function createCloudBackup(btn) {
   if (!sbUser) { showToast('Faça login primeiro.'); return; }
+  if (_prioritySave) { showToast('Aguarde o save terminar.'); return; }
   const st = document.getElementById('backup-status');
   if (btn) { btn.disabled = true; btn.textContent = '⟳ Salvando…'; }
   if (st) st.textContent = 'Criando backup…';
