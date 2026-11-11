@@ -1626,7 +1626,7 @@ const SITES = [
 ];
 const SYMPTOMS = ['Náusea','Vômito','Diarreia','Constipação','Dor abdominal','Fadiga','Tontura','Falta de apetite','Dor no local','Refluxo'];
 const DAYS_PT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const APP_VERSION = 'v56';
+const APP_VERSION = 'v57';
 const DB = 'tirzadose_v2';
 const DEFAULT_STATE = {
   profile:{ name:'', weightKg:0, heightCm:0, startDate:'', weekDay:1, currentDoseMg:2.5, birthDate:'', sex:'' },
@@ -2272,7 +2272,9 @@ function save() {
 }
 
 /* ===== DATE UTILS ===== */
-const today = () => new Date().toISOString().slice(0,10);
+// Sempre usa data LOCAL (toISOString é UTC e fica errado após 21h no BRT)
+function _localDateStr(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+const today = () => _localDateStr(new Date());
 const now = () => new Date().toTimeString().slice(0,5);
 function parseD(str){ const [y,m,d] = str.split('-'); return new Date(+y,+m-1,+d); }
 function fmtD(str){
@@ -2284,13 +2286,13 @@ function diffDays(a, b){ return Math.round((parseD(b)-parseD(a))/86400000); }
 function addDays(str, n){
   const d = parseD(str);
   d.setDate(d.getDate()+n);
-  return d.toISOString().slice(0,10);
+  return _localDateStr(d);
 }
 function nextWeekdayFrom(fromStr, weekDay){
   const d = parseD(fromStr);
   const diff = (weekDay - d.getDay() + 7) % 7;
   d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
-  return d.toISOString().slice(0,10);
+  return _localDateStr(d);
 }
 
 /* ===== ONBOARDING ===== */
@@ -2722,6 +2724,8 @@ function saveApplication(){
     document.getElementById('mo-apply-title').textContent = 'Registrar Aplicação';
     alert2('Aplicação atualizada!');
   } else {
+    const dupDate = S.applications.find(a => a.date === date);
+    if (dupDate && !confirm(`Já existe uma aplicação registrada em ${fmtD(date)}. Registrar mesmo assim?`)) return;
     S.applications.push({id:uid(), date, time, doseMg:dose, site:selectedSite, notes});
     alert2('Aplicação registrada!');
   }
@@ -2823,7 +2827,7 @@ function lastWeekdayOn(fromStr, weekDay){
   const d = parseD(fromStr);
   const diff = (d.getDay() - weekDay + 7) % 7;
   d.setDate(d.getDate() - diff);
-  return d.toISOString().slice(0,10);
+  return _localDateStr(d);
 }
 
 function computeNextDoseDate(){
